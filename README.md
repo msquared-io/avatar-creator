@@ -80,15 +80,15 @@
 
 
 
+--- 
 
+## How to make new assets
 
+For production of assets, there a few recommendations and guidelines as well as templates to follow:
 
-
-
-
-
-
-
+* [Clothes](./docs/clothes.md)
+* *TODO* - Faces
+* *TODO* - Hair
 
 
 
