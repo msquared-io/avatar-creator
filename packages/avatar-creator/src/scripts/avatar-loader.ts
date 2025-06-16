@@ -293,7 +293,7 @@ export class AvatarLoader extends EventHandler {
         this.legs = false;
         this.unload("legs");
       }
-
+    }
   }
 
   /**
