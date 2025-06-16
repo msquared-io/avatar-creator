@@ -94,4 +94,6 @@ For production of assets, there a few recommendations and guidelines as well as 
 
 ## License
 
-This repository and any related avatar assets not otherwise licensed are proprietary to MSquared. All rights reserved.
+The contents of this repository is MIT Licensed. 
+
+Any referenced avatar assets not otherwise explicitly licensed are property of their respective owners. All rights reserved.
