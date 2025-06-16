@@ -1,13 +1,13 @@
-
+{
   "type": "module",
   "packageManager": "npm@9.6.7",
-
-
+  "version": "0.1.0",
+  "private": true,
   "workspaces": [
     "examples/*",
     "packages/*"
   ],
-
+  "scripts": {
     "pre:build": "turbo run pre:build --output-logs=full",
     "build": "turbo run build --output-logs=full",
     "depcheck-all": "depcheck --quiet && turbo run depcheck --concurrency=5 --output-logs=full --continue=always",
@@ -16,20 +16,20 @@
     "lint-all": "turbo run lint --concurrency=5 --output-logs=full --continue=always",
     "lint-fix-all": "turbo run lint-fix --concurrency=5 --output-logs=full",
     "type-check-all": "turbo run type-check --concurrency=5 --output-logs=full --continue=always"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
     "@eslint/js": "9.27.0",
     "@next/eslint-plugin-next": "^15.3.3",
     "@types/jju": "1.4.5",
@@ -44,5 +44,5 @@
     "turbo": "2.5.0",
     "typescript": "5.8.3",
     "typescript-eslint": "8.32.1"
-
-
+  }
+}

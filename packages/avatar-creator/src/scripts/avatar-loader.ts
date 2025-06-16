@@ -11,30 +11,30 @@ import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/frame
 
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
 
+/*
 
+    Implements loading, animating and rendering
+    based on provided GLB files for various slots
 
+*/
 
+/**
+ * Fired when new GLB has started loading for a slot
+ * The event name will contain a specific slot and url
+ * @event AvatarLoader#loading:slot:url
+ */
 
+/**
+ * Fired when GLB has loaded for a slot
+ * The event name will contain a specific slot and url
+ * @event AvatarLoader#loaded:slot:url
+ * @example
+ * avatarLoader.once(`loaded:head:${url}`, () => {
+ *     // specific head url has loaded
+ * })
+ */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// supported slots
 const slots = [
   "head",
   "hair",
@@ -130,7 +130,7 @@ export class AvatarLoader extends EventHandler {
         rootBone: this.entity,
       });
       this.entity.addChild(entity);
-
+    }
 
     this.loadAnimation();
   }
@@ -249,9 +249,9 @@ export class AvatarLoader extends EventHandler {
           const item = section.list[i];
           const url = `${item.file}.glb`;
           this.index.set(url, item);
-
+        }
       }
-
+    }
   }
 
   /**
@@ -263,7 +263,7 @@ export class AvatarLoader extends EventHandler {
     if (slot === "top") {
       if (this.index.get(url)?.torso) {
         this.torso = true;
-
+        this.loadTorso();
       } else {
         this.torso = false;
       }
@@ -274,7 +274,7 @@ export class AvatarLoader extends EventHandler {
       } else {
         this.legs = false;
       }
-
+    }
   }
 
   /**
@@ -286,7 +286,7 @@ export class AvatarLoader extends EventHandler {
     if (slot === "top") {
       if (!this.index.get(url)?.torso) {
         this.torso = false;
-
+        this.loadTorso();
       }
     } else if (slot === "bottom") {
       if (!this.index.get(url)?.legs) {
@@ -318,7 +318,7 @@ export class AvatarLoader extends EventHandler {
         this.fire(`loading:${slot}:${url}`);
       }
       return;
-
+    }
 
     if (url === null) {
       if (this.slotEntities[slot]) {
@@ -331,7 +331,7 @@ export class AvatarLoader extends EventHandler {
       delete this.urls[slot];
 
       return;
-
+    }
 
     this.fire(`loading:${slot}:${url}`);
 
@@ -391,7 +391,7 @@ export class AvatarLoader extends EventHandler {
     if (this.loading.has(slot)) {
       this.next.set(slot, null);
       return;
-
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.slotEntities[slot].render!.asset = 0;
@@ -400,4 +400,4 @@ export class AvatarLoader extends EventHandler {
 
     delete this.urls[slot];
   }
-
+}

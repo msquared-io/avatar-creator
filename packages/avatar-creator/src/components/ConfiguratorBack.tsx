@@ -34,4 +34,4 @@ export default function ConfiguratorBack({
       </svg>
     </div>
   );
-
+}
