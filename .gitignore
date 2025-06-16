@@ -25,6 +25,6 @@ tsconfig.tsbuildinfo
 
 
 
-
-
+# next
+.next
 examples/avatar-preview-app/next-env.d.ts
