@@ -1,16 +1,16 @@
+@import "./variables.css";
+@import "../../../node_modules/highlight.js/styles/base16/dark-violet.css";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(203, 166, 255, 0.5);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #fff;
+}

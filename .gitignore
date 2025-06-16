@@ -1,6 +1,7 @@
 
 
 
+node_modules/
 
 
 
@@ -8,6 +9,17 @@
 
 
 
+build/
+
+
+.turbo/
+
+
+
+
+
+
+tsconfig.tsbuildinfo
 
 
 
@@ -15,16 +27,4 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+examples/avatar-preview-app/next-env.d.ts

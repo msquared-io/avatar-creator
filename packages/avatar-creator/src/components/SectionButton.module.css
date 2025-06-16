@@ -1,148 +1,148 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.sectionButton {
+    position: relative;
+    width: 98px;
+    height: 98px;
+    margin-bottom: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    background-image: url("../assets/img/button-normal.svg");
+    background-size: 98px 98px;
+    backdrop-filter: blur(8px);
+    mask-image: url("../assets/img/button-slot-mask.svg");
+    mask-size: cover;
+}
+
+.sectionButton:hover {
+    background-image: url("../assets/img/button-hover.svg");
+}
+
+.sectionButton:hover svg path {
+    fill: #fff;
+}
+
+.sectionButton.loading::after {
+    content: "\00a0";
+    position: absolute;
+    top: calc(50% - 32px);
+    left: calc(50% - 32px);
+    width: 64px;
+    height: 64px;
+    border: 5px solid var(--color-spinner);
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: spinRotation 1s linear infinite;
+}
+
+.sectionButton.active {
+    background-image: url("../assets/img/button-hover.svg");
+}
+
+.sectionButton.active svg path {
+    fill: #fff;
+}
+
+/* Gender slot */
+.sectionButton[data-slot="gender"]:hover .icon,
+.sectionButton[data-slot="gender"].active .icon {
+    background-image: url("../assets/img/icon-body-hover.svg");
+}
+
+.sectionButton[data-slot="gender"] .icon {
+    background-image: url("../assets/img/icon-body.svg");
+}
+
+/* Head slot */
+.sectionButton[data-slot="head"]:hover .icon,
+.sectionButton[data-slot="head"].active .icon {
+    background-image: url("../assets/img/icon-head-hover.svg");
+}
+
+.sectionButton[data-slot="head"] .icon {
+    background-image: url("../assets/img/icon-head.svg");
+}
+
+/* Hair slot */
+.sectionButton[data-slot="hair"]:hover .icon,
+.sectionButton[data-slot="hair"].active .icon {
+    background-image: url("../assets/img/icon-hair-hover.svg");
+}
+
+.sectionButton[data-slot="hair"] .icon {
+    background-image: url("../assets/img/icon-hair.svg");
+}
+
+/* Top slot */
+.sectionButton[data-slot="top"]:hover .icon,
+.sectionButton[data-slot="top"].active .icon {
+    background-image: url("../assets/img/icon-top-hover.svg");
+}
+
+.sectionButton[data-slot="top"] .icon {
+    background-image: url("../assets/img/icon-top.svg");
+}
+
+/* Bottom slot */
+.sectionButton[data-slot="bottom"]:hover .icon,
+.sectionButton[data-slot="bottom"].active .icon {
+    background-image: url("../assets/img/icon-bottom-hover.svg");
+}
+
+.sectionButton[data-slot="bottom"] .icon {
+    background-image: url("../assets/img/icon-bottom.svg");
+}
+
+/* Shoes slot */
+.sectionButton[data-slot="shoes"]:hover .icon,
+.sectionButton[data-slot="shoes"].active .icon {
+    background-image: url("../assets/img/icon-shoes-hover.svg");
+}
+
+.sectionButton[data-slot="shoes"] .icon {
+    background-image: url("../assets/img/icon-shoes.svg");
+}
+
+.icon {
+    width: 100%;
+    height: 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.sectionButton svg {
+    position: absolute;
+    top: calc(50% - 32px);
+    left: calc(50% - 32px);
+}
+
+.sectionButton svg path {
+    fill: var(--color-primary);
+}
+
+@media screen and (max-width: 1024px) {
+    .sectionButton {
+        display: inline-block;
+        margin-right: 8px;
+        width: 72px;
+        height: 72px;
+        background-size: 72px;
+    }
+
+    .sectionButton .icon {
+        background-size: 48px;
+    }
+
+    .sectionButton:last-child {
+        margin-right: 0;
+    }
+}
+
+@keyframes spinRotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+} 

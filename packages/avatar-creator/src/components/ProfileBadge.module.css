@@ -1,47 +1,47 @@
+.button {
+    position: absolute;
+    top: 60px;
+    right: 80px;
+    user-select: none;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    mask-image: url("../assets/img/button-mask-signin.svg");
+}
 
+.button:hover svg path {
+    stroke: #6201eb;
+    fill: #6201eb;
+}
 
+.button span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    line-height: 62px;
+    color: #fff;
+    font-size: 36px;
+    padding-left: 20px;
+    font-weight: 400;
+}
 
+.button img {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 60px;
+    height: 60px;
+    mask-image: url("../assets/img/button-mask.svg");
+    mask-position: -34px -133px;
+}
 
+@media screen and (max-width: 1024px) {
+    .button {
+        top: 30px;
+        right: 30px;
+        mask-image: url("../assets/img/button-mask-signin-mobile.svg");
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    .button span {
+        display: none;
+    }
+} 

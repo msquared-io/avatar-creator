@@ -1,4 +1,21 @@
 
+  "type": "module",
+  "packageManager": "npm@9.6.7",
+
+
+  "workspaces": [
+    "examples/*",
+    "packages/*"
+  ],
+
+    "pre:build": "turbo run pre:build --output-logs=full",
+    "build": "turbo run build --output-logs=full",
+    "depcheck-all": "depcheck --quiet && turbo run depcheck --concurrency=5 --output-logs=full --continue=always",
+    "dev": "npm run iterate",
+    "iterate": "npm run pre:build && turbo run iterate --env-mode=loose --concurrency=1000 --output-logs=full",
+    "lint-all": "turbo run lint --concurrency=5 --output-logs=full --continue=always",
+    "lint-fix-all": "turbo run lint-fix --concurrency=5 --output-logs=full",
+    "type-check-all": "turbo run type-check --concurrency=5 --output-logs=full --continue=always"
 
 
 
@@ -13,36 +30,19 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    "@eslint/js": "9.27.0",
+    "@next/eslint-plugin-next": "^15.3.3",
+    "@types/jju": "1.4.5",
+    "depcheck": "^1.4.7",
+    "esbuild": "0.24.0",
+    "eslint": "9.27.0",
+    "eslint-config-prettier": "10.1.5",
+    "eslint-plugin-prettier": "5.4.0",
+    "eslint-plugin-simple-import-sort": "12.1.1",
+    "jju": "1.4.0",
+    "prettier": "3.5.3",
+    "turbo": "2.5.0",
+    "typescript": "5.8.3",
+    "typescript-eslint": "8.32.1"
 
 

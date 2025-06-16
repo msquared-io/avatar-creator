@@ -1,7 +1,7 @@
-
-
-
-
-
-
-
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "examples/avatar-preview-app/.next",
+  "installCommand": "npm install",
+  "framework": "nextjs"
+} 

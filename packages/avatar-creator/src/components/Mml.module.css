@@ -1,101 +1,101 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.mml {
+    position: absolute;
+    top: 300px;
+    right: 90px;
+}
+
+.button {
+    position: relative;
+    margin-bottom: 4px;
+    user-select: none;
+    cursor: pointer;
+}
+
+.button:hover span {
+    color: #fff;
+}
+
+.button:hover svg :global(path.background) {
+    fill: #6201eb;
+    opacity: 1;
+}
+
+.button:hover svg :global(path.border) {
+    fill: #6201eb;
+}
+
+.button:hover svg :global(path.icon) {
+    fill: #fff;
+}
+
+.button span {
+    position: absolute;
+    left: 16px;
+    top: 0;
+    line-height: 52px;
+    font-weight: 500;
+    font-size: 28px;
+    color: #fff;
+}
+
+.hamburger {
+    position: absolute;
+    right: -10px;
+    top: -196px;
+    cursor: pointer;
+    display: none;
+}
+
+.hamburger:hover svg :global(path.background) {
+    fill: #6201eb;
+    stroke: #6201eb;
+    opacity: 1;
+}
+
+.hamburger:hover svg :global(path.icon) {
+    fill: #fff;
+}
+
+.hamburger.active svg[class="normal"] {
+    display: none;
+}
+
+.hamburger.active svg[class="active"] {
+    display: block;
+}
+
+.hamburger svg[class="active"] {
+    display: none;
+}
+
+.mobileMenu {
+    position: absolute;
+    right: 0px;
+    top: -112px;
+    overflow: hidden;
+    height: 0px;
+    opacity: 0;
+    transition:
+        height 100ms,
+        opacity 100ms;
+    display: none;
+}
+
+.mobileMenu.active {
+    height: 120px;
+    opacity: 1;
+}
+
+@media screen and (max-width: 1024px) {
+    .mml {
+        right: 40px;
+    }
+    
+    .hamburger {
+        display: block;
+    }
+    
+    .mobileMenu {
+        display: block;
+    }
+} 

@@ -1,214 +1,214 @@
 
+    "genders": {
+        "female": {
+            "body": {
+                "skin": true,
+                "torsoArms": "http://localhost:3000/parts/Body_B_BodyTorsoHeadless",
+                "arms": "http://localhost:3000/parts/Body_B_BodyArmsHeadless",
+                "legsFeet": "http://localhost:3000/parts/Body_B_BodyLegsFeet",
+                "legs": "http://localhost:3000/parts/Body_B_BodyLegs"
+            },
+            "bottom": {
+                "list": [
 
+                        "file": "http://localhost:3000/parts/Bottom_B_TightJoggers_GreyTrack_01"
 
 
+                        "file": "http://localhost:3000/parts/Bottom_B_Leggings_Magenta_01"
 
 
+                        "file": "http://localhost:3000/parts/Bottom_B_Leggings_Blue_01"
 
 
+                        "file": "http://localhost:3000/parts/Bottom_B_Leggings_BB_01"
+                    }
+                ]
+            },
+            "hair": {
+                "list": [
 
+                        "file": "http://localhost:3000/parts/Hair_B_AlexaHair_Black_01"
 
 
+                        "file": "http://localhost:3000/parts/Hair_B_AlexaHair_Blonde_01"
 
 
+                        "file": "http://localhost:3000/parts/Hair_B_GenHair_01"
 
 
+                        "file": "http://localhost:3000/parts/Hair_B_Hair_Andronella_01"
+                    }
+                ]
+            },
+            "head": {
+                "skin": true,
+                "list": [
 
+                        "file": "http://localhost:3000/parts/Head_B_Hispanic_C"
 
 
+                        "file": "http://localhost:3000/parts/Head_B_Hispanic_B"
 
 
+                        "file": "http://localhost:3000/parts/Head_B_Black_African_B"
 
 
+                        "file": "http://localhost:3000/parts/Head_B_Arabic_Indian_A"
+                    }
+                ]
+            },
+            "shoes": {
+                "list": [
 
+                        "file": "http://localhost:3000/parts/Shoes_B_HighTopsRetro_White_01"
 
 
+                        "file": "http://localhost:3000/parts/Shoes_B_HighTopsRetro_Black_01"
 
 
 
 
 
 
+                        "file": "http://localhost:3000/parts/Top_B_BaseballJersey_PlainBrown_01"
 
 
+                        "file": "http://localhost:3000/parts/Top_B_AsymHemTshirt_PlainWhite"
 
 
+                        "file": "http://localhost:3000/parts/Top_B_AsymHemTshirt_PlainBlack"
 
 
+            }
+        },
+        "male": {
+            "body": {
+                "skin": true,
+                "torsoArms": "http://localhost:3000/parts/Body_A_TorsoHeadless",
+                "arms": "http://localhost:3000/parts/Body_A_ArmsHeadless",
+                "legsFeet": "http://localhost:3000/parts/Body_A_BodyLegsFeet",
+                "legs": "http://localhost:3000/parts/Body_A_BodyLegs"
 
 
 
 
+                        "file": "http://localhost:3000/parts/Bottom_A_TightJoggers_TanJeans_01"
 
 
+                        "file": "http://localhost:3000/parts/Bottom_A_TightJoggers_GreyTrack_01"
 
 
+                        "file": "http://localhost:3000/parts/Bottom_A_CargoTrousers_MidBlueWash_01"
 
 
+                        "file": "http://localhost:3000/parts/Bottom_A_CargoTrousers_BlackJeans_01"
+                    }
+                ]
+            },
+            "hair": {
+                "list": [
 
+                        "file": "http://localhost:3000/parts/Hair_A_KaiHair_Extra_01"
 
 
+                        "file": "http://localhost:3000/parts/Hair_A_Hair_ShortClassy_01"
 
 
+                        "file": "http://localhost:3000/parts/Hair_A_Hair_AndorShort_01"
 
 
+                        "file": "http://localhost:3000/parts/Hair_A_GenHair_Blonde_01"
+                    }
+                ]
+            },
+            "head": {
+                "skin": true,
+                "list": [
 
+                        "file": "http://localhost:3000/parts/Head_A_White_Europen_American_Male_C"
 
 
+                        "file": "http://localhost:3000/parts/Head_A_MiddleEast_Male_C"
 
 
+                        "file": "http://localhost:3000/parts/Head_A_Hispanic_Male_B"
 
 
+                        "file": "http://localhost:3000/parts/Head_A_East_Asian_Male_C"
 
 
 
 
 
 
+                        "file": "http://localhost:3000/parts/Shoes_A_HighTops_RunningBlack_01"
 
 
+                        "file": "http://localhost:3000/parts/Shoes_A_HighTopsRetro_White_01"
 
 
+                        "file": "http://localhost:3000/parts/Shoes_A_HighTopConv_PaleBlue_01"
 
 
+                        "file": "http://localhost:3000/parts/Shoes_A_HighTopChunky_Gold_01"
+                    }
+                ]
+            },
+            "top": {
+                "list": [
 
+                        "file": "http://localhost:3000/parts/Top_A_FlannelShirt_Plain",
+                        "secondary": "http://localhost:3000/parts/Top_A_BaseballJersey_PlainWhite_01",
+                        "torso": true
 
 
+                        "file": "http://localhost:3000/parts/Top_A_FlannelShirt_CheckerdBW_01",
+                        "secondary": "http://localhost:3000/parts/Top_A_AsymHemTshirt_PlainNavy_01"
 
 
+                        "file": "http://localhost:3000/parts/Top_A_AsymHemTshirt_PlainNavy_01"
 
 
+                        "file": "http://localhost:3000/parts/Top_A_AsymHemTshirt_PlainBlack_01"
 
 
+                        "file": "http://localhost:3000/parts/Top_A_BaseballJersey_PlainWhite_01"
 
 
+                        "file": "http://localhost:3000/parts/Top_A_BaseballJersey_PlainBrown_01"
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    },
+    "skin": [
+        {
+            "name": "06",
+            "index": 6
+        },
+        {
+            "name": "03",
+            "index": 3
+        },
+        {
+            "name": "01",
+            "index": 1
+        },
+        {
+            "name": "05",
+            "index": 5
+        },
+        {
+            "name": "02",
+            "index": 2
+        },
+        {
+            "name": "04",
+            "index": 4
+        },
+        {
+            "name": "07",
+            "index": 7
+        }
+    ]
+}

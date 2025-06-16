@@ -1,1 +1,1 @@
-
+export * from "./AvatarCreatorApp";

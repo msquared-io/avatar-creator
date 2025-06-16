@@ -1,53 +1,53 @@
+/* Desktop Export button - always visible on desktop, hidden on mobile */
+.export {
+    display: block;
+}
 
+.export .loading {
+    animation: spinRotation 1s linear infinite;
+}
 
+/* Mobile menu buttons - only visible in mobile dropdown */
+.mobileExport {
+    display: block;
+}
 
+.mobileExport .loading {
+    animation: spinRotation 1s linear infinite;
+}
 
+.save {
+    display: block;
+}
 
+.save .loading {
+    animation: spinRotation 1s linear infinite;
+}
 
+.save:hover span {
+    color: #fff;
+}
 
+.save span {
+    color: #6201eb;
+}
 
+.saveHidden {
+    opacity: 0;
+    pointer-events: none;
+}
 
+@keyframes spinRotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+@media screen and (max-width: 1024px) {
+    .export {
+        display: none;
+    }
+} 

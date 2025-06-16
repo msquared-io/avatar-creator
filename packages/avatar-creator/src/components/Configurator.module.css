@@ -1,138 +1,138 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.configurator {
+    position: fixed;
+    left: calc(-400px - 90px);
+    top: 0;
+    bottom: 0;
+    width: 400px;
+    padding-left: 90px;
+    padding-top: 68px;
+    display: grid;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        left 100ms,
+        opacity 100ms;
+    grid-template-rows: 100px 100px calc(100% - 200px);
+}
+
+.configuratorVisible {
+    opacity: 1;
+    left: 0px;
+    pointer-events: all;
+}
+
+.back {
+    width: 52px;
+    height: 52px;
+    border-radius: 32px;
+    user-select: none;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+}
+
+.back:hover svg path.circle {
+    fill: #6201eb;
+    stroke: #6201eb;
+}
+
+.back:hover svg path.arrow {
+    fill: #fff;
+}
+
+.title {
+    font-size: 48px;
+    margin-top: 30px;
+    margin-bottom: 0px;
+    user-select: none;
+    height: 70px;
+    line-height: 70px;
+}
+
+.main {
+    flex-grow: 1;
+    display: flex;
+    user-select: none;
+    margin-top: 30px;
+}
+
+.sections {
+    width: 98px;
+    margin: 0;
+    padding: 0 0 32px 0;
+    flex-grow: 1;
+    list-style: none;
+    min-width: min-content;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.sections::-webkit-scrollbar {
+    width: 0px;
+}
+
+.items {
+    position: relative;
+    flex-grow: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-left: 16px;
+    padding-right: 8px;
+    padding-bottom: 32px;
+}
+
+@media screen and (max-width: 1024px) {
+    .configurator {
+        display: block;
+        top: unset;
+        right: 0;
+        width: auto;
+        height: 370px;
+        padding: 0;
+    }
+
+    .back {
+        position: absolute;
+        left: 20px;
+        top: calc(-100svh + 370px + 30px);
+    }
+
+    .title {
+        margin-top: 0;
+        padding: 0 20px;
+        line-height: 70px;
+        border-bottom: 1px solid rgba(203, 166, 255, 0.25);
+    }
+
+    .main {
+        margin-top: 16px;
+        max-width: 100vw;
+        flex-direction: column;
+    }
+
+    .sections {
+        width: calc(100vw - 40px);
+        max-width: calc(100vw - 40px);
+        padding: 0 20px;
+        min-height: min-content;
+        min-width: auto;
+        white-space: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .sections::-webkit-scrollbar {
+        height: 0px;
+    }
+
+    .items {
+        padding: 4px 20px 17px 20px;
+        overflow-y: hidden;
+        overflow-x: auto;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        flex-flow: flex-start;
+        align-items: justify;
+        gap: 4px;
+    }
+}

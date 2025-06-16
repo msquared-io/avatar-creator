@@ -12,6 +12,7 @@
 
 
 
+    "noImplicitAny": true,
 
 
 
@@ -27,8 +28,7 @@
 
 
 
-
-
+    "examples/avatar-preview-app/next-env.d.ts",
 
 
 

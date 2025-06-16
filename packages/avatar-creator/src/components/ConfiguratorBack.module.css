@@ -1,25 +1,25 @@
+.back {
+    width: 52px;
+    height: 52px;
+    border-radius: 32px;
+    user-select: none;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+}
 
+.back:hover svg :global(path.circle) {
+    fill: #6201eb;
+    stroke: #6201eb;
+}
 
+.back:hover svg :global(path.arrow) {
+    fill: #fff;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+@media screen and (max-width: 1024px) {
+    .back {
+        position: absolute;
+        left: 20px;
+        top: calc(-100svh + 370px + 30px);
+    }
+} 

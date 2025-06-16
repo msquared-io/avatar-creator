@@ -1,38 +1,38 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{
+  "name": "@private/avatar-creator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "files": [
+    "/build"
+  ],
+  "scripts": {
+    "depcheck": "depcheck --quiet",
+    "build": "tsx ./build.ts --mode=build",
+    "iterate": "tsx ./build.ts --mode=watch",
+    "lint": "eslint \"./src/**/*.{js,jsx,ts,tsx}\" --max-warnings 0",
+    "lint-fix": "eslint \"./src/**/*.{js,jsx,ts,tsx}\" --fix",
+    "pre:build": "npm run build",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "playcanvas": "^2.7.7",
+    "highlight.js": "^11.11.1",
+    "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.20",
+    "@types/react": "19.1.4",
+    "@types/http-server": "0.12.4",
+    "autoprefixer": "10.4.20",
+    "esbuild": "0.24.0",
+    "esbuild-style-plugin": "1.6.3",
+    "http-server": "14.1.1",
+    "postcss": "8.5.3",
+    "tsx": "4.19.3",
+    "yargs": "17.7.2",
+    "@types/yargs": "17.0.33"
+  }
+}

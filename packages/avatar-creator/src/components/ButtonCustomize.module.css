@@ -1,78 +1,78 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.button {
+    position: absolute;
+    left: -420px;
+    bottom: 90px;
+    user-select: none;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        left 100ms,
+        opacity 100ms;
+    cursor: pointer;
+}
+
+.button svg path {
+    transition: fill 100ms;
+}
+
+.button span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    line-height: 90px;
+    color: #000;
+    font-size: 44px;
+    padding-left: 30px;
+    font-weight: 600;
+}
+
+/* Visible state */
+.buttonVisible {
+    left: 80px;
+    opacity: 1;
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.buttonVisible:hover span {
+    color: #fff;
+}
+
+.buttonVisible:hover svg path {
+    fill: #6201eb;
+}
+
+.buttonVisible svg path {
+    fill: #fff;
+}
+
+@media screen and (max-width: 1024px) {
+    .buttonVisible {
+        left: calc(50% - 210px);
+    }
+
+    .button {
+        bottom: 40px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .buttonVisible {
+        left: calc(50% - 150px);
+    }
+
+    .button {
+        width: 300px;
+        height: 64px;
+    }
+
+    .button span {
+        line-height: 64px;
+        font-size: 38px;
+    }
+    
+    .button svg {
+        width: 300px;
+        height: 64px;
+    }
+} 
