@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
   "outputDirectory": "examples/avatar-preview-app/.next",
-  "installCommand": "git lfs install && git lfs pull --include='packages/**' && npm install",
+  "installCommand": "git lfs install && git remote add origin https://github.com/${VERCEL_GIT_REPO_OWNER}/${VERCEL_GIT_REPO_SLUG}.git && git lfs pull --include='packages/**' && npm install",
   "framework": "nextjs",
   "build": {
     "env": {
