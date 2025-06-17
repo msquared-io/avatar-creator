@@ -1,6 +1,6 @@
 {
-    "genders": {
-        "female": {
+    "bodyTypes": {
+        "bodyB": {
             "body": {
                 "skin": true,
                 "torsoArms": "http://localhost:3000/parts/Body_B_BodyTorsoHeadless",
@@ -81,7 +81,7 @@
                 ]
             }
         },
-        "male": {
+        "bodyA": {
             "body": {
                 "skin": true,
                 "torsoArms": "http://localhost:3000/parts/Body_A_TorsoHeadless",

@@ -14,7 +14,7 @@ declare global {
 
 export default function SlotItem({
   image,
-  gender,
+  bodyType,
   skin,
   slot,
   url,
@@ -23,7 +23,7 @@ export default function SlotItem({
   onClick,
 }: {
   image: string;
-  gender?: CatalogueBodyType;
+  bodyType?: CatalogueBodyType;
   skin?: number;
   slot?: string;
   url?: string;
@@ -61,7 +61,7 @@ export default function SlotItem({
   return (
     <li
       className={`${styles.slotItem} ${active ? styles.active : ""} ${loading ? styles.loading : ""}`}
-      data-gender={gender ?? null}
+      data-bodytype={bodyType ?? null}
       data-skin={skin ?? null}
       onClick={onClick}
     >

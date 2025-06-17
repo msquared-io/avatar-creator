@@ -43,14 +43,14 @@
     fill: #fff;
 }
 
-/* Gender slot */
-.sectionButton[data-slot="gender"]:hover .icon,
-.sectionButton[data-slot="gender"].active .icon {
-    background-image: url("../assets/img/icon-body-hover.svg");
+/* BodyType slot */
+.sectionButton[data-slot="bodyType"]:hover .icon,
+.sectionButton[data-slot="bodyType"].active .icon {
+    background-image: url("../assets/img/icon-bodytype-hover.svg");
 }
 
-.sectionButton[data-slot="gender"] .icon {
-    background-image: url("../assets/img/icon-body.svg");
+.sectionButton[data-slot="bodyType"] .icon {
+    background-image: url("../assets/img/icon-bodytype.svg");
 }
 
 /* Head slot */

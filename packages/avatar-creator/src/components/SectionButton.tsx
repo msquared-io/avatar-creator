@@ -8,8 +8,8 @@ export default function SectionButton({
   setSection,
   active,
 }: {
-  slot: CataloguePartsKeys | "gender";
-  setSection: (section: CataloguePartsKeys | "gender") => void;
+  slot: CataloguePartsKeys | "bodyType";
+  setSection: (section: CataloguePartsKeys | "bodyType") => void;
   active: boolean;
 }) {
   return (

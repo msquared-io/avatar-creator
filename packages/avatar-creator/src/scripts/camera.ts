@@ -21,7 +21,7 @@ const isDesktop = () => {
 // camera heights and distances based on slot selected for desktop
 const slotsDesktop = {
   full: { height: isDesktop() ? 1 : 0.8, distance: 8 },
-  gender: { height: isDesktop() ? 1 : 0.8, distance: 8 },
+  bodyType: { height: isDesktop() ? 1 : 0.8, distance: 8 },
   head: { height: 1.8, distance: 1.6 },
   hair: { height: 1.8, distance: 1.6 },
   top: { height: 1.5, distance: 2.0 },
@@ -32,7 +32,7 @@ const slotsDesktop = {
 // camera heights and distances based on slot selected for mobile
 const slotsMobile = {
   full: { height: isDesktop() ? 1 : 0.8, distance: 8 },
-  gender: { height: isDesktop() ? 1 : 0.8, distance: 8 },
+  bodyType: { height: isDesktop() ? 1 : 0.8, distance: 8 },
   head: { height: 1.6, distance: 1.6 },
   hair: { height: 1.6, distance: 1.6 },
   top: { height: 1.2, distance: 2.0 },
