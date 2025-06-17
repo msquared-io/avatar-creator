@@ -2,6 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
   "outputDirectory": "examples/avatar-preview-app/.next",
-  "installCommand": "npm install",
-  "framework": "nextjs"
+  "installCommand": "git lfs install && git lfs pull --include='packages/**' && npm install",
+  "framework": "nextjs",
+  "build": {
+    "env": {
+      "GIT_LFS_SKIP_SMUDGE": "1"
+    }
+  }
 } 
