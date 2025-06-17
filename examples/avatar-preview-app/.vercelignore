@@ -1,0 +1,3 @@
+# Exclude the parts directory containing large binary files (.glb and .webp)
+# This reduces deployment size and build time
+public/parts/ 
