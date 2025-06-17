@@ -3,16 +3,18 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import tseslint from "typescript-eslint";
 import nextPlugin from "@next/eslint-plugin-next";
+import licenseHeader from "eslint-plugin-license-header";
 
 export default tseslint.config(
   {
-    ignores: ["**/node_modules", "**/build", "**/.next", "**/.turbo", "**/coverage", "**/vendor", "**/wasm"],
+    ignores: ["**/node_modules", "**/build", "**/.next", "**/.turbo", "**/coverage", "**/vendor", "**/wasm", "**/next-env.d.ts"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
     plugins: {
       "simple-import-sort": simpleImportSort,
+      "license-header": licenseHeader,
     },
     rules: {
       "@typescript-eslint/await-thenable": "error",
@@ -28,6 +30,18 @@ export default tseslint.config(
           objectLiteralTypeAssertions: "allow",
         },
       ],
+      "license-header/header": [
+      "error",
+      [
+          `/**
+ * @license
+ * Copyright Improbable MV Limited.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
+ */`
+      ]
+    ],
       "jsx-quotes": ["error", "prefer-double"],
       "quote-props": ["error", "as-needed"],
       "object-shorthand": ["error", "always"],
