@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright Improbable MV Limited.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
+ */
+
 import { AppBase } from "playcanvas";
 import * as React from "react";
 import { useEffect, useState } from "react";
@@ -13,8 +21,8 @@ import { AvatarLoader } from "../scripts/avatar-loader";
 import styles from "./Configurator.module.css";
 import ConfiguratorBack from "./ConfiguratorBack";
 import SectionBasic from "./SectionBasic";
+import SectionBodyType from "./SectionBodyType";
 import SectionButton from "./SectionButton";
-import SectionGender from "./SectionGender";
 import SectionSkin from "./SectionSkin";
 
 export default function Configurator({
@@ -31,9 +39,11 @@ export default function Configurator({
   app: AppBase;
 }) {
   const [skins, setSkins] = useState<DeepReadonly<Array<CatalogueSkin>>>([]);
-  const [section, setSection] = useState<CataloguePartsKeys | "gender">("gender");
+  const [section, setSection] = useState<CataloguePartsKeys | "bodyType">("bodyType");
 
-  const [gender, setGender] = useState<CatalogueBodyType>(Math.random() > 0.5 ? "female" : "male");
+  const [bodyType, setBodyType] = useState<CatalogueBodyType>(
+    Math.random() > 0.5 ? "bodyB" : "bodyA",
+  );
   const [skin, setSkin] = useState<CatalogueSkin>(
     data.skin[Math.floor(Math.random() * data.skin.length)],
   );
@@ -63,7 +73,7 @@ export default function Configurator({
   };
 
   const randomSlot = (slot: CataloguePartsKeys) => {
-    const list = data.genders[gender][slot].list;
+    const list = data.bodyTypes[bodyType][slot].list;
     const item = list[Math.floor(Math.random() * list.length)];
     let url = item.file;
     if (slot === "head") {
@@ -86,7 +96,7 @@ export default function Configurator({
 
   useEffect(() => {
     randomAll();
-  }, [gender]);
+  }, [bodyType]);
 
   useEffect(() => {
     if (head) {
@@ -98,7 +108,7 @@ export default function Configurator({
 
   useEffect(() => {
     avatarLoader.setSkin(skin);
-    avatarLoader.setGender(gender);
+    avatarLoader.setBodyType(bodyType);
     if (head) avatarLoader.load("head", head + ".glb");
     if (hair) avatarLoader.load("hair", hair + ".glb");
     if (top) avatarLoader.load("top", top + ".glb");
@@ -110,8 +120,8 @@ export default function Configurator({
 
   useEffect(() => {
     if (!avatarLoader) return;
-    avatarLoader.setGender(gender);
-  }, [gender]);
+    avatarLoader.setBodyType(bodyType);
+  }, [bodyType]);
   useEffect(() => {
     if (!avatarLoader) return;
     avatarLoader.setSkin(skin);
@@ -166,7 +176,7 @@ export default function Configurator({
             evt.stopPropagation();
           }}
         >
-          <SectionButton slot="gender" setSection={setSection} active={section === "gender"} />
+          <SectionButton slot="bodyType" setSection={setSection} active={section === "bodyType"} />
           <SectionButton slot="head" setSection={setSection} active={section === "head"} />
           <SectionButton slot="hair" setSection={setSection} active={section === "hair"} />
           <SectionButton slot="top" setSection={setSection} active={section === "top"} />
@@ -180,16 +190,16 @@ export default function Configurator({
             evt.stopPropagation();
           }}
         >
-          {section === "gender" && (
-            <SectionGender
-              gender={gender}
-              setGender={(value) => {
-                setGender(value);
+          {section === "bodyType" && (
+            <SectionBodyType
+              bodyType={bodyType}
+              setBodyType={(value) => {
+                setBodyType(value);
               }}
               avatarLoader={avatarLoader}
             />
           )}
-          {section === "gender" && (
+          {section === "bodyType" && (
             <SectionSkin
               skin={skin}
               skins={skins}
@@ -204,7 +214,7 @@ export default function Configurator({
               slot="head"
               title="Head"
               data={data}
-              gender={gender}
+              bodyType={bodyType}
               selected={head}
               skin={skin}
               avatarLoader={avatarLoader}
@@ -216,7 +226,7 @@ export default function Configurator({
               slot="hair"
               title="Hair"
               data={data}
-              gender={gender}
+              bodyType={bodyType}
               selected={hair}
               avatarLoader={avatarLoader}
               setSlot={setHair}
@@ -227,7 +237,7 @@ export default function Configurator({
               slot="top"
               title="Top"
               data={data}
-              gender={gender}
+              bodyType={bodyType}
               selected={top}
               avatarLoader={avatarLoader}
               setSlot={setTop}
@@ -239,7 +249,7 @@ export default function Configurator({
               slot="bottom"
               title="Bottom"
               data={data}
-              gender={gender}
+              bodyType={bodyType}
               selected={bottom}
               avatarLoader={avatarLoader}
               setSlot={setBottom}
@@ -251,7 +261,7 @@ export default function Configurator({
               slot="shoes"
               title="Shoes"
               data={data}
-              gender={gender}
+              bodyType={bodyType}
               selected={shoes}
               avatarLoader={avatarLoader}
               setSlot={setShoes}

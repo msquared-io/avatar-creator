@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright Improbable MV Limited.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
+ */
+
 import {
   AnimTrack,
   AppBase,
@@ -71,7 +79,7 @@ export class AvatarLoader extends EventHandler {
   private legs = false;
   private torso = false;
 
-  private gender: CatalogueBodyType = "female";
+  private bodyType: CatalogueBodyType = "bodyB";
   private skin: CatalogueSkin | null = null;
 
   private entity: Entity | null = null;
@@ -179,10 +187,10 @@ export class AvatarLoader extends EventHandler {
   }
 
   /**
-   * @param {('female'|'male')} gender Gender for the avatar
+   * @param {('bodyB'|'bodyA')} bodyType BodyType for the avatar
    */
-  setGender(gender: CatalogueBodyType) {
-    this.gender = gender;
+  setBodyType(bodyType: CatalogueBodyType) {
+    this.bodyType = bodyType;
     this.loadTorso();
     if (this.legs) this.loadLegs();
   }
@@ -219,7 +227,7 @@ export class AvatarLoader extends EventHandler {
       throw new Error("Skin is not set");
     }
     const item = this.torso ? "torsoArms" : "arms";
-    const url = `${this.data.genders[this.gender].body[item]}_${this.skin.name}.glb`;
+    const url = `${this.data.bodyTypes[this.bodyType].body[item]}_${this.skin.name}.glb`;
     this.load("torso", url);
   }
 
@@ -230,7 +238,7 @@ export class AvatarLoader extends EventHandler {
     if (!this.skin) {
       throw new Error("Skin is not set");
     }
-    const legs = `${this.data.genders[this.gender].body.legs}_${this.skin.name}.glb`;
+    const legs = `${this.data.bodyTypes[this.bodyType].body.legs}_${this.skin.name}.glb`;
     this.load("legs", legs);
   }
 
@@ -240,10 +248,10 @@ export class AvatarLoader extends EventHandler {
   indexData() {
     const slots = ["top", "bottom"] as const;
 
-    for (const gender in this.data.genders) {
+    for (const bodyType in this.data.bodyTypes) {
       for (let s = 0; s < slots.length; s++) {
         const slot = slots[s];
-        const section = this.data.genders[gender as CatalogueBodyType][slot];
+        const section = this.data.bodyTypes[bodyType as CatalogueBodyType][slot];
 
         for (let i = 0; i < section.list.length; i++) {
           const item = section.list[i];

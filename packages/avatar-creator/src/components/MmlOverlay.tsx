@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright Improbable MV Limited.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
+ */
+
 import hljs from "highlight.js";
 import xml from "highlight.js/lib/languages/xml";
 import * as React from "react";

@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright Improbable MV Limited.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
+ */
+
 export type DeepReadonly<T> = T extends (infer R)[]
   ? ReadonlyArray<DeepReadonly<R>>
   : T extends object
@@ -34,7 +42,7 @@ export type CatalogueParts = {
 
 export type CataloguePartsKeys = keyof CatalogueParts;
 
-export type CatalogueBodyType = "male" | "female";
+export type CatalogueBodyType = "bodyA" | "bodyB";
 
 export type CatalogueSkin = {
   name: string; // E.g. "06"
@@ -42,7 +50,7 @@ export type CatalogueSkin = {
   index: number; // E.g. 6
 };
 
-export type GenderBodyData = {
+export type BodyTypeBodyData = {
   body: {
     skin: true;
     torsoArms: string; //URL
@@ -52,9 +60,9 @@ export type GenderBodyData = {
   };
 };
 
-export type CatalogueGenderData = Record<CatalogueBodyType, GenderBodyData & CatalogueParts>;
+export type CatalogueBodyTypeData = Record<CatalogueBodyType, BodyTypeBodyData & CatalogueParts>;
 
 export type CatalogueData = DeepReadonly<{
   skin: Array<CatalogueSkin>;
-  genders: CatalogueGenderData;
+  bodyTypes: CatalogueBodyTypeData;
 }>;

@@ -24,7 +24,25 @@ This repo contains:
    npm install
    ```
 
-2. **Start the development servers**
+2. **Set up Git LFS for large assets**
+
+   This project uses Git LFS to manage large 3D model files (.glb) and image assets (.webp). Make sure you have Git LFS installed and set up:
+
+   ```bash
+   # Install Git LFS (if not already installed)
+   # On macOS with Homebrew:
+   brew install git-lfs
+   
+   # On other systems, see: https://git-lfs.github.io/
+   
+   # Initialize Git LFS in the repository
+   git lfs install
+   
+   # Pull the large files
+   git lfs pull
+   ```
+
+3. **Start the development servers**
 
    ```bash
    npm run iterate # or `npm run dev`
@@ -66,7 +84,7 @@ The library is compiled to ESM bundles (and type declarations) under `packages/a
 
 See [examples/avatar-preview-app/public/data.json](examples/avatar-preview-app/public/data.json)
 
-This specific project implements a static JSON data containing multiple genders, skin colors and various slot models: `body`, `head`, `hair`, `top`, `bottom`, `shoes`
+This specific project implements a static JSON data containing multiple body types, skin colors and various slot models: `body`, `head`, `hair`, `top`, `bottom`, `shoes`
 
 All URLs are defined without an extension, as it will be added: `.glb` (for 3D rendering) and `.webp` (for thumbnail).
 

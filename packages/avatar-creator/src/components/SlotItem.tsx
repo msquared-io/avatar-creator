@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright Improbable MV Limited.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
+ */
+
 import * as React from "react";
 import { useEffect, useState } from "react";
 
@@ -14,7 +22,7 @@ declare global {
 
 export default function SlotItem({
   image,
-  gender,
+  bodyType,
   skin,
   slot,
   url,
@@ -23,7 +31,7 @@ export default function SlotItem({
   onClick,
 }: {
   image: string;
-  gender?: CatalogueBodyType;
+  bodyType?: CatalogueBodyType;
   skin?: number;
   slot?: string;
   url?: string;
@@ -61,7 +69,7 @@ export default function SlotItem({
   return (
     <li
       className={`${styles.slotItem} ${active ? styles.active : ""} ${loading ? styles.loading : ""}`}
-      data-gender={gender ?? null}
+      data-bodytype={bodyType ?? null}
       data-skin={skin ?? null}
       onClick={onClick}
     >
