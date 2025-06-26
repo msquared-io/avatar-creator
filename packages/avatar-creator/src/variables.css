@@ -1,6 +1,7 @@
 :root {
   --color-primary: #cba6ff;
   --color-secondary: #6c00f4;
+  --color-drop: rgba(108, 0, 244, 0.5);
   --color-spinner: #fff;
   --button-background: rgba(0, 0, 0, 0.5);
   --button-background-active: #6c00f4;

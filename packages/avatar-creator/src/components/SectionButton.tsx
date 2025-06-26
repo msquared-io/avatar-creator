@@ -15,15 +15,20 @@ export default function SectionButton({
   slot,
   setSection,
   active,
+  droppable,
+  dropOver,
 }: {
   slot: CataloguePartsKeys | "bodyType";
   setSection: (section: CataloguePartsKeys | "bodyType") => void;
   active: boolean;
+  droppable: boolean;
+  dropOver: CataloguePartsKeys | "window" | null;
 }) {
   return (
     <li
-      className={`${styles.sectionButton} ${active ? styles.active : ""}`}
+      className={`${styles.sectionButton} ${active && dropOver === null ? styles.active : ""} ${dropOver === slot ? styles.dropOver : ""} ${droppable && dropOver === "window" ? styles.dropTarget : ""} ${!droppable && dropOver !== null ? styles.dropInvalid : ""}`}
       data-slot={slot}
+      data-drop={droppable ? slot : undefined}
       onClick={() => setSection(slot)}
     >
       <div className={styles.icon} />
