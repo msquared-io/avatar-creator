@@ -82,10 +82,7 @@ export class AvatarLoader extends EventHandler {
   >();
 
   legs = false;
-<<<<<<< HEAD
   preventRandom: boolean = false;
-=======
->>>>>>> 4b6fcc6 (mml-import)
   private torso = false;
 
   private bodyType: CatalogueBodyType = "bodyB";
