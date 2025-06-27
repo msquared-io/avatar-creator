@@ -199,6 +199,10 @@ export default function Configurator({
   }, []);
 
   useEffect(() => {
+    if (avatarLoader.preventRandom) {
+      avatarLoader.preventRandom = false;
+      return;
+    }
     randomAll();
   }, [bodyType]);
 
@@ -222,7 +226,11 @@ export default function Configurator({
     if (shoes) avatarLoader.load("shoes", shoes + ".glb");
 
     const evtBodyType = avatarLoader.on("slot:bodyType", (value) => {
+      avatarLoader.preventRandom = true;
       setBodyType(value);
+      setTimeout(() => {
+        avatarLoader.preventRandom = false;
+      }, 500);
     });
     const evtSkin = avatarLoader.on("slot:skin", (value) => {
       setSkin(value);

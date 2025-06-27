@@ -77,6 +77,7 @@ export class AvatarLoader extends EventHandler {
   >();
 
   legs = false;
+  preventRandom: boolean = false;
   private torso = false;
 
   private bodyType: CatalogueBodyType = "bodyB";
