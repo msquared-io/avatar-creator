@@ -1,6 +1,6 @@
 {
   "name": "@msquared/avatar-creator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A tool to create avatars",
   "homepage": "https://github.com/msquared-io/avatar-creator",
   "license": "MIT",
@@ -12,18 +12,6 @@
   "type": "module",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./build/types/index.d.ts",
-      "import": "./build/esm/index.js",
-      "require": "./build/cjs/index.js"
-    },
-    "./errors": {
-      "types": "./build/types/errors.d.ts",
-      "import": "./build/esm/errors.js",
-      "require": "./build/cjs/errors.js"
-    }
-  },
   "files": [
     "/build"
   ],
