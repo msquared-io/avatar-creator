@@ -1,0 +1,29 @@
+{
+    "layers": [
+        {
+            "name": "default",
+            "states": [
+                {
+                    "name": "START"
+                }, {
+                    "name": "ANY"
+                }, {
+                    "name": "Idle",
+                    "speed": 1,
+                    "loop": true,
+                    "defaultState": true
+                }
+            ],
+            "transitions": [
+                {
+                    "from": "START",
+                    "to": "Idle",
+                    "defaultTransition": true,
+                    "edgeType": 1,
+                    "conditions": {}
+                }
+            ]
+        }
+    ],
+    "parameters": {}
+}
