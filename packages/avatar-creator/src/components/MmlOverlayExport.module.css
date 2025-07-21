@@ -1,0 +1,65 @@
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.popup {
+    position: absolute;
+    width: 640px;
+    height: 300px;
+    left: calc(50% - 320px);
+    top: calc(50% - 150px);
+}
+
+.popup > pre {
+    background-color: #000;
+    color: #fff;
+    padding: 8px 16px;
+    margin: 0 0 16px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    border: 1px solid var(--color-primary);
+}
+
+.button {
+    float: right;
+    position: relative;
+    user-select: none;
+    margin-left: 16px;
+    cursor: pointer;
+}
+
+.button:hover svg path.background {
+    fill: #6201eb;
+    opacity: 1;
+}
+
+.button:hover svg path.border {
+    fill: #6201eb;
+}
+
+.button:hover svg path.icon {
+    fill: #fff;
+}
+
+.label {
+    position: absolute;
+    left: 16px;
+    top: 0;
+    line-height: 52px;
+    font-weight: 500;
+    font-size: 28px;
+    color: #fff;
+}
+
+@media screen and (max-width: 1024px) {
+    .popup {
+        left: 20px;
+        right: 20px;
+        width: auto;
+    }
+} 

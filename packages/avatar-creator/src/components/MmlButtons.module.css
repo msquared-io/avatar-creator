@@ -7,12 +7,26 @@
     animation: spinRotation 1s linear infinite;
 }
 
+.import {
+    display: block;
+}
+
+.import .loading {
+    animation: spinRotation 1s linear infinite;
+}
+
 /* Mobile menu buttons - only visible in mobile dropdown */
 .mobileExport {
     display: block;
 }
+.mobileImport {
+    display: block;
+}
 
 .mobileExport .loading {
+    animation: spinRotation 1s linear infinite;
+}
+.mobileImport .loading {
     animation: spinRotation 1s linear infinite;
 }
 
@@ -48,6 +62,9 @@
 
 @media screen and (max-width: 1024px) {
     .export {
+        display: none;
+    }
+    .import {
         display: none;
     }
 } 

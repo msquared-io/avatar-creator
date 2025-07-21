@@ -17,6 +17,7 @@ import {
 } from "playcanvas";
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
 
+import animGraphData from "../assets/anim-graph.json";
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
 
 /*
@@ -55,8 +56,6 @@ const slots = [
   "torso",
 ];
 
-import idleAnimationGLB from "../assets/anim/idle.glb";
-
 export class AvatarLoader extends EventHandler {
   private rootAsset: Asset | null = null;
   private assets: { [key: string]: Asset } = {};
@@ -76,7 +75,8 @@ export class AvatarLoader extends EventHandler {
     }
   >();
 
-  private legs = false;
+  legs = false;
+  preventRandom: boolean = false;
   private torso = false;
 
   private bodyType: CatalogueBodyType = "bodyB";
@@ -85,7 +85,6 @@ export class AvatarLoader extends EventHandler {
   private entity: Entity | null = null;
   private slotEntities: { [key: string]: Entity } = {};
   private animTrack: AnimTrack | null = null;
-  private assetAnimIdle: Asset | null = null;
 
   /**
    * @param {AppBase} app PlayCanvas AppBase
@@ -116,6 +115,7 @@ export class AvatarLoader extends EventHandler {
       activate: true,
       speed: 1,
     });
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     entity.anim!.rootBone = entity;
 
@@ -140,19 +140,93 @@ export class AvatarLoader extends EventHandler {
       this.entity.addChild(entity);
     }
 
-    this.loadAnimation();
+    // list of animations
+    const animations = [
+      ["appear", "spawn_and_wave.glb"],
+      ["clap", "clap.glb"],
+      ["wave", "pick_me.glb"],
+      ["thumbsDown", "thumbs_down.glb"],
+      ["thumbsUp", "thumbs_up.glb"],
+    ];
+
+    // add animation data to anim-graph
+    for (const item of animations) {
+      const layer = animGraphData.layers[0];
+      const name = item[0];
+
+      // state
+      layer.states.push({
+        name,
+        speed: 1,
+        loop: false,
+        defaultState: false,
+      });
+
+      // transition in
+      layer.transitions.push({
+        from: "ANY",
+        to: name,
+        exitTime: 0,
+        time: 0.1,
+        interruptionSource: "NONE",
+        edgeType: 1,
+        conditions: [
+          {
+            parameterName: name,
+            predicate: "EQUAL_TO",
+            value: true,
+          },
+        ],
+      });
+
+      // transition out
+      layer.transitions.push({
+        from: name,
+        to: "Idle",
+        exitTime: 0.9,
+        interruptionSource: "NONE",
+        edgeType: 1,
+        conditions: {},
+        time: 0.1,
+      });
+
+      // trigger
+      animGraphData.parameters[name] = {
+        name,
+        type: "TRIGGER",
+        value: false,
+      };
+    }
+
+    // load anim-graph
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    entity.anim!.loadStateGraph(animGraphData);
+
+    // load default idle animation
+    this.loadAnimation("Idle", "idle.glb");
+
+    // load additional animations
+    for (const item of animations) this.loadAnimation(item[0], item[1]);
+
+    // trigger "appear" animation by default
+    entity.anim?.setTrigger("appear");
+
+    // listen to global event on app for animation triggers
+    this.app.on("anim", (name) => {
+      // eslint-disable-next-line
+      if (!entity.anim?.parameters.hasOwnProperty(name)) return;
+      entity.anim?.setTrigger(name, true);
+    });
   }
 
   /**
    * @private
    */
-  loadAnimation() {
-    const fileName = "idle.glb";
-
-    this.assetAnimIdle = new Asset(
+  loadAnimation(name: string, fileName: string) {
+    const asset: Asset = new Asset(
       fileName,
       "container",
-      { url: idleAnimationGLB, filename: fileName },
+      { url: `/anim/${fileName}`, filename: fileName },
       undefined,
       {
         // filter out translation from animation,
@@ -172,36 +246,54 @@ export class AvatarLoader extends EventHandler {
       } as any,
     );
 
-    this.assetAnimIdle.ready(() => {
+    asset.ready(() => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const animResource = this.assetAnimIdle!.resource as {
+      const animResource = asset!.resource as {
         animations: Array<Asset>;
       };
       this.animTrack = animResource.animations[0].resource as AnimTrack;
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.entity!.anim!.assignAnimation("idle", this.animTrack);
+      this.entity!.anim!.assignAnimation(name, this.animTrack);
     });
 
-    this.app.assets.add(this.assetAnimIdle);
-    this.app.assets.load(this.assetAnimIdle);
+    this.app.assets.add(asset);
+    this.app.assets.load(asset);
   }
 
   /**
    * @param {('bodyB'|'bodyA')} bodyType BodyType for the avatar
+   * @param {boolean} [event] If true, then event will be fired for syncing UI state
    */
-  setBodyType(bodyType: CatalogueBodyType) {
+  setBodyType(bodyType: CatalogueBodyType, event: boolean = false) {
     this.bodyType = bodyType;
     this.loadTorso();
     if (this.legs) this.loadLegs();
+    if (event) this.fire(`slot:bodyType`, this.bodyType);
+  }
+
+  /**
+   * @returns {('bodyB'|'bodyA')}
+   */
+  getBodyType(): "bodyB" | "bodyA" {
+    return this.bodyType;
   }
 
   /**
    * @param {CatalogueSkin} skin A skin from the catalogue
+   * @param {boolean} [event] If true, then event will be fired for syncing UI state
    */
-  setSkin(skin: CatalogueSkin) {
+  setSkin(skin: CatalogueSkin, event: boolean = false) {
     this.skin = skin;
     this.loadTorso();
     if (this.legs) this.loadLegs();
+    if (event) this.fire(`slot:skin`, this.skin);
+  }
+
+  /**
+   * @returns {CatalogueSkin|null}
+   */
+  getSkin(): CatalogueSkin | null {
+    return this.skin;
   }
 
   /**
@@ -311,8 +403,9 @@ export class AvatarLoader extends EventHandler {
    *
    * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso')} slot Slot to load
    * @param {string} url Full url to GLB file to load for the slot
+   * @param {boolean} [event] If true, then event will be fired for syncing UI state
    */
-  load(slot: string, url: string | null) {
+  load(slot: string, url: string | null, event: boolean = false) {
     // still loading something for the slot
     if (this.loading.has(slot)) {
       const urlNext = this.next.get(slot);
@@ -321,7 +414,7 @@ export class AvatarLoader extends EventHandler {
       if (url !== null && this.loading.get(url) === url) {
         this.next.delete(slot);
       } else {
-        this.next.set(slot, url);
+        if (url) this.next.set(slot, url);
         this.urls[slot] = url;
         this.fire(`loading:${slot}:${url}`);
       }
@@ -337,7 +430,6 @@ export class AvatarLoader extends EventHandler {
       }
 
       delete this.urls[slot];
-
       return;
     }
 
@@ -356,6 +448,15 @@ export class AvatarLoader extends EventHandler {
     asset.ready(() => {
       this.loading.delete(slot);
       this.fire(`loaded:${slot}:${url}`);
+
+      if (event) {
+        this.fire(`slot:${slot}`, url);
+        if (slot.includes(":secondary")) {
+          this.fire(`slot:secondary`, slot, url);
+        } else {
+          this.fire(`slot:basic`, slot, url);
+        }
+      }
 
       this.createRootEntity(asset);
 
@@ -389,7 +490,84 @@ export class AvatarLoader extends EventHandler {
       }
     });
 
+    asset.once("error", () => {
+      this.loading.delete(slot);
+      this.fire(`loaded:${slot}:${url}`);
+
+      this.assets[slot] = asset;
+
+      // @ts-expect-error - PlayCanvas types specify only a number is accepted, but the comment and implementation allow Asset
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.slotEntities[slot].render!.asset = null;
+      // The Asset from GlbContainerResource import misaligns with the "playcanvas" import
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.slotEntities[slot].render!.materialAssets = [];
+
+      this.uncheckBodySlot(slot, url);
+
+      // load next in queue
+      if (this.next.has(slot)) {
+        const urlNext = this.next.get(slot);
+        this.next.delete(slot);
+        if (urlNext) {
+          this.load(slot, urlNext);
+        } else {
+          this.unload(slot);
+        }
+      }
+    });
+
     this.app.assets.load(asset);
+  }
+
+  /**
+   * Loads an GLB file from ObjectURL for provided slot.
+   *
+   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso')} slot Slot to load
+   * @param {string} url filename of GLB file to load for the slot
+   * @param {string} objectUrl base64 string containing GLB file providede by URL.createObjectURL from local file
+   */
+  loadCustom(slot: string, url: string, objectUrl: string) {
+    if (this.loading.has(slot)) {
+      return;
+    }
+
+    this.fire(`loading:${slot}:${url}`);
+    this.loading.set(slot, url);
+
+    if (slot === "top") {
+      this.torso = true;
+      this.loadTorso();
+    } else if (slot === "bottom") {
+      this.legs = true;
+      this.loadLegs();
+    }
+
+    // load file using ObjectURL
+    this.app.assets.loadFromUrl(objectUrl, "container", (err, asset) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+
+      if (!asset) return;
+
+      this.urls[slot] = url;
+
+      this.loading.delete(slot);
+      this.fire(`loaded:${slot}:${url}`);
+
+      this.assets[slot] = asset;
+
+      const container = this.assets[slot].resource as GlbContainerResource;
+
+      // @ts-expect-error - PlayCanvas types specify only a number is accepted, but the comment and implementation allow Asset
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.slotEntities[slot].render!.asset = container.renders[0];
+      // The Asset from GlbContainerResource import misaligns with the "playcanvas" import
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.slotEntities[slot].render!.materialAssets = container.materials as unknown as Asset[];
+    });
   }
 
   /**

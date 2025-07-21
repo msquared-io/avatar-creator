@@ -40,6 +40,9 @@ export default function Configurator({
 }) {
   const [skins, setSkins] = useState<DeepReadonly<Array<CatalogueSkin>>>([]);
   const [section, setSection] = useState<CataloguePartsKeys | "bodyType">("bodyType");
+  const [sectionDropOver, setSectionDropOver] = useState<CataloguePartsKeys | "window" | null>(
+    null,
+  );
 
   const [bodyType, setBodyType] = useState<CatalogueBodyType>(
     Math.random() > 0.5 ? "bodyB" : "bodyA",
@@ -92,9 +95,114 @@ export default function Configurator({
 
   useEffect(() => {
     setSkins(data.skin);
+
+    const findDragTarget = (target: HTMLElement | null) => {
+      if (target === null) return null;
+
+      let slot: CataloguePartsKeys | "window" | null = "window";
+
+      while (target) {
+        const drop = target.getAttribute("data-drop") as CataloguePartsKeys | null;
+        if (drop) {
+          slot = drop;
+          break;
+        }
+        target = target.parentElement;
+      }
+
+      return slot;
+    };
+
+    let evtDragLeaveTimeout: ReturnType<typeof setTimeout> | null;
+
+    const evtDragLeave = (evt: DragEvent) => {
+      if (
+        evt.clientX <= 0 ||
+        evt.clientX >= document.body.clientWidth ||
+        evt.clientY <= 0 ||
+        evt.clientY >= document.body.clientHeight
+      ) {
+        setSectionDropOver(null);
+      }
+
+      if (evtDragLeaveTimeout) {
+        clearTimeout(evtDragLeaveTimeout);
+        evtDragLeaveTimeout = null;
+      }
+      evtDragLeaveTimeout = setTimeout(() => {
+        setSectionDropOver(null);
+      }, 200);
+    };
+    const evtDragEnter = (evt: DragEvent) => {
+      setSectionDropOver(findDragTarget(evt.target as HTMLElement | null));
+      if (evtDragLeaveTimeout) {
+        clearTimeout(evtDragLeaveTimeout);
+        evtDragLeaveTimeout = null;
+      }
+    };
+    const evtDragEnd = () => {
+      setSectionDropOver(null);
+    };
+    const evtDragOver = (evt: DragEvent) => {
+      if (evtDragLeaveTimeout) {
+        clearTimeout(evtDragLeaveTimeout);
+        evtDragLeaveTimeout = null;
+      }
+      evt.preventDefault();
+    };
+    const evtDrop = (evt: DragEvent) => {
+      evt.preventDefault();
+
+      const slot: CataloguePartsKeys | "window" | null = findDragTarget(
+        evt.target as HTMLElement | null,
+      );
+
+      if (evtDragLeaveTimeout) {
+        clearTimeout(evtDragLeaveTimeout);
+        evtDragLeaveTimeout = null;
+      }
+      setSectionDropOver(null);
+
+      if (slot && slot !== "window" && evt.dataTransfer) {
+        const file = evt.dataTransfer.files[0];
+
+        if (file) {
+          if (!(file.name || "").toLowerCase().endsWith(".glb")) {
+            console.log("invalid file extension, should be .glb");
+            return;
+          }
+          const obj = URL.createObjectURL(file);
+          setters[slot]("");
+          if (settersSecondary[slot]) settersSecondary[slot]("");
+          avatarLoader.loadCustom(slot, file.name, obj);
+        }
+      }
+    };
+
+    window.addEventListener("dragleave", evtDragLeave);
+    window.addEventListener("dragenter", evtDragEnter);
+    window.addEventListener("dragend", evtDragEnd);
+    window.addEventListener("dragover", evtDragOver);
+    window.addEventListener("drop", evtDrop);
+
+    return () => {
+      if (evtDragLeaveTimeout) {
+        clearTimeout(evtDragLeaveTimeout);
+        evtDragLeaveTimeout = null;
+      }
+      window.removeEventListener("dragleave", evtDragLeave);
+      window.removeEventListener("dragenter", evtDragEnter);
+      window.removeEventListener("dragend", evtDragEnd);
+      window.removeEventListener("dragover", evtDragOver);
+      window.removeEventListener("drop", evtDrop);
+    };
   }, []);
 
   useEffect(() => {
+    if (avatarLoader.preventRandom) {
+      avatarLoader.preventRandom = false;
+      return;
+    }
     randomAll();
   }, [bodyType]);
 
@@ -116,6 +224,50 @@ export default function Configurator({
     if (bottom) avatarLoader.load("bottom", bottom + ".glb");
     if (bottomSecondary) avatarLoader.load("bottom:secondary", bottomSecondary + ".glb");
     if (shoes) avatarLoader.load("shoes", shoes + ".glb");
+
+    const evtBodyType = avatarLoader.on("slot:bodyType", (value) => {
+      avatarLoader.preventRandom = true;
+      setBodyType(value);
+      setTimeout(() => {
+        avatarLoader.preventRandom = false;
+      }, 500);
+    });
+    const evtSkin = avatarLoader.on("slot:skin", (value) => {
+      setSkin(value);
+    });
+    const evtHead = avatarLoader.on("slot:head", (value) => {
+      setHead(value.replace(/\.glb$/i, ""));
+    });
+    const evtHair = avatarLoader.on("slot:hair", (value) => {
+      setHair(value.replace(/\.glb$/i, ""));
+    });
+    const evtTop = avatarLoader.on("slot:top", (value) => {
+      setTop(value.replace(/\.glb$/i, ""));
+    });
+    const evtTopSecondary = avatarLoader.on("slot:top:secondary", (value) => {
+      setTopSecondary(value.replace(/\.glb$/i, ""));
+    });
+    const evtBottom = avatarLoader.on("slot:bottom", (value) => {
+      setBottom(value.replace(/\.glb$/i, ""));
+    });
+    const evtBottomSecondary = avatarLoader.on("slot:bottom:secondary", (value) => {
+      setBottomSecondary(value.replace(/\.glb$/i, ""));
+    });
+    const evtShoes = avatarLoader.on("slot:shoes", (value) => {
+      setShoes(value.replace(/\.glb$/i, ""));
+    });
+
+    return () => {
+      evtBodyType.off();
+      evtSkin.off();
+      evtHead.off();
+      evtHair.off();
+      evtTop.off();
+      evtTopSecondary.off();
+      evtBottom.off();
+      evtBottomSecondary.off();
+      evtShoes.off();
+    };
   }, [avatarLoader]);
 
   useEffect(() => {
@@ -176,12 +328,48 @@ export default function Configurator({
             evt.stopPropagation();
           }}
         >
-          <SectionButton slot="bodyType" setSection={setSection} active={section === "bodyType"} />
-          <SectionButton slot="head" setSection={setSection} active={section === "head"} />
-          <SectionButton slot="hair" setSection={setSection} active={section === "hair"} />
-          <SectionButton slot="top" setSection={setSection} active={section === "top"} />
-          <SectionButton slot="bottom" setSection={setSection} active={section === "bottom"} />
-          <SectionButton slot="shoes" setSection={setSection} active={section === "shoes"} />
+          <SectionButton
+            slot="bodyType"
+            setSection={setSection}
+            droppable={false}
+            active={section === "bodyType"}
+            dropOver={sectionDropOver}
+          />
+          <SectionButton
+            slot="head"
+            setSection={setSection}
+            droppable={false}
+            active={section === "head"}
+            dropOver={sectionDropOver}
+          />
+          <SectionButton
+            slot="hair"
+            setSection={setSection}
+            droppable={false}
+            active={section === "hair"}
+            dropOver={sectionDropOver}
+          />
+          <SectionButton
+            slot="top"
+            setSection={setSection}
+            droppable={true}
+            active={section === "top"}
+            dropOver={sectionDropOver}
+          />
+          <SectionButton
+            slot="bottom"
+            setSection={setSection}
+            droppable={true}
+            active={section === "bottom"}
+            dropOver={sectionDropOver}
+          />
+          <SectionButton
+            slot="shoes"
+            setSection={setSection}
+            droppable={true}
+            active={section === "shoes"}
+            dropOver={sectionDropOver}
+          />
         </ul>
 
         <div
