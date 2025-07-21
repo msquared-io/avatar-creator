@@ -1,7 +1,7 @@
 .mml {
     position: absolute;
     top: 300px;
-    right: 90px;
+    right: 80px;
 }
 
 .button {
@@ -70,8 +70,8 @@
 
 .mobileMenu {
     position: absolute;
-    right: 0px;
-    top: -112px;
+    right: -10px;
+    top: -122px;
     overflow: hidden;
     height: 0px;
     opacity: 0;
@@ -97,5 +97,19 @@
     
     .mobileMenu {
         display: block;
+    }
+} 
+
+@media screen and (max-height: 640px) {
+    .mml {
+        top: 160px;
+    }
+
+    .mobileMenu {
+        top: 18px;
+    }
+
+    .hamburger {
+        top: -56px;
     }
 } 
