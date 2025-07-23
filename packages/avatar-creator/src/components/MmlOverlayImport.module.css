@@ -15,17 +15,20 @@
     top: calc(50% - 150px);
 }
 
-.popup pre {
+.popup > pre {
     background-color: #000;
     color: #fff;
     padding: 8px 16px;
     margin: 0 0 16px;
+    min-height: 128px;
+    max-height: 300px;
+    overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-all;
     border: 1px solid var(--color-primary);
 }
 
-.popup .button {
+.button {
     float: right;
     position: relative;
     user-select: none;
@@ -33,24 +36,20 @@
     cursor: pointer;
 }
 
-.popup .button:hover span {
-    color: #fff;
-}
-
-.popup .button:hover svg path.background {
+.button:hover svg path.background {
     fill: #6201eb;
     opacity: 1;
 }
 
-.popup .button:hover svg path.border {
+.button:hover svg path.border {
     fill: #6201eb;
 }
 
-.popup .button:hover svg path.icon {
+.button:hover svg path.icon {
     fill: #fff;
 }
 
-.popup .button span {
+.label {
     position: absolute;
     left: 16px;
     top: 0;

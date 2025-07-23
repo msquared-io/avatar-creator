@@ -43,6 +43,25 @@
     fill: #fff;
 }
 
+/* Drag'n'Drop styles */
+.dropTarget {
+    background-color: var(--color-drop);
+}
+.dropTarget svg path {
+    fill: #fff;
+}
+
+.dropInvalid {
+    opacity: 0.5;
+}
+
+.dropOver {
+    background-image: url("../assets/img/button-hover.svg");
+}
+.dropOver svg path {
+    fill: #fff;
+}
+
 /* BodyType slot */
 .sectionButton[data-slot="bodyType"]:hover .icon,
 .sectionButton[data-slot="bodyType"].active .icon {

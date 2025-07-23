@@ -16,6 +16,7 @@ import styles from "./AvatarCreatorApp.module.css";
 import { CatalogueData } from "./CatalogueData";
 import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
+import Emotes from "./components/Emotes";
 import Logo from "./components/Logo";
 import Mml from "./components/Mml";
 import ProfileBadge from "./components/ProfileBadge";
@@ -119,6 +120,8 @@ export function AvatarCreatorApp({ dataUrl = "/data.json" }: AvatarCreatorAppPro
       {data && avatarLoader && (
         <Mml onSave={onSave} isLoading={isLoading} avatarLoader={avatarLoader} />
       )}
+
+      {data && avatarLoader && app && <Emotes appState={appState} app={app} />}
     </div>
   );
 }
