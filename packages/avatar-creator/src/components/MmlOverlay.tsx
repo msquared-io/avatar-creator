@@ -31,17 +31,7 @@ export default function MmlOverlay({
 
     hljs.highlightElement(codeRef.current);
 
-    let code = "";
-    code += `<m-character src="${encodeURI(avatarLoader.urls.torso ?? "")}">\n`;
-
-    for (const key in avatarLoader.urls) {
-      if (key === "torso") continue;
-      const url = avatarLoader.urls[key];
-      if (!url) continue;
-      code += `    <m-model src="${encodeURI(url)}"></m-model>\n`;
-    }
-
-    code += `</m-character>`;
+    let code = avatarLoader.getAvatarMml();
 
     code = hljs.highlight(code, { language: "xml" }).value;
 

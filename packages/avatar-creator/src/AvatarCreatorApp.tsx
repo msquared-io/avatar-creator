@@ -10,7 +10,7 @@ import "./index.css";
 
 import { AppBase } from "playcanvas";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { RefObject, useCallback, useEffect, useState } from "react";
 
 import styles from "./AvatarCreatorApp.module.css";
 import { CatalogueData } from "./CatalogueData";
@@ -25,9 +25,15 @@ import { render as renderPortrait } from "./scripts/portrait";
 
 interface AvatarCreatorAppProps {
   dataUrl?: string;
+  getAvatarMmlRef?: RefObject<(() => string | null) | null>;
+  showExportButton?: boolean;
 }
 
-export function AvatarCreatorApp({ dataUrl = "/data.json" }: AvatarCreatorAppProps = {}) {
+export function AvatarCreatorApp({
+  dataUrl = "/data.json",
+  getAvatarMmlRef,
+  showExportButton = true,
+}: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<CatalogueData | null>(null);
   const [avatarLoader, setAvatarLoader] = useState<AvatarLoader | null>(null);
@@ -82,6 +88,19 @@ export function AvatarCreatorApp({ dataUrl = "/data.json" }: AvatarCreatorAppPro
       }
     : undefined;
 
+  const getAvatarMml = useCallback(() => {
+    if (!avatarLoader) {
+      return null;
+    }
+    return avatarLoader.getAvatarMml();
+  }, [avatarLoader]);
+
+  useEffect(() => {
+    if (getAvatarMmlRef) {
+      getAvatarMmlRef.current = getAvatarMml;
+    }
+  }, [getAvatarMmlRef, getAvatarMml]);
+
   const isLoading = isDataLoading || isAvatarLoading;
 
   const rootClasses = [
@@ -116,7 +135,7 @@ export function AvatarCreatorApp({ dataUrl = "/data.json" }: AvatarCreatorAppPro
         />
       )}
 
-      {data && avatarLoader && (
+      {data && avatarLoader && showExportButton && (
         <Mml onSave={onSave} isLoading={isLoading} avatarLoader={avatarLoader} />
       )}
     </div>
