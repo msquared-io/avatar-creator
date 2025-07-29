@@ -31,7 +31,7 @@ export default function MmlOverlay({
 
     hljs.highlightElement(codeRef.current);
 
-    let code = avatarLoader.getAvatarMml();
+    let code = avatarLoader.getAvatarMml(true);
 
     code = hljs.highlight(code, { language: "xml" }).value;
 

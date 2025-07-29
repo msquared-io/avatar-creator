@@ -394,17 +394,18 @@ export class AvatarLoader extends EventHandler {
 
   /**
    * Get the avatar MML code for the current avatar
+   * @param {boolean} formatted Whether to format the MML code
    * @returns {string} the MML code for the current avatar
    */
-  getAvatarMml() {
+  getAvatarMml(formatted: boolean = false) {
     let code = "";
-    code += `<m-character src="${encodeURI(this.urls.torso ?? "")}">\n`;
+    code += `<m-character src="${encodeURI(this.urls.torso ?? "")}">${formatted ? "\n" : ""}`;
 
     for (const key in this.urls) {
       if (key === "torso") continue;
       const url = this.urls[key];
       if (!url) continue;
-      code += `    <m-model src="${encodeURI(url)}"></m-model>\n`;
+      code += `${formatted ? "\t" : ""}<m-model src="${encodeURI(url)}"></m-model>${formatted ? "\n" : ""}`;
     }
 
     code += `</m-character>`;
