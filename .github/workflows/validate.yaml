@@ -21,4 +21,4 @@ jobs:
         run: npm ci
 
       - name: Run validation
-        run: npm run ts:validate
+        run: npm run validate
