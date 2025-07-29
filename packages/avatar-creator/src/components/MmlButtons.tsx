@@ -13,19 +13,15 @@ import parentStyles from "./Mml.module.css";
 import styles from "./MmlButtons.module.css";
 
 export default function MmlButtons({
-  setOverlayActive,
+  onExportClick,
   onSave,
   isLoading,
 }: {
-  setOverlayActive: (value: boolean) => void;
+  onExportClick: () => void;
   onSave?: () => void;
   isLoading?: boolean;
 }) {
   const [active, setActive] = useState(false);
-
-  const onExportClick = () => {
-    setOverlayActive(true);
-  };
 
   const toggleActive = () => {
     setActive(!active);
