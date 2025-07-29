@@ -18,21 +18,34 @@ import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
 import Logo from "./components/Logo";
 import Mml from "./components/Mml";
+import mmlStyles from "./components/Mml.module.css";
+import MmlButtons from "./components/MmlButtons";
 import ProfileBadge from "./components/ProfileBadge";
 import Renderer from "./components/Renderer";
 import { AvatarLoader } from "./scripts/avatar-loader";
 import { render as renderPortrait } from "./scripts/portrait";
 
+type ExportBehavior =
+  | {
+      mode: "default";
+    }
+  | {
+      mode: "external";
+      getAvatarMmlRef: RefObject<(() => string | null) | null>;
+    }
+  | {
+      mode: "callback";
+      onExport: (avatarMml: string) => void;
+    };
+
 interface AvatarCreatorAppProps {
   dataUrl?: string;
-  getAvatarMmlRef?: RefObject<(() => string | null) | null>;
-  showExportButton?: boolean;
+  exportBehavior?: ExportBehavior;
 }
 
 export function AvatarCreatorApp({
   dataUrl = "/data.json",
-  getAvatarMmlRef,
-  showExportButton = true,
+  exportBehavior = { mode: "default" },
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<CatalogueData | null>(null);
@@ -96,10 +109,16 @@ export function AvatarCreatorApp({
   }, [avatarLoader]);
 
   useEffect(() => {
-    if (getAvatarMmlRef) {
-      getAvatarMmlRef.current = getAvatarMml;
+    if (exportBehavior.mode === "external") {
+      exportBehavior.getAvatarMmlRef.current = getAvatarMml;
     }
-  }, [getAvatarMmlRef, getAvatarMml]);
+
+    return () => {
+      if (exportBehavior.mode === "external") {
+        exportBehavior.getAvatarMmlRef.current = null;
+      }
+    };
+  }, [exportBehavior, getAvatarMml]);
 
   const isLoading = isDataLoading || isAvatarLoading;
 
@@ -135,8 +154,19 @@ export function AvatarCreatorApp({
         />
       )}
 
-      {data && avatarLoader && showExportButton && (
+      {data && avatarLoader && exportBehavior.mode === "default" && (
         <Mml onSave={onSave} isLoading={isLoading} avatarLoader={avatarLoader} />
+      )}
+
+      {data && avatarLoader && exportBehavior.mode === "callback" && (
+        <div className={mmlStyles.mml}>
+          <MmlButtons
+            onExportClick={() => {
+              exportBehavior.onExport(avatarLoader.getAvatarMml());
+            }}
+            isLoading={isLoading}
+          />
+        </div>
       )}
     </div>
   );
