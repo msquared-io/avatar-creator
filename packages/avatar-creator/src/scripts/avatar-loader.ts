@@ -14,8 +14,10 @@ import {
   Entity,
   EventHandler,
   GraphNode,
+  StandardMaterial,
 } from "playcanvas";
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
+import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 
 import animGraphData from "../assets/anim-graph.json";
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
@@ -54,6 +56,7 @@ const slots = [
   "shoes",
   "legs",
   "torso",
+  "outfit",
 ];
 
 export class AvatarLoader extends EventHandler {
@@ -77,7 +80,7 @@ export class AvatarLoader extends EventHandler {
 
   legs = true;
   preventRandom: boolean = false;
-  private torso = true;
+  torso = true;
 
   private bodyType: CatalogueBodyType = "bodyB";
   private skin: CatalogueSkin | null = null;
@@ -166,6 +169,8 @@ export class AvatarLoader extends EventHandler {
       layer.transitions.push({
         from: "ANY",
         to: name,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         exitTime: 0,
         time: 0.1,
         interruptionSource: "NONE",
@@ -183,6 +188,8 @@ export class AvatarLoader extends EventHandler {
       layer.transitions.push({
         from: name,
         to: "Idle",
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         exitTime: 0.9,
         interruptionSource: "NONE",
         edgeType: 1,
@@ -191,6 +198,8 @@ export class AvatarLoader extends EventHandler {
       });
 
       // trigger
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       animGraphData.parameters[name] = {
         name,
         type: "TRIGGER",
@@ -217,6 +226,10 @@ export class AvatarLoader extends EventHandler {
       if (!entity.anim?.parameters.hasOwnProperty(name)) return;
       entity.anim?.setTrigger(name, true);
     });
+  }
+
+  has(slot: string) {
+    return !!this.urls[slot];
   }
 
   /**
@@ -407,7 +420,7 @@ export class AvatarLoader extends EventHandler {
    * If it is a first slot to be loaded, then it will use that model's skeleton for the base hierarchy
    * It will automatically hide/show different body parts, based on slot params
    *
-   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso')} slot Slot to load
+   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso'|'outfit')} slot Slot to load
    * @param {string} url Full url to GLB file to load for the slot
    * @param {boolean} [event] If true, then event will be fired for syncing UI state
    */
@@ -482,6 +495,23 @@ export class AvatarLoader extends EventHandler {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this.slotEntities[slot].render!.materialAssets = container.materials as unknown as Asset[];
 
+      // patch emissive color
+      const meshInstances = this.slotEntities[slot].render?.meshInstances;
+      if (meshInstances) {
+        for (let i = 0; i < meshInstances.length; i++) {
+          const material = meshInstances[i].material as StandardMaterial;
+          if (
+            material.emissiveMap &&
+            material.emissive.r <= 1 &&
+            material.emissive.g <= 1 &&
+            material.emissive.b <= 1
+          ) {
+            material.emissive.set(1, 1, 1, 1);
+            material.emissiveIntensity = 5;
+          }
+        }
+      }
+
       this.uncheckBodySlot(slot, url);
 
       // load next in queue
@@ -529,7 +559,7 @@ export class AvatarLoader extends EventHandler {
   /**
    * Loads an GLB file from ObjectURL for provided slot.
    *
-   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso')} slot Slot to load
+   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso'|'outfit')} slot Slot to load
    * @param {string} url filename of GLB file to load for the slot
    * @param {string} objectUrl base64 string containing GLB file providede by URL.createObjectURL from local file
    */
@@ -577,7 +607,7 @@ export class AvatarLoader extends EventHandler {
   }
 
   /**
-   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso')} slot Slot to unload
+   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso'|'outfit')} slot Slot to unload
    */
   unload(slot: string) {
     if (this.loading.has(slot)) {
@@ -585,10 +615,12 @@ export class AvatarLoader extends EventHandler {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.slotEntities[slot].render!.asset = 0;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.slotEntities[slot].render!.materialAssets = [];
+    if (this.slotEntities[slot]) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.slotEntities[slot].render!.asset = 0;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.slotEntities[slot].render!.materialAssets = [];
+    }
 
     delete this.urls[slot];
   }

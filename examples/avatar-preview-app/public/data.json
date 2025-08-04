@@ -79,6 +79,15 @@
                         "file": "http://localhost:3000/parts/Top_B_AsymHemTshirt_PlainBlack"
                     }
                 ]
+            },
+            "outfit": {
+                "list": [
+                    {
+                        "file": "http://localhost:3000/parts/186597c0-0a8b-49b2-a36a-bbf281fd1893"
+                    }, {
+                        "file": "http://localhost:3000/parts/ce97d1fb-5c8b-46ec-875e-919ec83b4260"
+                    }
+                ]
             }
         },
         "bodyA": {
@@ -176,6 +185,15 @@
                     },
                     {
                         "file": "http://localhost:3000/parts/Top_A_BaseballJersey_PlainBrown_01"
+                    }
+                ]
+            },
+            "outfit": {
+                "list": [
+                    {
+                        "file": "http://localhost:3000/parts/186597c0-0a8b-49b2-a36a-bbf281fd1893"
+                    }, {
+                        "file": "http://localhost:3000/parts/ce97d1fb-5c8b-46ec-875e-919ec83b4260"
                     }
                 ]
             }
