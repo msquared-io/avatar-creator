@@ -92,17 +92,21 @@ You can modify the [.env.example](.env.example) file to point to a different fil
 
 All URLs in data are defined as an absolute URL, but without an extension, as it will be added by the app: `.glb` (for 3D rendering) and `.webp` (for thumbnail).
 
+**Skin** - There are 7 skin colors, with some slots being "skin-dependent." These slots require 7 pairs of assets to support all skin colors. For such skin-dependent slots, define a single URL per model in the data, and the app will append _01 to _07 based on the selected skin index.
+
 ### Slots:
 
 * **Body** - is a custom slot, that is skin dependant. And will be loaded automatically based on other slots.
 
-* **Head** - has a skin dependency, means in data only a single url is defined, but URL will be modified with added `_xx` skin index.
+* **Head** - is a skin dependant slot.
+
+* **Hair** - is a simple slot.
 
 * **Top** - can have `secondary` property, which will add an additional GLB for that slot. AvatarLoader will load it as `top:secondary`. If slot has `torso:true`, then torso will be when this slot is loaded - this is common for shirts, while e.g. Hoodie covers whole torso so by default it will not be rendering torso.
 
 * **Bottom** - can have `secondary` the same way as `top` slot, and optional property `legs:true`, if set to true, then legs will be rendered also. This is common for shorts for example. By default legs will not be rendered.
 
-* **Shoes** - is a most simple slot.
+* **Shoes** - is a simple slot.
 
 ## Hosting Assets
 
