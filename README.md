@@ -84,19 +84,31 @@ The library is compiled to ESM bundles (and type declarations) under `packages/a
 
 See [examples/avatar-preview-app/public/data.json](examples/avatar-preview-app/public/data.json)
 
-This specific project implements a static JSON data containing multiple body types, skin colors and various slot models: `body`, `head`, `hair`, `top`, `bottom`, `shoes`
+This specific project implements a static JSON data containing multiple body types, skin colors and various slot models: `body`, `head`, `hair`, `top`, `bottom`, `shoes`.
 
-All URLs are defined without an extension, as it will be added: `.glb` (for 3D rendering) and `.webp` (for thumbnail).
+All files must be paired: `.glb` for 3D models and `.webp` for thumbnails, sharing the same filename (excluding the extension).
 
-**Body** - is a custom slot, that is skin dependant. And will be loaded automatically based on other slots.
+You can modify the [.env.example](.env.example) file to point to a different file or API endpoint for custom data. Ensure the JSON format matches when using an API endpoint.
 
-**Head** - has a skin dependency, means in data only a single url is defined, but URL will be modified with added `_xx` skin index.
+All URLs in data are defined as an absolute URL, but without an extension, as it will be added by the app: `.glb` (for 3D rendering) and `.webp` (for thumbnail).
 
-**Top** - can have `secondary` property, which will add an additional GLB for that slot. AvatarLoader will load it as `top:secondary`. If slot has `torso:true`, then torso will be when this slot is loaded - this is common for shirts, while e.g. Hoodie covers whole torso so by default it will not be rendering torso.
+### Slots:
 
-**Bottom** - can have `secondary` the same way as `top` slot, and optional property `legs:true`, if set to true, then legs will be rendered also. This is common for shorts for example. By default legs will not be rendered.
+* **Body** - is a custom slot, that is skin dependant. And will be loaded automatically based on other slots.
 
-**Shoes** - is a most simple slot.
+* **Head** - has a skin dependency, means in data only a single url is defined, but URL will be modified with added `_xx` skin index.
+
+* **Top** - can have `secondary` property, which will add an additional GLB for that slot. AvatarLoader will load it as `top:secondary`. If slot has `torso:true`, then torso will be when this slot is loaded - this is common for shirts, while e.g. Hoodie covers whole torso so by default it will not be rendering torso.
+
+* **Bottom** - can have `secondary` the same way as `top` slot, and optional property `legs:true`, if set to true, then legs will be rendered also. This is common for shorts for example. By default legs will not be rendered.
+
+* **Shoes** - is a most simple slot.
+
+## Hosting Assets
+
+This project includes model and thumbnail assets for testing. In production, host these on a high-availability, high-throughput CDN to avoid bottlenecks. Make sure URLs in data file are pointing to your assets.
+
+Configure CDN files with aggressive caching to minimize network requests and speed up downloads.
 
 --- 
 
