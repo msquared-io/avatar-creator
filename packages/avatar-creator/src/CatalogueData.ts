@@ -38,6 +38,9 @@ export type CatalogueParts = {
   shoes: {
     list: Array<CataloguePart>;
   };
+  outfit: {
+    list: Array<CataloguePart>;
+  };
 };
 
 export type CataloguePartsKeys = keyof CatalogueParts;

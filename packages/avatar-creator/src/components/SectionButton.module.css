@@ -122,6 +122,26 @@
     background-image: url("../assets/img/icon-shoes.svg");
 }
 
+/* Outfit slot */
+.sectionButton[data-slot="outfit"]:hover .icon,
+.sectionButton[data-slot="outfit"].active .icon {
+    background-image: url("../assets/img/icon-outfit-hover.svg");
+}
+
+.sectionButton[data-slot="outfit"] .icon {
+    background-image: url("../assets/img/icon-outfit.svg");
+}
+
+.sectionButton[data-slot="outfit"] {
+    background-image: url("../assets/img/button-shiny.svg");
+}
+
+.sectionButton[data-slot="outfit"]:hover,
+.sectionButton.active[data-slot="outfit"] {
+    background-image: url("../assets/img/button-shiny-hover.svg");
+}
+
+
 .icon {
     width: 100%;
     height: 100%;

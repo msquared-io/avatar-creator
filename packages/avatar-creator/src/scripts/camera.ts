@@ -35,6 +35,7 @@ const slotsDesktop = {
   top: { height: 1.5, distance: 2.0 },
   bottom: { height: 0.5, distance: 2.8 },
   shoes: { height: 0.5, distance: 1.6 },
+  outfit: { height: isDesktop() ? 1 : 0.8, distance: 8 },
 };
 
 // camera heights and distances based on slot selected for mobile
@@ -46,6 +47,7 @@ const slotsMobile = {
   top: { height: 1.2, distance: 2.0 },
   bottom: { height: 0.3, distance: 2.8 },
   shoes: { height: 0.3, distance: 1.6 },
+  outfit: { height: isDesktop() ? 1 : 0.8, distance: 8 },
 };
 
 class Camera extends Script {
@@ -59,13 +61,13 @@ class Camera extends Script {
   private tilt = -0.15;
 
   // ranges
-  private mobileMinMaxHeight = [0.4, 1.7];
-  private desktopMinMaxHeight = [0.6, 1.8];
+  private mobileMinMaxHeight = [0.4, 1.8];
+  private desktopMinMaxHeight = [0.6, 1.9];
   private mobileMinMaxDistance = [1.4, 4.5];
   private desktopMinMaxDistance = [1.4, 5.5];
 
-  private mobileHeadLookAtHeight = 1.65;
-  private desktopHeadLookAtHeight = 1.65;
+  private mobileHeadLookAtHeight = 1.75;
+  private desktopHeadLookAtHeight = 1.75;
   private feetLookAtStart = 0.7;
   // on desktop panel is on the right, so we can use entire screen height
   private mobileFeetLookAtHeight = -0.15;
@@ -222,11 +224,11 @@ class Camera extends Script {
   }
 
   get defaultHeight() {
-    return isDesktop() ? 1.5 : 1.3;
+    return isDesktop() ? 1.6 : 1.3;
   }
 
   get defaultLookAt() {
-    return isDesktop() ? 0.9 : 0.7;
+    return isDesktop() ? 1.0 : 0.7;
   }
 
   get minMaxHeight() {

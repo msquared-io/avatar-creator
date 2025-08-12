@@ -57,6 +57,7 @@ export default function Configurator({
   const [bottom, setBottom] = useState<string | null>(null);
   const [bottomSecondary, setBottomSecondary] = useState<string | null>(null);
   const [shoes, setShoes] = useState<string | null>(null);
+  const [outfit, setOutfit] = useState<string | null>(null);
 
   const setters: Record<CataloguePartsKeys, (file: string) => void> = {
     head: setHead,
@@ -64,6 +65,7 @@ export default function Configurator({
     top: setTop,
     bottom: setBottom,
     shoes: setShoes,
+    outfit: setOutfit,
   };
 
   const settersSecondary: Partial<Record<CataloguePartsKeys, (file: string | null) => void>> = {
@@ -71,14 +73,18 @@ export default function Configurator({
     bottom: setBottomSecondary,
   };
 
-  const randomAll = () => {
-    (Object.keys(setters) as CataloguePartsKeys[]).forEach((key) => randomSlot(key));
+  const randomAll = (exception = "") => {
+    (Object.keys(setters) as CataloguePartsKeys[]).forEach((key) => {
+      if (key === "outfit") return;
+      if (key === exception) return;
+      randomSlot(key);
+    });
   };
 
   const randomSlot = (slot: CataloguePartsKeys) => {
     const list = data.bodyTypes[bodyType][slot].list;
     if (!list.length) {
-      setters[slot](null);
+      setters[slot]('');
       return;
     }
 
@@ -170,7 +176,7 @@ export default function Configurator({
     const evtDrop = (evt: DragEvent) => {
       evt.preventDefault();
 
-      const slot: CataloguePartsKeys | "window" | null = findDragTarget(
+      const slot: CataloguePartsKeys | "bodyType" | "window" | null = findDragTarget(
         evt.target as HTMLElement | null,
       );
 
@@ -188,10 +194,31 @@ export default function Configurator({
             console.log("invalid file extension, should be .glb");
             return;
           }
+
           const obj = URL.createObjectURL(file);
-          setters[slot]("");
-          if (settersSecondary[slot]) settersSecondary[slot]("");
-          avatarLoader.loadCustom(slot, file.name, obj);
+
+          if (slot === "outfit") {
+            const slots = [
+              "head",
+              "hair",
+              "top",
+              "top:secondary",
+              "bottom",
+              "bottom:secondary",
+              "shoes",
+              "legs",
+              "torso",
+            ];
+            for (const slot of slots) {
+              avatarLoader.unload(slot);
+            }
+
+            avatarLoader.loadCustom("outfit", file.name, obj);
+          } else {
+            setters[slot]("");
+            if (settersSecondary[slot]) settersSecondary[slot]("");
+            avatarLoader.loadCustom(slot, file.name, obj);
+          }
         }
       }
     };
@@ -241,6 +268,7 @@ export default function Configurator({
     if (bottom) avatarLoader.load("bottom", bottom + ".glb");
     if (bottomSecondary) avatarLoader.load("bottom:secondary", bottomSecondary + ".glb");
     if (shoes) avatarLoader.load("shoes", shoes + ".glb");
+    if (outfit) avatarLoader.load("outfit", outfit + ".glb");
 
     const evtBodyType = avatarLoader.on("slot:bodyType", (value) => {
       avatarLoader.preventRandom = true;
@@ -273,6 +301,9 @@ export default function Configurator({
     const evtShoes = avatarLoader.on("slot:shoes", (value) => {
       setShoes(value.replace(/\.glb$/i, ""));
     });
+    const evtOutfit = avatarLoader.on("slot:outfit", (value) => {
+      setOutfit(value.replace(/\.glb$/i, ""));
+    });
 
     return () => {
       evtBodyType.off();
@@ -284,46 +315,94 @@ export default function Configurator({
       evtBottom.off();
       evtBottomSecondary.off();
       evtShoes.off();
+      evtOutfit.off();
     };
   }, [avatarLoader]);
 
+  const unloadOutfit = (exception: string) => {
+    if (avatarLoader.has("outfit")) {
+      setOutfit(null);
+      avatarLoader.unload("outfit");
+      avatarLoader.legs = true;
+      avatarLoader.torso = true;
+      randomAll(exception);
+    }
+  };
+
   useEffect(() => {
     if (!avatarLoader) return;
+    if (bodyType && (outfit || avatarLoader.has("outfit"))) unloadOutfit("bodyType");
     avatarLoader.setBodyType(bodyType);
   }, [bodyType]);
   useEffect(() => {
     if (!avatarLoader) return;
+    if (skin !== null && (outfit || avatarLoader.has("outfit"))) unloadOutfit("skin");
     avatarLoader.setSkin(skin);
   }, [skin]);
 
   useEffect(() => {
     if (!avatarLoader) return;
+    if (head && (outfit || avatarLoader.has("outfit"))) unloadOutfit("head");
     avatarLoader.load("head", head ? head + ".glb" : null);
   }, [head]);
   useEffect(() => {
     if (!avatarLoader) return;
+    if (hair && (outfit || avatarLoader.has("outfit"))) unloadOutfit("hair");
     avatarLoader.load("hair", hair ? hair + ".glb" : null);
   }, [hair]);
   useEffect(() => {
     if (!avatarLoader) return;
+    if (top && (outfit || avatarLoader.has("outfit"))) unloadOutfit("top");
     avatarLoader.load("top", top ? top + ".glb" : null);
   }, [top]);
   useEffect(() => {
     if (!avatarLoader) return;
+    if (topSecondary && (outfit || avatarLoader.has("outfit"))) unloadOutfit("top:secondary");
     avatarLoader.load("top:secondary", topSecondary ? topSecondary + ".glb" : null);
   }, [topSecondary]);
   useEffect(() => {
     if (!avatarLoader) return;
+    if (bottom && (outfit || avatarLoader.has("outfit"))) unloadOutfit("bottom");
     avatarLoader.load("bottom", bottom ? bottom + ".glb" : null);
   }, [bottom]);
   useEffect(() => {
     if (!avatarLoader) return;
+    if (bottomSecondary && (outfit || avatarLoader.has("outfit"))) unloadOutfit("bottom:secondary");
     avatarLoader.load("bottom:secondary", bottomSecondary ? bottomSecondary + ".glb" : null);
   }, [bottomSecondary]);
   useEffect(() => {
     if (!avatarLoader) return;
+    if (shoes && (outfit || avatarLoader.has("outfit"))) unloadOutfit("shoes");
     avatarLoader.load("shoes", shoes ? shoes + ".glb" : null);
   }, [shoes]);
+  useEffect(() => {
+    if (!avatarLoader) return;
+
+    if (outfit) {
+      (Object.keys(setters) as CataloguePartsKeys[]).forEach((key) => {
+        if (key === "outfit") return;
+        setters[key]('');
+      });
+
+      avatarLoader.legs = false;
+      avatarLoader.torso = false;
+
+      const slots = [
+        "torso",
+        "legs",
+        "head",
+        "hair",
+        "top",
+        "top:secondary",
+        "bottom",
+        "bottom:secondary",
+        "shoes",
+      ];
+      for (const slot of slots) avatarLoader.unload(slot);
+    }
+
+    avatarLoader.load("outfit", outfit ? outfit + ".glb" : null);
+  }, [outfit]);
 
   const configuratorClasses = [
     styles.configurator,
@@ -394,6 +473,15 @@ export default function Configurator({
               setSection={setSection}
               droppable={true}
               active={section === "shoes"}
+              dropOver={sectionDropOver}
+            />
+          )}
+          {slotHasItems("outfit") && (
+            <SectionButton
+              slot="outfit"
+              setSection={setSection}
+              droppable={true}
+              active={section === "outfit"}
               dropOver={sectionDropOver}
             />
           )}
@@ -480,6 +568,17 @@ export default function Configurator({
               selected={shoes}
               avatarLoader={avatarLoader}
               setSlot={setShoes}
+            />
+          )}
+          {section === "outfit" && (
+            <SectionBasic
+              slot="outfit"
+              title="Outfit"
+              data={data}
+              bodyType={bodyType}
+              selected={outfit}
+              avatarLoader={avatarLoader}
+              setSlot={setOutfit}
             />
           )}
         </div>

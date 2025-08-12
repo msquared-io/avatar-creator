@@ -36,16 +36,17 @@ export default function MmlOverlayExport({
 
     hljs.highlightElement(codeRef.current);
 
-    const className = [
-      avatarLoader.getBodyType(),
-      `skin${avatarLoader.getSkin()?.name ?? ""}`,
-    ].join(" ");
+    const outfit = avatarLoader.urls.outfit ?? "";
+
+    const className = outfit
+      ? "outfit"
+      : [avatarLoader.getBodyType(), `skin${avatarLoader.getSkin()?.name ?? ""}`].join(" ");
 
     let code = "";
-    code += `<m-character class="${className}" src="${encodeURI(avatarLoader.urls.torso ?? "")}">\n`;
+    code += `<m-character class="${className}" src="${encodeURI(outfit || (avatarLoader.urls.torso ?? ""))}">\n`;
 
     for (const key in avatarLoader.urls) {
-      if (key === "torso") continue;
+      if (key === "torso" || key === "outfit") continue;
       const url = avatarLoader.urls[key];
       if (!url) continue;
       const className = key in keyReplace ? keyReplace[key as keyof typeof keyReplace] : key;

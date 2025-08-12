@@ -8,10 +8,11 @@ This repo contains:
 ![Avatar Creator Screenshot](screenshot.jpg)
 
 ## TODO:
-* [ ] Make UI more composable as part of a wider application (e.g. not assuming fullscreen)
-* [ ] Add API for loading and saving avatar configurations
-* [ ] Update data model to allow more flexibility for custom part combinations
-* [ ] Publish the avatar-creator library to npm
+
+- [ ] Make UI more composable as part of a wider application (e.g. not assuming fullscreen)
+- [x] Add API (MML) for loading and saving avatar configurations
+- [ ] Update data model to allow more flexibility for custom part combinations
+- [ ] Publish the avatar-creator library to npm
 
 ---
 
@@ -84,7 +85,7 @@ The library is compiled to ESM bundles (and type declarations) under `packages/a
 
 See [examples/avatar-preview-app/public/data.json](examples/avatar-preview-app/public/data.json)
 
-This specific project implements a static JSON data containing multiple body types, skin colors and various slot models: `body`, `head`, `hair`, `top`, `bottom`, `shoes`
+This specific project implements a static JSON data containing multiple body types, skin colors and various slot models: `body`, `head`, `hair`, `top`, `bottom`, `shoes`, `outfit`
 
 All URLs are defined without an extension, as it will be added: `.glb` (for 3D rendering) and `.webp` (for thumbnail).
 
@@ -98,6 +99,8 @@ All URLs are defined without an extension, as it will be added: `.glb` (for 3D r
 
 **Shoes** - is a most simple slot.
 
+**Outfit** - a "complete" slot that will hide all the other slots and have a full-body unique model.
+
 --- 
 
 ## How to make new assets
@@ -107,6 +110,7 @@ For production of assets, there a few recommendations and guidelines as well as 
 * [Clothes](./docs/clothes.md)
 * *TODO* - Faces
 * *TODO* - Hair
+* *TODO* - Outfits
 
 ---
 
