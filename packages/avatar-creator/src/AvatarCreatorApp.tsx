@@ -41,11 +41,13 @@ type ExportBehavior =
 interface AvatarCreatorAppProps {
   dataUrl?: string;
   exportBehavior?: ExportBehavior;
+  hideProfileBadge?: boolean;
 }
 
 export function AvatarCreatorApp({
   dataUrl = "/data.json",
   exportBehavior = { mode: "default" },
+  hideProfileBadge = false,
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<CatalogueData | null>(null);
@@ -142,7 +144,7 @@ export function AvatarCreatorApp({
         <ButtonCustomize label="Customize" onStateChange={setAppState} appState={appState} />
       )}
 
-      <ProfileBadge portrait={portrait} />
+      {hideProfileBadge ? null : <ProfileBadge portrait={portrait} />}
 
       {data && avatarLoader && app && (
         <Configurator
