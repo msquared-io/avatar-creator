@@ -17,6 +17,7 @@ import {
 } from "playcanvas";
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
 
+import animGraphData from "../assets/anim-graph.json";
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
 
 /*
@@ -55,8 +56,6 @@ const slots = [
   "torso",
 ];
 
-import idleAnimationGLB from "../assets/anim/idle.glb";
-
 export class AvatarLoader extends EventHandler {
   private rootAsset: Asset | null = null;
   private assets: { [key: string]: Asset } = {};
@@ -86,7 +85,6 @@ export class AvatarLoader extends EventHandler {
   private entity: Entity | null = null;
   private slotEntities: { [key: string]: Entity } = {};
   private animTrack: AnimTrack | null = null;
-  private assetAnimIdle: Asset | null = null;
 
   /**
    * @param {AppBase} app PlayCanvas AppBase
@@ -117,6 +115,7 @@ export class AvatarLoader extends EventHandler {
       activate: true,
       speed: 1,
     });
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     entity.anim!.rootBone = entity;
 
@@ -141,19 +140,93 @@ export class AvatarLoader extends EventHandler {
       this.entity.addChild(entity);
     }
 
-    this.loadAnimation();
+    // list of animations
+    const animations = [
+      ["appear", "spawn_and_wave.glb"],
+      ["clap", "clap.glb"],
+      ["wave", "pick_me.glb"],
+      ["thumbsDown", "thumbs_down.glb"],
+      ["thumbsUp", "thumbs_up.glb"],
+    ];
+
+    // add animation data to anim-graph
+    for (const item of animations) {
+      const layer = animGraphData.layers[0];
+      const name = item[0];
+
+      // state
+      layer.states.push({
+        name,
+        speed: 1,
+        loop: false,
+        defaultState: false,
+      });
+
+      // transition in
+      layer.transitions.push({
+        from: "ANY",
+        to: name,
+        exitTime: 0,
+        time: 0.1,
+        interruptionSource: "NONE",
+        edgeType: 1,
+        conditions: [
+          {
+            parameterName: name,
+            predicate: "EQUAL_TO",
+            value: true,
+          },
+        ],
+      });
+
+      // transition out
+      layer.transitions.push({
+        from: name,
+        to: "Idle",
+        exitTime: 0.9,
+        interruptionSource: "NONE",
+        edgeType: 1,
+        conditions: {},
+        time: 0.1,
+      });
+
+      // trigger
+      animGraphData.parameters[name] = {
+        name,
+        type: "TRIGGER",
+        value: false,
+      };
+    }
+
+    // load anim-graph
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    entity.anim!.loadStateGraph(animGraphData);
+
+    // load default idle animation
+    this.loadAnimation("Idle", "idle.glb");
+
+    // load additional animations
+    for (const item of animations) this.loadAnimation(item[0], item[1]);
+
+    // trigger "appear" animation by default
+    entity.anim?.setTrigger("appear");
+
+    // listen to global event on app for animation triggers
+    this.app.on("anim", (name) => {
+      // eslint-disable-next-line
+      if (!entity.anim?.parameters.hasOwnProperty(name)) return;
+      entity.anim?.setTrigger(name, true);
+    });
   }
 
   /**
    * @private
    */
-  loadAnimation() {
-    const fileName = "idle.glb";
-
-    this.assetAnimIdle = new Asset(
+  loadAnimation(name: string, fileName: string) {
+    const asset: Asset = new Asset(
       fileName,
       "container",
-      { url: idleAnimationGLB, filename: fileName },
+      { url: `/anim/${fileName}`, filename: fileName },
       undefined,
       {
         // filter out translation from animation,
@@ -173,18 +246,18 @@ export class AvatarLoader extends EventHandler {
       } as any,
     );
 
-    this.assetAnimIdle.ready(() => {
+    asset.ready(() => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const animResource = this.assetAnimIdle!.resource as {
+      const animResource = asset!.resource as {
         animations: Array<Asset>;
       };
       this.animTrack = animResource.animations[0].resource as AnimTrack;
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.entity!.anim!.assignAnimation("idle", this.animTrack);
+      this.entity!.anim!.assignAnimation(name, this.animTrack);
     });
 
-    this.app.assets.add(this.assetAnimIdle);
-    this.app.assets.load(this.assetAnimIdle);
+    this.app.assets.add(asset);
+    this.app.assets.load(asset);
   }
 
   /**
