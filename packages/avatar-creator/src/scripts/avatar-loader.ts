@@ -75,9 +75,9 @@ export class AvatarLoader extends EventHandler {
     }
   >();
 
-  legs = false;
+  legs = true;
   preventRandom: boolean = false;
-  private torso = false;
+  private torso = true;
 
   private bodyType: CatalogueBodyType = "bodyB";
   private skin: CatalogueSkin | null = null;
@@ -361,14 +361,20 @@ export class AvatarLoader extends EventHandler {
    */
   checkBodySlot(slot: string, url: string) {
     if (slot === "top") {
-      if (this.index.get(url)?.torso) {
+      if (!this.urls[slot]) {
+        this.torso = true;
+        this.loadTorso();
+      } else if (this.index.get(url)?.torso) {
         this.torso = true;
         this.loadTorso();
       } else {
         this.torso = false;
       }
     } else if (slot === "bottom") {
-      if (this.index.get(url)?.legs) {
+      if (!this.urls[slot]) {
+        this.legs = true;
+        this.loadLegs();
+      } else if (this.index.get(url)?.legs) {
         this.legs = true;
         this.loadLegs();
       } else {
@@ -384,12 +390,12 @@ export class AvatarLoader extends EventHandler {
    */
   uncheckBodySlot(slot: string, url: string) {
     if (slot === "top") {
-      if (!this.index.get(url)?.torso) {
+      if (!this.index.get(url)?.torso && this.urls[slot]) {
         this.torso = false;
         this.loadTorso();
       }
     } else if (slot === "bottom") {
-      if (!this.index.get(url)?.legs) {
+      if (!this.index.get(url)?.legs && this.urls[slot]) {
         this.legs = false;
         this.unload("legs");
       }
