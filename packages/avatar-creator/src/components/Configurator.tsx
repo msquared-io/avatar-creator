@@ -84,7 +84,7 @@ export default function Configurator({
   const randomSlot = (slot: CataloguePartsKeys) => {
     const list = data.bodyTypes[bodyType][slot].list;
     if (!list.length) {
-      setters[slot]('');
+      setters[slot]("");
       return;
     }
 
@@ -381,7 +381,7 @@ export default function Configurator({
     if (outfit) {
       (Object.keys(setters) as CataloguePartsKeys[]).forEach((key) => {
         if (key === "outfit") return;
-        setters[key]('');
+        setters[key]("");
       });
 
       avatarLoader.legs = false;
