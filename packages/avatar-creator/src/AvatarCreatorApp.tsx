@@ -10,25 +10,48 @@ import "./index.css";
 
 import { AppBase } from "playcanvas";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { RefObject, useCallback, useEffect, useState } from "react";
 
 import styles from "./AvatarCreatorApp.module.css";
 import { CatalogueData } from "./CatalogueData";
 import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
-import Emotes from "./components/Emotes";
+import { Emotes } from "./components/Emotes";
 import Logo from "./components/Logo";
 import Mml from "./components/Mml";
+import mmlStyles from "./components/Mml.module.css";
+import { MmlButtons } from "./components/MmlButtons";
 import ProfileBadge from "./components/ProfileBadge";
 import Renderer from "./components/Renderer";
 import { AvatarLoader } from "./scripts/avatar-loader";
 import { render as renderPortrait } from "./scripts/portrait";
 
+type ExportBehavior =
+  | {
+      mode: "default";
+    }
+  | {
+      mode: "external";
+      getAvatarMmlRef: RefObject<(() => string | null) | null>;
+    }
+  | {
+      mode: "callback";
+      onExport: (avatarMml: string) => void;
+    };
+
 interface AvatarCreatorAppProps {
   dataUrl?: string;
+  animUrl?: string;
+  exportBehavior?: ExportBehavior;
+  hideProfileBadge?: boolean;
 }
 
-export function AvatarCreatorApp({ dataUrl = "/data.json" }: AvatarCreatorAppProps = {}) {
+export function AvatarCreatorApp({
+  dataUrl = "/data.json",
+  animUrl = "/anim/",
+  exportBehavior = { mode: "default" },
+  hideProfileBadge = false,
+}: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<CatalogueData | null>(null);
   const [avatarLoader, setAvatarLoader] = useState<AvatarLoader | null>(null);
@@ -53,7 +76,7 @@ export function AvatarCreatorApp({ dataUrl = "/data.json" }: AvatarCreatorAppPro
   useEffect(() => {
     if (!app || !data || avatarLoader) return;
     // this should be created only once
-    const loader = new AvatarLoader(app, data);
+    const loader = new AvatarLoader(app, data, animUrl);
     setAvatarLoader(loader);
 
     // Set up global loading listeners
@@ -83,6 +106,25 @@ export function AvatarCreatorApp({ dataUrl = "/data.json" }: AvatarCreatorAppPro
       }
     : undefined;
 
+  const getAvatarMml = useCallback(() => {
+    if (!avatarLoader) {
+      return null;
+    }
+    return avatarLoader.getAvatarMml();
+  }, [avatarLoader]);
+
+  useEffect(() => {
+    if (exportBehavior.mode === "external") {
+      exportBehavior.getAvatarMmlRef.current = getAvatarMml;
+    }
+
+    return () => {
+      if (exportBehavior.mode === "external") {
+        exportBehavior.getAvatarMmlRef.current = null;
+      }
+    };
+  }, [exportBehavior, getAvatarMml]);
+
   const isLoading = isDataLoading || isAvatarLoading;
 
   const rootClasses = [
@@ -105,7 +147,7 @@ export function AvatarCreatorApp({ dataUrl = "/data.json" }: AvatarCreatorAppPro
         <ButtonCustomize label="Customize" onStateChange={setAppState} appState={appState} />
       )}
 
-      <ProfileBadge portrait={portrait} />
+      {hideProfileBadge ? null : <ProfileBadge portrait={portrait} />}
 
       {data && avatarLoader && app && (
         <Configurator
@@ -117,8 +159,20 @@ export function AvatarCreatorApp({ dataUrl = "/data.json" }: AvatarCreatorAppPro
         />
       )}
 
-      {data && avatarLoader && (
+      {data && avatarLoader && exportBehavior.mode === "default" && (
         <Mml onSave={onSave} isLoading={isLoading} avatarLoader={avatarLoader} />
+      )}
+
+      {data && avatarLoader && exportBehavior.mode === "callback" && (
+        <div className={mmlStyles.mml}>
+          <MmlButtons
+            setOverlayActive={() => {}}
+            onExportClick={() => {
+              exportBehavior.onExport(avatarLoader.getAvatarMml());
+            }}
+            isLoading={isLoading}
+          />
+        </div>
       )}
 
       {data && avatarLoader && app && <Emotes appState={appState} app={app} />}

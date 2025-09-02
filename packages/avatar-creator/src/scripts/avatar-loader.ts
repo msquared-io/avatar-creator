@@ -56,6 +56,19 @@ const slots = [
   "torso",
 ];
 
+const keyReplace = {
+  "top:secondary": "topSecondary",
+  "bottom:secondary": "bottomSecondary",
+};
+
+export enum EmoteTypes {
+  Appear = "appear",
+  Clap = "clap",
+  Wave = "wave",
+  ThumbsDown = "thumbsDown",
+  ThumbsUp = "thumbsUp",
+}
+
 export class AvatarLoader extends EventHandler {
   private rootAsset: Asset | null = null;
   private assets: { [key: string]: Asset } = {};
@@ -93,6 +106,7 @@ export class AvatarLoader extends EventHandler {
   constructor(
     public app: AppBase,
     public data: CatalogueData,
+    public animUrl: string,
   ) {
     super();
 
@@ -142,11 +156,11 @@ export class AvatarLoader extends EventHandler {
 
     // list of animations
     const animations = [
-      ["appear", "spawn_and_wave.glb"],
-      ["clap", "clap.glb"],
-      ["wave", "pick_me.glb"],
-      ["thumbsDown", "thumbs_down.glb"],
-      ["thumbsUp", "thumbs_up.glb"],
+      [EmoteTypes.Appear, "spawn_and_wave.glb"],
+      [EmoteTypes.Clap, "clap.glb"],
+      [EmoteTypes.Wave, "pick_me.glb"],
+      [EmoteTypes.ThumbsDown, "thumbs_down.glb"],
+      [EmoteTypes.ThumbsUp, "thumbs_up.glb"],
     ];
 
     // add animation data to anim-graph
@@ -166,6 +180,7 @@ export class AvatarLoader extends EventHandler {
       layer.transitions.push({
         from: "ANY",
         to: name,
+        // @ts-ignore
         exitTime: 0,
         time: 0.1,
         interruptionSource: "NONE",
@@ -183,6 +198,7 @@ export class AvatarLoader extends EventHandler {
       layer.transitions.push({
         from: name,
         to: "Idle",
+        // @ts-ignore
         exitTime: 0.9,
         interruptionSource: "NONE",
         edgeType: 1,
@@ -191,6 +207,7 @@ export class AvatarLoader extends EventHandler {
       });
 
       // trigger
+      // @ts-ignore
       animGraphData.parameters[name] = {
         name,
         type: "TRIGGER",
@@ -226,7 +243,7 @@ export class AvatarLoader extends EventHandler {
     const asset: Asset = new Asset(
       fileName,
       "container",
-      { url: `/anim/${fileName}`, filename: fileName },
+      { url: `${this.animUrl}${fileName}`, filename: fileName },
       undefined,
       {
         // filter out translation from animation,
@@ -574,6 +591,95 @@ export class AvatarLoader extends EventHandler {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this.slotEntities[slot].render!.materialAssets = container.materials as unknown as Asset[];
     });
+  }
+
+  /**
+   * Get the avatar MML code for the current avatar
+   * @param {boolean} formatted Whether to format the MML code
+   * @returns {string} the MML code for the current avatar
+   */
+  getAvatarMml(formatted: boolean = false) {
+    let code = "";
+
+    const className = [this.getBodyType(), `skin${this.getSkin()?.name ?? ""}`].join(" ");
+
+    code += `<m-character class="${className}" src="${encodeURI(this.urls.torso ?? "")}">${formatted ? "\n" : ""}`;
+
+    for (const key in this.urls) {
+      if (key === "torso") continue;
+      const url = this.urls[key];
+      if (!url) continue;
+      const className = key in keyReplace ? keyReplace[key as keyof typeof keyReplace] : key;
+      code += `${formatted ? "\t" : ""}<m-model class="${className}" src="${encodeURI(url)}"></m-model>${formatted ? "\n" : ""}`;
+    }
+
+    code += `</m-character>`;
+
+    return code;
+  }
+
+  loadAvatarMml(code: string) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(code, "text/html");
+    const rootNode = doc.body;
+
+    const character = rootNode.querySelector("m-character");
+    if (!character) {
+      console.log("character not found");
+      return;
+    }
+
+    // body type
+    const bodyTypes = new Set(["bodyA", "bodyB"]);
+    const classItems = Array.from(character.classList);
+    const bodyType =
+      classItems.filter((item) => {
+        return bodyTypes.has(item);
+      })?.[0] ?? "BodyA";
+    this.setBodyType(bodyType as CatalogueBodyType, true);
+
+    // skin
+    classItems.forEach((item) => {
+      if (!item.startsWith("skin")) return;
+
+      const skinIndex = parseInt(item.slice(4), 10);
+      if (isNaN(skinIndex)) return;
+
+      const skinName = (skinIndex + "").padStart(2, "0");
+
+      this.setSkin({ name: skinName, index: skinIndex }, true);
+    });
+
+    this.load("torso", character.getAttribute("src"), true);
+
+    const slots = [
+      "legs",
+      "head",
+      "hair",
+      "top",
+      "topSecondary",
+      "bottom",
+      "bottomSecondary",
+      "shoes",
+    ];
+
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i];
+      const slotName = slot in keyReplace ? keyReplace[slot as keyof typeof keyReplace] : slot;
+      const node = character.querySelector(`m-model.${slot}`);
+      const src = node?.getAttribute("src");
+
+      if (!node || !src) {
+        this.unload(slotName);
+        continue;
+      }
+
+      if (slot === "legs") {
+        this.legs = true;
+      }
+
+      this.load(slotName, src, true);
+    }
   }
 
   /**
