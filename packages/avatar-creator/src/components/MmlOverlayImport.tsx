@@ -11,17 +11,12 @@ import xml from "highlight.js/lib/languages/xml";
 import * as React from "react";
 import { MouseEvent, useEffect, useRef } from "react";
 
-import { CatalogueBodyType } from "../CatalogueData";
 import { AvatarLoader } from "../scripts/avatar-loader";
+import { mmlImport } from "../scripts/mml";
 import { MmlOverlay } from "./MmlButtons";
 import styles from "./MmlOverlayImport.module.css";
 
 hljs.registerLanguage("xml", xml);
-
-const keyReplace = {
-  topSecondary: "top:secondary",
-  bottomSecondary: "bottom:secondary",
-};
 
 export default function MmlOverlayImport({
   setActive,
@@ -48,13 +43,6 @@ export default function MmlOverlayImport({
 
   useEffect(() => {
     selectCode();
-
-    navigator.clipboard
-      .readText()
-      .then((clipText) => {
-        if (codeRef.current) codeRef.current.innerText = clipText;
-      })
-      .catch(() => {});
 
     const evtWindowMouseDown = (evt: globalThis.MouseEvent) => {
       overlayDown = evt.target === ref.current;
@@ -90,68 +78,7 @@ export default function MmlOverlayImport({
 
   const onImport = () => {
     const code = codeRef.current?.textContent ?? "";
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(code, "text/html");
-    const rootNode = doc.body;
-
-    const character = rootNode.querySelector("m-character");
-    if (!character) {
-      console.log("character not found");
-      return;
-    }
-
-    // body type
-    const bodyTypes = new Set(["bodyA", "bodyB"]);
-    const classItems = Array.from(character.classList);
-    const bodyType =
-      classItems.filter((item) => {
-        return bodyTypes.has(item);
-      })?.[0] ?? "BodyA";
-    avatarLoader.setBodyType(bodyType as CatalogueBodyType, true);
-
-    // skin
-    classItems.forEach((item) => {
-      if (!item.startsWith("skin")) return;
-
-      const skinIndex = parseInt(item.slice(4), 10);
-      if (isNaN(skinIndex)) return;
-
-      const skinName = (skinIndex + "").padStart(2, "0");
-
-      avatarLoader.setSkin({ name: skinName, index: skinIndex }, true);
-    });
-
-    avatarLoader.load("torso", character.getAttribute("src"), true);
-
-    const slots = [
-      "legs",
-      "head",
-      "hair",
-      "top",
-      "topSecondary",
-      "bottom",
-      "bottomSecondary",
-      "shoes",
-    ];
-
-    for (let i = 0; i < slots.length; i++) {
-      const slot = slots[i];
-      const slotName = slot in keyReplace ? keyReplace[slot as keyof typeof keyReplace] : slot;
-      const node = character.querySelector(`m-model.${slot}`);
-      const src = node?.getAttribute("src");
-
-      if (!node || !src) {
-        avatarLoader.unload(slotName);
-        continue;
-      }
-
-      if (slot === "legs") {
-        avatarLoader.legs = true;
-      }
-
-      avatarLoader.load(slotName, src, true);
-    }
+    mmlImport(code, avatarLoader);
   };
 
   const onClose = () => {

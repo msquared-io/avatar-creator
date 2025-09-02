@@ -15,8 +15,8 @@ import styles from "./MmlButtons.module.css";
 export enum MmlOverlay {
   None,
   Import,
-  Export
-};
+  Export,
+}
 
 export function MmlButtons({
   setOverlayActive,
