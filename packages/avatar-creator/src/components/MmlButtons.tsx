@@ -12,23 +12,32 @@ import { useState } from "react";
 import parentStyles from "./Mml.module.css";
 import styles from "./MmlButtons.module.css";
 
-export default function MmlButtons({
+export enum MmlOverlay {
+  None,
+  Import,
+  Export,
+}
+
+export function MmlButtons({
+  onExportClick,
   setOverlayActive,
   onSave,
   isLoading,
 }: {
-  setOverlayActive: (value: string) => void;
+  onExportClick: () => void;
+  setOverlayActive: (value: MmlOverlay) => void;
   onSave?: () => void;
   isLoading?: boolean;
 }) {
   const [active, setActive] = useState(false);
 
-  const onExportClick = () => {
-    setOverlayActive("export");
+  const onExportOverlayClick = () => {
+    setOverlayActive(MmlOverlay.Export);
+    onExportClick();
   };
 
-  const onImportClick = () => {
-    setOverlayActive("import");
+  const onImportOverlayClick = () => {
+    setOverlayActive(MmlOverlay.Import);
   };
 
   const toggleActive = () => {
@@ -41,7 +50,7 @@ export default function MmlButtons({
 
   return (
     <>
-      <div className={`${parentStyles.button} ${styles.export}`} onClick={onExportClick}>
+      <div className={`${parentStyles.button} ${styles.export}`} onClick={onExportOverlayClick}>
         <span>Export</span>
         <svg
           width="200"
@@ -69,7 +78,7 @@ export default function MmlButtons({
         </svg>
       </div>
 
-      <div className={`${parentStyles.button} ${styles.import}`} onClick={onImportClick}>
+      <div className={`${parentStyles.button} ${styles.import}`} onClick={onImportOverlayClick}>
         <span>Import</span>
         <svg
           width="200"
@@ -142,7 +151,10 @@ export default function MmlButtons({
       </div>
 
       <div className={`${parentStyles.mobileMenu} ${active ? parentStyles.active : ""}`}>
-        <div className={`${parentStyles.button} ${styles.mobileExport}`} onClick={onExportClick}>
+        <div
+          className={`${parentStyles.button} ${styles.mobileExport}`}
+          onClick={onExportOverlayClick}
+        >
           <span>Export</span>
           <svg
             width="200"
@@ -170,7 +182,10 @@ export default function MmlButtons({
             />
           </svg>
         </div>
-        <div className={`${parentStyles.button} ${styles.mobileImport}`} onClick={onImportClick}>
+        <div
+          className={`${parentStyles.button} ${styles.mobileImport}`}
+          onClick={onImportOverlayClick}
+        >
           <span>Import</span>
           <svg
             width="200"

@@ -10,20 +10,14 @@ import { AppBase } from "playcanvas";
 import * as React from "react";
 import { useState } from "react";
 
+import { EmoteTypes } from "../scripts/avatar-loader";
 import styles from "./Emotes.module.css";
 
-export default function Mml({
-  appState,
-  app,
-}: {
-  app: AppBase;
-  appState: "home" | "configurator";
-}) {
+export function Emotes({ appState, app }: { app: AppBase; appState: "home" | "configurator" }) {
   const [active, setActive] = useState(false);
 
-  const onClick = (evt: React.MouseEvent<HTMLSpanElement>) => {
+  const onClick = (emote: EmoteTypes) => {
     if (active) {
-      const emote = (evt.target as HTMLElement).getAttribute("data-emote");
       app.fire("anim", emote);
     }
     setActive(!active);
@@ -33,19 +27,44 @@ export default function Mml({
     <div
       className={`${styles.emotes} ${active ? styles.active : ""} ${appState === "home" ? "" : styles.hidden}`}
     >
-      <span className={styles.icon} onClick={onClick} data-emote="appear">
+      <span
+        className={styles.icon}
+        onClick={() => {
+          onClick(EmoteTypes.Appear);
+        }}
+      >
         😎
       </span>
-      <span className={styles.icon} onClick={onClick} data-emote="clap">
+      <span
+        className={styles.icon}
+        onClick={() => {
+          onClick(EmoteTypes.Clap);
+        }}
+      >
         👏
       </span>
-      <span className={styles.icon} onClick={onClick} data-emote="wave">
+      <span
+        className={styles.icon}
+        onClick={() => {
+          onClick(EmoteTypes.Wave);
+        }}
+      >
         👋
       </span>
-      <span className={styles.icon} onClick={onClick} data-emote="thumbsDown">
+      <span
+        className={styles.icon}
+        onClick={() => {
+          onClick(EmoteTypes.ThumbsDown);
+        }}
+      >
         👎
       </span>
-      <span className={styles.icon} onClick={onClick} data-emote="thumbsUp">
+      <span
+        className={styles.icon}
+        onClick={() => {
+          onClick(EmoteTypes.ThumbsUp);
+        }}
+      >
         👍
       </span>
     </div>

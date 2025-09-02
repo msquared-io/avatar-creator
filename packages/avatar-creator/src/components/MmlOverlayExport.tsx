@@ -12,20 +12,16 @@ import * as React from "react";
 import { MouseEvent, useEffect, useRef } from "react";
 
 import { AvatarLoader } from "../scripts/avatar-loader";
+import { MmlOverlay } from "./MmlButtons";
 import styles from "./MmlOverlayExport.module.css";
 
 hljs.registerLanguage("xml", xml);
-
-const keyReplace = {
-  "top:secondary": "topSecondary",
-  "bottom:secondary": "bottomSecondary",
-};
 
 export default function MmlOverlayExport({
   setActive,
   avatarLoader,
 }: {
-  setActive: (value: string) => void;
+  setActive: (value: MmlOverlay) => void;
   avatarLoader: AvatarLoader;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -36,24 +32,7 @@ export default function MmlOverlayExport({
 
     hljs.highlightElement(codeRef.current);
 
-    const outfit = avatarLoader.urls.outfit ?? "";
-
-    const className = outfit
-      ? "outfit"
-      : [avatarLoader.getBodyType(), `skin${avatarLoader.getSkin()?.name ?? ""}`].join(" ");
-
-    let code = "";
-    code += `<m-character class="${className}" src="${encodeURI(outfit || (avatarLoader.urls.torso ?? ""))}">\n`;
-
-    for (const key in avatarLoader.urls) {
-      if (key === "torso" || key === "outfit") continue;
-      const url = avatarLoader.urls[key];
-      if (!url) continue;
-      const className = key in keyReplace ? keyReplace[key as keyof typeof keyReplace] : key;
-      code += `    <m-model class="${className}" src="${encodeURI(url)}"></m-model>\n`;
-    }
-
-    code += `</m-character>`;
+    let code = avatarLoader.getAvatarMml(true);
 
     code = hljs.highlight(code, { language: "xml" }).value;
 
@@ -79,7 +58,7 @@ export default function MmlOverlayExport({
   };
 
   const onClose = () => {
-    setActive("");
+    setActive(MmlOverlay.None);
   };
 
   return (
