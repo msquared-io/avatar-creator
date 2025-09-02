@@ -16,7 +16,7 @@ import styles from "./AvatarCreatorApp.module.css";
 import { CatalogueData } from "./CatalogueData";
 import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
-import Emotes from "./components/Emotes";
+import { Emotes } from "./components/Emotes";
 import Mml from "./components/Mml";
 import mmlStyles from "./components/Mml.module.css";
 import { MmlButtons } from "./components/MmlButtons";
@@ -40,12 +40,14 @@ type ExportBehavior =
 
 interface AvatarCreatorAppProps {
   dataUrl?: string;
+  animUrl?: string;
   exportBehavior?: ExportBehavior;
   hideProfileBadge?: boolean;
 }
 
 export function AvatarCreatorApp({
   dataUrl = "/data.json",
+  animUrl = "/anim/",
   exportBehavior = { mode: "default" },
   hideProfileBadge = false,
 }: AvatarCreatorAppProps = {}) {
@@ -73,7 +75,7 @@ export function AvatarCreatorApp({
   useEffect(() => {
     if (!app || !data || avatarLoader) return;
     // this should be created only once
-    const loader = new AvatarLoader(app, data);
+    const loader = new AvatarLoader(app, data, animUrl);
     setAvatarLoader(loader);
 
     // Set up global loading listeners
