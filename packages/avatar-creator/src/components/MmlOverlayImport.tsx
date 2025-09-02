@@ -13,6 +13,7 @@ import { MouseEvent, useEffect, useRef } from "react";
 
 import { CatalogueBodyType } from "../CatalogueData";
 import { AvatarLoader } from "../scripts/avatar-loader";
+import { MmlOverlay } from "./MmlButtons";
 import styles from "./MmlOverlayImport.module.css";
 
 hljs.registerLanguage("xml", xml);
@@ -26,7 +27,7 @@ export default function MmlOverlayImport({
   setActive,
   avatarLoader,
 }: {
-  setActive: (value: string) => void;
+  setActive: (value: MmlOverlay) => void;
   avatarLoader: AvatarLoader;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -59,7 +60,7 @@ export default function MmlOverlayImport({
       overlayDown = evt.target === ref.current;
     };
     const evtWindowMouseUp = (evt: globalThis.MouseEvent) => {
-      if (overlayDown && evt.target === ref.current) setActive("");
+      if (overlayDown && evt.target === ref.current) setActive(MmlOverlay.None);
       overlayDown = false;
     };
 
@@ -154,7 +155,7 @@ export default function MmlOverlayImport({
   };
 
   const onClose = () => {
-    setActive("");
+    setActive(MmlOverlay.None);
   };
 
   return (

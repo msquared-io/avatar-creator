@@ -12,23 +12,29 @@ import { useState } from "react";
 import parentStyles from "./Mml.module.css";
 import styles from "./MmlButtons.module.css";
 
-export default function MmlButtons({
+export enum MmlOverlay {
+  None,
+  Import,
+  Export
+};
+
+export function MmlButtons({
   setOverlayActive,
   onSave,
   isLoading,
 }: {
-  setOverlayActive: (value: string) => void;
+  setOverlayActive: (value: MmlOverlay) => void;
   onSave?: () => void;
   isLoading?: boolean;
 }) {
   const [active, setActive] = useState(false);
 
   const onExportClick = () => {
-    setOverlayActive("export");
+    setOverlayActive(MmlOverlay.Export);
   };
 
   const onImportClick = () => {
-    setOverlayActive("import");
+    setOverlayActive(MmlOverlay.Import);
   };
 
   const toggleActive = () => {

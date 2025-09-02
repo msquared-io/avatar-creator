@@ -12,7 +12,9 @@ import * as React from "react";
 import { MouseEvent, useEffect, useRef } from "react";
 
 import { AvatarLoader } from "../scripts/avatar-loader";
+import { MmlOverlay } from "./MmlButtons";
 import styles from "./MmlOverlayExport.module.css";
+
 
 hljs.registerLanguage("xml", xml);
 
@@ -25,7 +27,7 @@ export default function MmlOverlayExport({
   setActive,
   avatarLoader,
 }: {
-  setActive: (value: string) => void;
+  setActive: (value: MmlOverlay) => void;
   avatarLoader: AvatarLoader;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -78,7 +80,7 @@ export default function MmlOverlayExport({
   };
 
   const onClose = () => {
-    setActive("");
+    setActive(MmlOverlay.None);
   };
 
   return (
