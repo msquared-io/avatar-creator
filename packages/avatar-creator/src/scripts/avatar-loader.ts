@@ -55,6 +55,11 @@ const slots = [
   "torso",
 ];
 
+const keyReplace = {
+  "top:secondary": "topSecondary",
+  "bottom:secondary": "bottomSecondary",
+};
+
 import idleAnimationGLB from "../assets/anim/idle.glb";
 
 export class AvatarLoader extends EventHandler {
@@ -495,6 +500,95 @@ export class AvatarLoader extends EventHandler {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this.slotEntities[slot].render!.materialAssets = container.materials as unknown as Asset[];
     });
+  }
+
+  /**
+   * Get the avatar MML code for the current avatar
+   * @param {boolean} formatted Whether to format the MML code
+   * @returns {string} the MML code for the current avatar
+   */
+  getAvatarMml(formatted: boolean = false) {
+    let code = "";
+
+    const className = [this.getBodyType(), `skin${this.getSkin()?.name ?? ""}`].join(" ");
+
+    code += `<m-character class="${className}" src="${encodeURI(this.urls.torso ?? "")}">${formatted ? "\n" : ""}`;
+
+    for (const key in this.urls) {
+      if (key === "torso") continue;
+      const url = this.urls[key];
+      if (!url) continue;
+      const className = key in keyReplace ? keyReplace[key as keyof typeof keyReplace] : key;
+      code += `${formatted ? "\t" : ""}<m-model class="${className}" src="${encodeURI(url)}"></m-model>${formatted ? "\n" : ""}`;
+    }
+
+    code += `</m-character>`;
+
+    return code;
+  }
+
+  loadAvatarMml(code: string) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(code, "text/html");
+    const rootNode = doc.body;
+
+    const character = rootNode.querySelector("m-character");
+    if (!character) {
+      console.log("character not found");
+      return;
+    }
+
+    // body type
+    const bodyTypes = new Set(["bodyA", "bodyB"]);
+    const classItems = Array.from(character.classList);
+    const bodyType =
+      classItems.filter((item) => {
+        return bodyTypes.has(item);
+      })?.[0] ?? "BodyA";
+    this.setBodyType(bodyType as CatalogueBodyType, true);
+
+    // skin
+    classItems.forEach((item) => {
+      if (!item.startsWith("skin")) return;
+
+      const skinIndex = parseInt(item.slice(4), 10);
+      if (isNaN(skinIndex)) return;
+
+      const skinName = (skinIndex + "").padStart(2, "0");
+
+      this.setSkin({ name: skinName, index: skinIndex }, true);
+    });
+
+    this.load("torso", character.getAttribute("src"), true);
+
+    const slots = [
+      "legs",
+      "head",
+      "hair",
+      "top",
+      "topSecondary",
+      "bottom",
+      "bottomSecondary",
+      "shoes",
+    ];
+
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i];
+      const slotName = slot in keyReplace ? keyReplace[slot as keyof typeof keyReplace] : slot;
+      const node = character.querySelector(`m-model.${slot}`);
+      const src = node?.getAttribute("src");
+
+      if (!node || !src) {
+        this.unload(slotName);
+        continue;
+      }
+
+      if (slot === "legs") {
+        this.legs = true;
+      }
+
+      this.load(slotName, src, true);
+    }
   }
 
   /**

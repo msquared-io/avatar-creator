@@ -19,21 +19,24 @@ export enum MmlOverlay {
 }
 
 export function MmlButtons({
+  onExportClick,
   setOverlayActive,
   onSave,
   isLoading,
 }: {
+  onExportClick: () => void;
   setOverlayActive: (value: MmlOverlay) => void;
   onSave?: () => void;
   isLoading?: boolean;
 }) {
   const [active, setActive] = useState(false);
 
-  const onExportClick = () => {
+  const onExportOverlayClick = () => {
     setOverlayActive(MmlOverlay.Export);
+    onExportClick();
   };
 
-  const onImportClick = () => {
+  const onImportOverlayClick = () => {
     setOverlayActive(MmlOverlay.Import);
   };
 
@@ -47,7 +50,7 @@ export function MmlButtons({
 
   return (
     <>
-      <div className={`${parentStyles.button} ${styles.export}`} onClick={onExportClick}>
+      <div className={`${parentStyles.button} ${styles.export}`} onClick={onExportOverlayClick}>
         <span>Export</span>
         <svg
           width="200"
@@ -75,7 +78,7 @@ export function MmlButtons({
         </svg>
       </div>
 
-      <div className={`${parentStyles.button} ${styles.import}`} onClick={onImportClick}>
+      <div className={`${parentStyles.button} ${styles.import}`} onClick={onImportOverlayClick}>
         <span>Import</span>
         <svg
           width="200"
@@ -148,7 +151,10 @@ export function MmlButtons({
       </div>
 
       <div className={`${parentStyles.mobileMenu} ${active ? parentStyles.active : ""}`}>
-        <div className={`${parentStyles.button} ${styles.mobileExport}`} onClick={onExportClick}>
+        <div
+          className={`${parentStyles.button} ${styles.mobileExport}`}
+          onClick={onExportOverlayClick}
+        >
           <span>Export</span>
           <svg
             width="200"
@@ -176,7 +182,10 @@ export function MmlButtons({
             />
           </svg>
         </div>
-        <div className={`${parentStyles.button} ${styles.mobileImport}`} onClick={onImportClick}>
+        <div
+          className={`${parentStyles.button} ${styles.mobileImport}`}
+          onClick={onImportOverlayClick}
+        >
           <span>Import</span>
           <svg
             width="200"

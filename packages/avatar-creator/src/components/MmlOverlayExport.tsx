@@ -12,7 +12,6 @@ import * as React from "react";
 import { MouseEvent, useEffect, useRef } from "react";
 
 import { AvatarLoader } from "../scripts/avatar-loader";
-import { mmlExport } from "../scripts/mml";
 import { MmlOverlay } from "./MmlButtons";
 import styles from "./MmlOverlayExport.module.css";
 
@@ -33,7 +32,8 @@ export default function MmlOverlayExport({
 
     hljs.highlightElement(codeRef.current);
 
-    let code = mmlExport(avatarLoader);
+    let code = avatarLoader.getAvatarMml(true);
+
     code = hljs.highlight(code, { language: "xml" }).value;
 
     codeRef.current.innerHTML = code;

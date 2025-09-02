@@ -29,7 +29,12 @@ export default function Mml({
   return (
     <>
       <div className={styles.mml}>
-        <MmlButtons setOverlayActive={setActive} onSave={onSave} isLoading={isLoading} />
+        <MmlButtons
+          onExportClick={() => {}}
+          setOverlayActive={setActive}
+          onSave={onSave}
+          isLoading={isLoading}
+        />
       </div>
       {active === MmlOverlay.Export && (
         <MmlOverlayExport setActive={setActive} avatarLoader={avatarLoader} />

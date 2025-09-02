@@ -12,7 +12,6 @@ import * as React from "react";
 import { MouseEvent, useEffect, useRef } from "react";
 
 import { AvatarLoader } from "../scripts/avatar-loader";
-import { mmlImport } from "../scripts/mml";
 import { MmlOverlay } from "./MmlButtons";
 import styles from "./MmlOverlayImport.module.css";
 
@@ -78,7 +77,7 @@ export default function MmlOverlayImport({
 
   const onImport = () => {
     const code = codeRef.current?.textContent ?? "";
-    mmlImport(code, avatarLoader);
+    avatarLoader.loadAvatarMml(code);
   };
 
   const onClose = () => {
