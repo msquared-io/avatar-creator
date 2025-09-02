@@ -180,7 +180,7 @@ export class AvatarLoader extends EventHandler {
       layer.transitions.push({
         from: "ANY",
         to: name,
-        // @ts-ignore
+        // @ts-expect-error Anim Graph - is a proprietary format, not expected to be poked with
         exitTime: 0,
         time: 0.1,
         interruptionSource: "NONE",
@@ -198,7 +198,7 @@ export class AvatarLoader extends EventHandler {
       layer.transitions.push({
         from: name,
         to: "Idle",
-        // @ts-ignore
+        // @ts-expect-error Anim Graph - is a proprietary format, not expected to be poked with
         exitTime: 0.9,
         interruptionSource: "NONE",
         edgeType: 1,
@@ -207,7 +207,7 @@ export class AvatarLoader extends EventHandler {
       });
 
       // trigger
-      // @ts-ignore
+      // @ts-expect-error Anim Graph - is a proprietary format, not expected to be poked with
       animGraphData.parameters[name] = {
         name,
         type: "TRIGGER",
