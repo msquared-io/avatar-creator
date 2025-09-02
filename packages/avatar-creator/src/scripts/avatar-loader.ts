@@ -61,6 +61,14 @@ const keyReplace = {
   "bottom:secondary": "bottomSecondary",
 };
 
+export enum EmoteTypes {
+  Appear = "appear",
+  Clap = "clap",
+  Wave = "wave",
+  ThumbsDown = "thumbsDown",
+  ThumbsUp = "thumbsUp",
+}
+
 export class AvatarLoader extends EventHandler {
   private rootAsset: Asset | null = null;
   private assets: { [key: string]: Asset } = {};
@@ -98,6 +106,7 @@ export class AvatarLoader extends EventHandler {
   constructor(
     public app: AppBase,
     public data: CatalogueData,
+    public animUrl: string,
   ) {
     super();
 
@@ -147,11 +156,11 @@ export class AvatarLoader extends EventHandler {
 
     // list of animations
     const animations = [
-      ["appear", "spawn_and_wave.glb"],
-      ["clap", "clap.glb"],
-      ["wave", "pick_me.glb"],
-      ["thumbsDown", "thumbs_down.glb"],
-      ["thumbsUp", "thumbs_up.glb"],
+      [EmoteTypes.Appear, "spawn_and_wave.glb"],
+      [EmoteTypes.Clap, "clap.glb"],
+      [EmoteTypes.Wave, "pick_me.glb"],
+      [EmoteTypes.ThumbsDown, "thumbs_down.glb"],
+      [EmoteTypes.ThumbsUp, "thumbs_up.glb"],
     ];
 
     // add animation data to anim-graph
@@ -171,6 +180,7 @@ export class AvatarLoader extends EventHandler {
       layer.transitions.push({
         from: "ANY",
         to: name,
+        // @ts-ignore
         exitTime: 0,
         time: 0.1,
         interruptionSource: "NONE",
@@ -188,6 +198,7 @@ export class AvatarLoader extends EventHandler {
       layer.transitions.push({
         from: name,
         to: "Idle",
+        // @ts-ignore
         exitTime: 0.9,
         interruptionSource: "NONE",
         edgeType: 1,
@@ -196,6 +207,7 @@ export class AvatarLoader extends EventHandler {
       });
 
       // trigger
+      // @ts-ignore
       animGraphData.parameters[name] = {
         name,
         type: "TRIGGER",
@@ -231,7 +243,7 @@ export class AvatarLoader extends EventHandler {
     const asset: Asset = new Asset(
       fileName,
       "container",
-      { url: `/anim/${fileName}`, filename: fileName },
+      { url: `${this.animUrl}${fileName}`, filename: fileName },
       undefined,
       {
         // filter out translation from animation,
