@@ -18,6 +18,7 @@ import {
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
 
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
+import { humanFileSize } from "./utils";
 
 /*
 
@@ -55,9 +56,14 @@ const slots = [
   "torso",
 ];
 
-const keyReplace = {
+const slotToClass = {
   "top:secondary": "topSecondary",
   "bottom:secondary": "bottomSecondary",
+};
+
+const classToSlot = {
+  topSecondary: "top:secondary",
+  bottomSecondary: "bottom:secondary",
 };
 
 import idleAnimationGLB from "../assets/anim/idle.glb";
@@ -65,10 +71,16 @@ import idleAnimationGLB from "../assets/anim/idle.glb";
 export class AvatarLoader extends EventHandler {
   private rootAsset: Asset | null = null;
   private assets: { [key: string]: Asset } = {};
-  private entities = {};
+  private assetsCache = new Set<Asset>();
+  private assetsCacheByUrl = new Map<string, Asset>();
+  private slotByAsset = new Map<Asset, string>();
+  private urlByAsset = new Map<Asset, string>();
+  private assetTimers = new Map<Asset, number>();
+  private assetExpires: number = 1000; // one second
 
   public urls: { [key: string]: string | null } = {};
   public loading = new Map<string, string>();
+  public debugAssets: boolean = false;
 
   private next = new Map<string, string | null>();
   private index = new Map<
@@ -102,6 +114,8 @@ export class AvatarLoader extends EventHandler {
     public data: CatalogueData,
   ) {
     super();
+
+    this.app.on("update", this.update, this);
 
     this.indexData();
   }
@@ -369,9 +383,19 @@ export class AvatarLoader extends EventHandler {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const name = url.split("/").pop()!;
-    const asset = new Asset(name, "container", { url, filename: name });
+
+    let asset = this.assetsCacheByUrl.get(url);
+    if (!asset) {
+      asset = new Asset(name, "container", { url, filename: name });
+      this.app.assets.add(asset);
+      this.assetsCache.add(asset);
+      this.assetsCacheByUrl.set(url, asset);
+      this.assetTimers.set(asset, performance.now());
+      this.slotByAsset.set(asset, slot);
+      this.urlByAsset.set(asset, url);
+    }
+
     this.loading.set(slot, url);
-    this.app.assets.add(asset);
 
     this.urls[slot] = url;
 
@@ -420,6 +444,8 @@ export class AvatarLoader extends EventHandler {
           this.unload(slot);
         }
       }
+
+      this.updateStats();
     });
 
     asset.once("error", () => {
@@ -518,7 +544,7 @@ export class AvatarLoader extends EventHandler {
       if (key === "torso") continue;
       const url = this.urls[key];
       if (!url) continue;
-      const className = key in keyReplace ? keyReplace[key as keyof typeof keyReplace] : key;
+      const className = key in slotToClass ? slotToClass[key as keyof typeof slotToClass] : key;
       code += `${formatted ? "\t" : ""}<m-model class="${className}" src="${encodeURI(url)}"></m-model>${formatted ? "\n" : ""}`;
     }
 
@@ -574,7 +600,7 @@ export class AvatarLoader extends EventHandler {
 
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i];
-      const slotName = slot in keyReplace ? keyReplace[slot as keyof typeof keyReplace] : slot;
+      const slotName = slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
       const node = character.querySelector(`m-model.${slot}`);
       const src = node?.getAttribute("src");
 
@@ -606,5 +632,64 @@ export class AvatarLoader extends EventHandler {
     this.slotEntities[slot].render!.materialAssets = [];
 
     delete this.urls[slot];
+  }
+
+  updateStats() {
+    if (!this.debugAssets) return;
+
+    this.fire(
+      "stats",
+      JSON.stringify(
+        {
+          assets: this.app.assets.list().length,
+          textures: humanFileSize(this.app.stats.vram.tex),
+          vertexBuffers: humanFileSize(this.app.stats.vram.vb),
+          indexBuffers: humanFileSize(this.app.stats.vram.ib),
+        },
+        null,
+        4,
+      ),
+    );
+  }
+
+  clearAssetResources(asset: Asset) {
+    this.app.assets.remove(asset);
+    asset.unload();
+
+    this.assetTimers.delete(asset);
+    this.assetsCache.delete(asset);
+    this.slotByAsset.delete(asset);
+
+    const url: string = this.urlByAsset.get(asset) as string;
+    this.assetsCacheByUrl.delete(url);
+
+    this.urlByAsset.delete(asset);
+
+    this.updateStats();
+  }
+
+  update() {
+    const now: number = performance.now();
+
+    for (const asset of this.assetsCache) {
+      if (!asset.file) {
+        continue;
+      }
+
+      const slot: string = this.slotByAsset.get(asset) as string;
+      const url: string = this.urlByAsset.get(asset) as string;
+
+      if (this.urls[slot] === url || this.next.get(slot) === url) {
+        // still active
+        this.assetTimers.set(asset, now);
+      } else {
+        // check if enough time has passed
+        const time: number = this.assetTimers.get(asset) as number;
+
+        if (now - time > this.assetExpires) {
+          this.clearAssetResources(asset);
+        }
+      }
+    }
   }
 }
