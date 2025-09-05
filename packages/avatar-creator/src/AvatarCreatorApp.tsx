@@ -175,7 +175,7 @@ export function AvatarCreatorApp({
         </div>
       )}
 
-      {data && avatarLoader && app && <Emotes appState={appState} app={app} />}
+      {data && avatarLoader && app && <Emotes data={data} appState={appState} app={app} />}
     </div>
   );
 }

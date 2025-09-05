@@ -17,7 +17,8 @@ import {
 } from "playcanvas";
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
 
-import animGraphData from "../assets/anim-graph.json";
+import { addAnimationData, AnimGraphData, generateDefaultAnimGraph } from "../AnimGraphData";
+// import animGraphData from "../assets/anim-graph.json";
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
 
 /*
@@ -61,14 +62,6 @@ const keyReplace = {
   "bottom:secondary": "bottomSecondary",
 };
 
-export enum EmoteTypes {
-  Appear = "appear",
-  Clap = "clap",
-  Wave = "wave",
-  ThumbsDown = "thumbsDown",
-  ThumbsUp = "thumbsUp",
-}
-
 export class AvatarLoader extends EventHandler {
   private rootAsset: Asset | null = null;
   private assets: { [key: string]: Asset } = {};
@@ -98,6 +91,8 @@ export class AvatarLoader extends EventHandler {
   private entity: Entity | null = null;
   private slotEntities: { [key: string]: Entity } = {};
   private animTrack: AnimTrack | null = null;
+
+  private animGraphData: AnimGraphData = generateDefaultAnimGraph();
 
   /**
    * @param {AppBase} app PlayCanvas AppBase
@@ -154,79 +149,38 @@ export class AvatarLoader extends EventHandler {
       this.entity.addChild(entity);
     }
 
-    // list of animations
-    const animations = [
-      [EmoteTypes.Appear, "spawn_and_wave.glb"],
-      [EmoteTypes.Clap, "clap.glb"],
-      [EmoteTypes.Wave, "pick_me.glb"],
-      [EmoteTypes.ThumbsDown, "thumbs_down.glb"],
-      [EmoteTypes.ThumbsUp, "thumbs_up.glb"],
-    ];
+    if (this.data.animations?.length) {
+      let appearAnimName: string = "";
 
-    // add animation data to anim-graph
-    for (const item of animations) {
-      const layer = animGraphData.layers[0];
-      const name = item[0];
+      // add animation data to anim-graph
+      for (const item of this.data.animations) {
+        const name = item.name;
 
-      // state
-      layer.states.push({
-        name,
-        speed: 1,
-        loop: false,
-        defaultState: false,
-      });
+        if (item.idle) {
+          continue;
+        }
 
-      // transition in
-      layer.transitions.push({
-        from: "ANY",
-        to: name,
-        // @ts-expect-error Anim Graph - is a proprietary format, not expected to be poked with
-        exitTime: 0,
-        time: 0.1,
-        interruptionSource: "NONE",
-        edgeType: 1,
-        conditions: [
-          {
-            parameterName: name,
-            predicate: "EQUAL_TO",
-            value: true,
-          },
-        ],
-      });
+        if (item.appear) {
+          appearAnimName = name;
+        }
 
-      // transition out
-      layer.transitions.push({
-        from: name,
-        to: "Idle",
-        // @ts-expect-error Anim Graph - is a proprietary format, not expected to be poked with
-        exitTime: 0.9,
-        interruptionSource: "NONE",
-        edgeType: 1,
-        conditions: {},
-        time: 0.1,
-      });
+        addAnimationData(this.animGraphData, name);
+      }
 
-      // trigger
-      // @ts-expect-error Anim Graph - is a proprietary format, not expected to be poked with
-      animGraphData.parameters[name] = {
-        name,
-        type: "TRIGGER",
-        value: false,
-      };
+      // load anim-graph
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      entity.anim!.loadStateGraph(this.animGraphData);
+
+      // load animations
+      for (const item of this.data.animations) {
+        this.loadAnimation(item.name, item.file);
+      }
+
+      // trigger "appear" animation by default
+      if (appearAnimName) {
+        entity.anim?.setTrigger(appearAnimName);
+      }
     }
-
-    // load anim-graph
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    entity.anim!.loadStateGraph(animGraphData);
-
-    // load default idle animation
-    this.loadAnimation("Idle", "idle.glb");
-
-    // load additional animations
-    for (const item of animations) this.loadAnimation(item[0], item[1]);
-
-    // trigger "appear" animation by default
-    entity.anim?.setTrigger("appear");
 
     // listen to global event on app for animation triggers
     this.app.on("anim", (name) => {
@@ -239,29 +193,25 @@ export class AvatarLoader extends EventHandler {
   /**
    * @private
    */
-  loadAnimation(name: string, fileName: string) {
-    const asset: Asset = new Asset(
-      fileName,
-      "container",
-      { url: `${this.animUrl}${fileName}`, filename: fileName },
-      undefined,
-      {
-        // filter out translation from animation,
-        // apart from the root
-        // TODO - this option is untyped in playcanvas
-        animation: {
-          preprocess: (data: {
-            name: string;
-            samplers: Array<{ input: number; output: number }>;
-            channels: Array<{ sampler: number; target: { node: number; path: string } }>;
-          }) => {
-            data.channels = data.channels.filter((item) => {
-              return item.target.node <= 2 || item.target.path === "rotation";
-            });
-          },
+  loadAnimation(name: string, url: string) {
+    const fileName = url.split("/").slice(-1)[0];
+
+    const asset: Asset = new Asset(fileName, "container", { url: `${url}.glb`, filename: fileName }, undefined, {
+      // filter out translation from animation,
+      // apart from the root
+      // TODO - this option is untyped in playcanvas
+      animation: {
+        preprocess: (data: {
+          name: string;
+          samplers: Array<{ input: number; output: number }>;
+          channels: Array<{ sampler: number; target: { node: number; path: string } }>;
+        }) => {
+          data.channels = data.channels.filter((item) => {
+            return item.target.node <= 2 || item.target.path === "rotation";
+          });
         },
-      } as any,
-    );
+      },
+    } as any);
 
     asset.ready(() => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
