@@ -469,7 +469,7 @@ export default function Configurator({
               dropOver={sectionDropOver}
             />
           )}
-          {slotHasItems("outfit") && (
+          {slotHasItems(bodyType, "outfit") && (
             <SectionButton
               slot="outfit"
               setSection={setSection}

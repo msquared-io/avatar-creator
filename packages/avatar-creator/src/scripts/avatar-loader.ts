@@ -416,7 +416,7 @@ export class AvatarLoader extends EventHandler {
 
       delete this.urls[slot];
 
-      this.checkBodySlot(slot, url);
+      if (!this.urls["outfit"]) this.checkBodySlot(slot, url);
 
       return;
     }
