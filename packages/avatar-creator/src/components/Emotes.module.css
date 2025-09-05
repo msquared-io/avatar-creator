@@ -5,7 +5,7 @@
     width: 90px;
     height: 90px;
     user-select: none;
-    transition: width 100ms, right 100ms, opacity 100ms;
+    transition: right 100ms, opacity 100ms;
     overflow: hidden;
     white-space: nowrap;
     opacity: 1;
@@ -14,7 +14,7 @@
 }
 
 .active {
-    width: 450px;
+    width: auto;
 }
 
 .icon {
@@ -27,6 +27,7 @@
     transform: scale(1, 1);
     cursor: pointer;
     border-radius: 40px;
+    counter-increment: count 1;
 }
 
 .icon:hover {
@@ -42,10 +43,6 @@
         height: 60px;
     }
 
-    .active {
-        width: 300px;
-    }
-
     .hidden {
         right: -60px !important;
         width: 60px !important;
@@ -57,7 +54,7 @@
         line-height: 60px;
         font-size: 42px;
     }
-} 
+}
 
 @media screen and (max-width: 480px) {
     .emotes {
