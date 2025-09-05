@@ -58,7 +58,7 @@ export default function Configurator({
   const [bottomSecondary, setBottomSecondary] = useState<string | null>(null);
   const [shoes, setShoes] = useState<string | null>(null);
 
-  const setters: Record<CataloguePartsKeys, (file: string) => void> = {
+  const setters: Record<CataloguePartsKeys, (file: string | null) => void> = {
     head: setHead,
     hair: setHair,
     top: setTop,
@@ -94,16 +94,9 @@ export default function Configurator({
     }
   };
 
-  const slotHasItems = (slot: string) => {
-    for (const bodyType in data.bodyTypes) {
-      if (
-        data.bodyTypes[bodyType as keyof typeof data.bodyTypes]?.[slot as CataloguePartsKeys]?.list
-          ?.length > 1
-      ) {
-        return true;
-      }
-    }
-    return false;
+  const slotHasItems = (bodyType: CatalogueBodyType, slot: CataloguePartsKeys) => {
+    const slotData = data.bodyTypes[bodyType][slot];
+    return !!slotData?.list && slotData.list.length > 1;
   };
 
   useEffect(() => {
@@ -352,7 +345,7 @@ export default function Configurator({
             active={section === "bodyType"}
             dropOver={sectionDropOver}
           />
-          {slotHasItems("head") && (
+          {slotHasItems(bodyType, "head") && (
             <SectionButton
               slot="head"
               setSection={setSection}
@@ -361,7 +354,7 @@ export default function Configurator({
               dropOver={sectionDropOver}
             />
           )}
-          {slotHasItems("hair") && (
+          {slotHasItems(bodyType, "hair") && (
             <SectionButton
               slot="hair"
               setSection={setSection}
@@ -370,7 +363,7 @@ export default function Configurator({
               dropOver={sectionDropOver}
             />
           )}
-          {slotHasItems("top") && (
+          {slotHasItems(bodyType, "top") && (
             <SectionButton
               slot="top"
               setSection={setSection}
@@ -379,7 +372,7 @@ export default function Configurator({
               dropOver={sectionDropOver}
             />
           )}
-          {slotHasItems("bottom") && (
+          {slotHasItems(bodyType, "bottom") && (
             <SectionButton
               slot="bottom"
               setSection={setSection}
@@ -388,7 +381,7 @@ export default function Configurator({
               dropOver={sectionDropOver}
             />
           )}
-          {slotHasItems("shoes") && (
+          {slotHasItems(bodyType, "shoes") && (
             <SectionButton
               slot="shoes"
               setSection={setSection}

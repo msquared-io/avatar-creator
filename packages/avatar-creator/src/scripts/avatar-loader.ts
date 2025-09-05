@@ -331,12 +331,12 @@ export class AvatarLoader extends EventHandler {
    * @param {string} url
    * @private
    */
-  checkBodySlot(slot: string, url: string) {
+  checkBodySlot(slot: string, url: string | null) {
     if (slot === "top") {
       if (!this.urls[slot]) {
         this.torso = true;
         this.loadTorso();
-      } else if (this.index.get(url)?.torso) {
+      } else if (!url || this.index.get(url)?.torso) {
         this.torso = true;
         this.loadTorso();
       } else {
@@ -346,7 +346,7 @@ export class AvatarLoader extends EventHandler {
       if (!this.urls[slot]) {
         this.legs = true;
         this.loadLegs();
-      } else if (this.index.get(url)?.legs) {
+      } else if (!url || this.index.get(url)?.legs) {
         this.legs = true;
         this.loadLegs();
       } else {
@@ -408,6 +408,9 @@ export class AvatarLoader extends EventHandler {
       }
 
       delete this.urls[slot];
+
+      this.checkBodySlot(slot, url);
+
       return;
     }
 
