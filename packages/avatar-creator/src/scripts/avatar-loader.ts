@@ -108,7 +108,7 @@ export class AvatarLoader extends EventHandler {
    */
   constructor(
     public app: AppBase,
-    public data: CatalogueData
+    public data: CatalogueData,
   ) {
     super();
 
