@@ -33,12 +33,12 @@ This repo contains:
    # Install Git LFS (if not already installed)
    # On macOS with Homebrew:
    brew install git-lfs
-   
+
    # On other systems, see: https://git-lfs.github.io/
-   
+
    # Initialize Git LFS in the repository
    git lfs install
-   
+
    # Pull the large files
    git lfs pull
    ```
@@ -85,9 +85,11 @@ The library is compiled to ESM bundles (and type declarations) under `packages/a
 
 See [examples/avatar-preview-app/public/data.json](examples/avatar-preview-app/public/data.json)
 
-This specific project implements a static JSON data containing multiple body types, skin colors and various slot models: `body`, `head`, `hair`, `top`, `bottom`, `shoes`, `outfit`
+This specific project implements a static JSON data containing multiple body types, skin colors and various slot models: `body`, `head`, `hair`, `top`, `bottom`, `shoes`, `outfit`. As well as list of animations.
 
 All URLs are defined without an extension, as it will be added: `.glb` (for 3D rendering) and `.webp` (for thumbnail).
+
+### Body Parts & Slot Models:
 
 **Body** - is a custom slot, that is skin dependant. And will be loaded automatically based on other slots.
 
@@ -101,7 +103,13 @@ All URLs are defined without an extension, as it will be added: `.glb` (for 3D r
 
 **Outfit** - a "complete" slot that will hide all the other slots and have a full-body unique model.
 
---- 
+### Animations (optional):
+
+You can specify a list of animations, including a default "idle" animation and an optional "appear" animation that plays once when the avatar first loads.
+
+Animations can include an "emote" property, allowing users to select and play specific animations from the UI.
+
+---
 
 ## How to make new assets
 
@@ -116,6 +124,6 @@ For production of assets, there a few recommendations and guidelines as well as 
 
 ## License
 
-The contents of this repository is MIT Licensed. 
+The contents of this repository is MIT Licensed.
 
 Any referenced avatar assets not otherwise explicitly licensed are property of their respective owners. All rights reserved.

@@ -228,5 +228,38 @@
             "name": "07",
             "index": 7
         }
+    ],
+    "animations": [
+        {
+            "name": "Idle",
+            "file": "http://localhost:3000/anim/idle",
+            "idle": true
+        },
+        {
+            "name": "Appear",
+            "file": "http://localhost:3000/anim/spawn_and_wave",
+            "emote": "😎",
+            "appear": true
+        },
+        {
+            "name": "Clap",
+            "file": "http://localhost:3000/anim/clap",
+            "emote": "👏"
+        },
+        {
+            "name": "Wave",
+            "file": "http://localhost:3000/anim/pick_me",
+            "emote": "👋"
+        },
+        {
+            "name": "ThumbsDown",
+            "file": "http://localhost:3000/anim/thumbs_down",
+            "emote": "👎"
+        },
+        {
+            "name": "ThumbsUp",
+            "file": "http://localhost:3000/anim/thumbs_up",
+            "emote": "👍"
+        }
     ]
 }

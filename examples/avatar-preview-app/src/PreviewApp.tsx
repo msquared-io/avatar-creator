@@ -10,6 +10,5 @@ import { AvatarCreatorApp } from "@msquared/avatar-creator";
 
 export default function PreviewApp() {
   const dataUrl = process.env.NEXT_PUBLIC_CATALOGUE_DATA_URL || "/data.json";
-  const animUrl = process.env.ANIM_URL || "/anim/";
-  return <AvatarCreatorApp dataUrl={dataUrl} animUrl={animUrl} />;
+  return <AvatarCreatorApp dataUrl={dataUrl} />;
 }
