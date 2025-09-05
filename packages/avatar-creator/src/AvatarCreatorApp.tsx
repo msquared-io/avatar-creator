@@ -40,14 +40,12 @@ type ExportBehavior =
 
 interface AvatarCreatorAppProps {
   dataUrl?: string;
-  animUrl?: string;
   exportBehavior?: ExportBehavior;
   hideProfileBadge?: boolean;
 }
 
 export function AvatarCreatorApp({
   dataUrl = "/data.json",
-  animUrl = "/anim/",
   exportBehavior = { mode: "default" },
   hideProfileBadge = false,
 }: AvatarCreatorAppProps = {}) {
@@ -75,7 +73,7 @@ export function AvatarCreatorApp({
   useEffect(() => {
     if (!app || !data || avatarLoader) return;
     // this should be created only once
-    const loader = new AvatarLoader(app, data, animUrl);
+    const loader = new AvatarLoader(app, data);
     setAvatarLoader(loader);
 
     // Set up global loading listeners
