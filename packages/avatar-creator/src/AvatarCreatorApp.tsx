@@ -16,7 +16,6 @@ import styles from "./AvatarCreatorApp.module.css";
 import { CatalogueData } from "./CatalogueData";
 import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
-import Logo from "./components/Logo";
 import Mml from "./components/Mml";
 import mmlStyles from "./components/Mml.module.css";
 import { MmlButtons } from "./components/MmlButtons";
@@ -138,7 +137,6 @@ export function AvatarCreatorApp({
       <Renderer onInitialize={setApp} />
       <div className={styles.spinner} />
       <div className={styles.separatorLine} />
-      <Logo appState={appState} />
 
       {data && avatarLoader && (
         <ButtonCustomize label="Customize" onStateChange={setAppState} appState={appState} />
