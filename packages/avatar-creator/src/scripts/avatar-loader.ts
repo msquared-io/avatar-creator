@@ -21,11 +21,9 @@ import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueDat
 import { humanFileSize } from "./utils";
 
 /*
-
-    Implements loading, animating and rendering
-    based on provided GLB files for various slots
-
-*/
+ * Implements loading, animating and rendering
+ * based on provided GLB files for various slots
+ */
 
 /**
  * Fired when new GLB has started loading for a slot
@@ -68,6 +66,9 @@ const classToSlot = {
 
 import idleAnimationGLB from "../assets/anim/idle.glb";
 
+// Assets are removed from the cache after 1 seconds
+const ASSET_EXPIRES = 1000;
+
 export class AvatarLoader extends EventHandler {
   private rootAsset: Asset | null = null;
   private assets: { [key: string]: Asset } = {};
@@ -76,7 +77,6 @@ export class AvatarLoader extends EventHandler {
   private slotByAsset = new Map<Asset, string>();
   private urlByAsset = new Map<Asset, string>();
   private assetTimers = new Map<Asset, number>();
-  private assetExpires: number = 1000; // one second
 
   public urls: { [key: string]: string | null } = {};
   public loading = new Map<string, string>();
@@ -115,7 +115,7 @@ export class AvatarLoader extends EventHandler {
   ) {
     super();
 
-    this.app.on("update", this.update, this);
+    this.app.on("update", this.checkAssetsCache, this);
 
     this.indexData();
   }
@@ -553,6 +553,10 @@ export class AvatarLoader extends EventHandler {
     return code;
   }
 
+  /**
+   * Loads an avatar from an MML code
+   * @param {string} code The MML code to load
+   */
   loadAvatarMml(code: string) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(code, "text/html");
@@ -634,6 +638,10 @@ export class AvatarLoader extends EventHandler {
     delete this.urls[slot];
   }
 
+  /**
+   * Updates the stats for stored assets
+   * This is only used for debugging and displayed when the debugAssets flag is true
+   */
   updateStats() {
     if (!this.debugAssets) return;
 
@@ -652,6 +660,10 @@ export class AvatarLoader extends EventHandler {
     );
   }
 
+  /**
+   * Clears an asset from the cache
+   * @param {Asset} asset The asset to clear from the cache
+   */
   clearAssetResources(asset: Asset) {
     this.app.assets.remove(asset);
     asset.unload();
@@ -664,11 +676,14 @@ export class AvatarLoader extends EventHandler {
     this.assetsCacheByUrl.delete(url);
 
     this.urlByAsset.delete(asset);
-
-    this.updateStats();
   }
 
-  update() {
+  /**
+   * Called on update from playcanvas
+   * Clears any assets that have not been used within the expire time
+   * Resets the expiry time for assets currently still active
+   */
+  checkAssetsCache() {
     const now: number = performance.now();
 
     for (const asset of this.assetsCache) {
@@ -686,10 +701,12 @@ export class AvatarLoader extends EventHandler {
         // check if enough time has passed
         const time: number = this.assetTimers.get(asset) as number;
 
-        if (now - time > this.assetExpires) {
+        if (now - time > ASSET_EXPIRES) {
           this.clearAssetResources(asset);
         }
       }
     }
+
+    this.updateStats();
   }
 }
