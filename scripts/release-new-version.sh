@@ -167,20 +167,26 @@ main() {
     
     print_success "Version $new_version does not exist on npm"
     
-    # Ensure Git LFS files are available for build
-    print_info "Pulling Git LFS files..."
-    if command -v git-lfs >/dev/null 2>&1; then
-        git lfs pull
-        print_success "Git LFS files pulled successfully"
-    else
-        print_warning "Git LFS not installed - large assets may not be available"
+    # Check for build output
+    print_info "Checking for build output..."
+    
+    BUILD_DIR="packages/avatar-creator/build"
+    MAIN_JS="$BUILD_DIR/index.js"
+    MAIN_DTS="$BUILD_DIR/index.d.ts"
+    
+    if [ ! -d "$BUILD_DIR" ]; then
+        print_error "Build directory not found at $BUILD_DIR. Please run 'npm run build' before releasing."
     fi
     
-    # Build the package
-    print_info "Building the package..."
-    npm run build
+    if [ ! -f "$MAIN_JS" ]; then
+        print_error "Main JavaScript file not found at $MAIN_JS. Please run 'npm run build' before releasing."
+    fi
     
-    print_success "Package built successfully"
+    if [ ! -f "$MAIN_DTS" ]; then
+        print_error "TypeScript declaration file not found at $MAIN_DTS. Please run 'npm run build' before releasing."
+    fi
+    
+    print_success "Build output verified successfully"
     
     # Update package.json version
     print_info "Updating package.json version..."

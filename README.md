@@ -14,7 +14,6 @@ This repo contains:
 - [ ] Make UI more composable as part of a wider application (e.g. not assuming fullscreen)
 - [ ] Add API for loading and saving avatar configurations
 - [ ] Update data model to allow more flexibility for custom part combinations
-- [ ] Publish the avatar-creator library to npm
 
 ---
 
@@ -84,6 +83,8 @@ cd examples/avatar-preview-app && npm run start
 
 The library is compiled to ESM bundles (and type declarations) under
 `packages/avatar-creator/build/`.
+
+For more information on how to release new versions see the [release docs](./docs/RELEASE.md).
 
 ---
 

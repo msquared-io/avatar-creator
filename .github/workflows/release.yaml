@@ -1,10 +1,10 @@
-name: Release New Version
+name: Release
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'New version number (e.g., 0.1.6, 0.2.0, 1.0.0)'
+        description: "New version number (e.g., 0.1.6, 0.2.0, 1.0.0)"
         required: true
         type: string
 
@@ -16,7 +16,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,20 +30,13 @@ jobs:
           git lfs install
           git lfs pull
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Build package with caching
+        uses: ./.github/actions/npm-install-build-and-cache
 
       - name: Configure Git
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "release-action@github.com"
+          git config --local user.name "GitHub Release Action"
 
       - name: Run release script
         env:
