@@ -8,14 +8,20 @@
 
 import { RefObject } from "react";
 
+export enum ImportBehaviorMode {
+  None = "none",
+  Copy = "copy",
+  External = "external",
+}
+
 export type ImportBehavior =
   | {
-      mode: "none";
+      mode: ImportBehaviorMode.None;
     }
   | {
-      mode: "copy";
+      mode: ImportBehaviorMode.Copy;
     }
   | {
-      mode: "external";
+      mode: ImportBehaviorMode.External;
       importMmlStringRef: RefObject<((mml: string) => void) | null>;
     };

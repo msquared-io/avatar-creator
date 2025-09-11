@@ -8,15 +8,21 @@
 
 import { RefObject } from "react";
 
+export enum ExportBehaviorMode {
+  Default = "default",
+  External = "external",
+  Callback = "callback",
+}
+
 export type ExportBehavior =
   | {
-      mode: "default";
+      mode: ExportBehaviorMode.Default;
     }
   | {
-      mode: "external";
+      mode: ExportBehaviorMode.External;
       getAvatarMmlRef: RefObject<(() => string | null) | null>;
     }
   | {
-      mode: "callback";
+      mode: ExportBehaviorMode.Callback;
       onExport: (avatarMml: string) => void;
     };

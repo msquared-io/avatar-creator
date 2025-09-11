@@ -16,17 +16,12 @@ import styles from "./AvatarCreatorApp.module.css";
 import { CatalogueData } from "./CatalogueData";
 import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
-<<<<<<< HEAD
 import { Emotes } from "./components/Emotes";
-import Mml from "./components/Mml";
-import mmlStyles from "./components/Mml.module.css";
-=======
->>>>>>> 18ae5d1 (feat: import option (WP-5338))
 import { MmlButtons } from "./components/MmlButtons";
 import Renderer from "./components/Renderer";
 import { AvatarLoader } from "./scripts/avatar-loader";
-import { ExportBehavior } from "./types/ExportBehavior";
-import { ImportBehavior } from "./types/ImportBehavior";
+import { ExportBehavior, ExportBehaviorMode } from "./types/ExportBehavior";
+import { ImportBehavior, ImportBehaviorMode } from "./types/ImportBehavior";
 
 type AvatarCreatorAppProps = {
   dataUrl?: string;
@@ -37,8 +32,8 @@ type AvatarCreatorAppProps = {
 
 export function AvatarCreatorApp({
   dataUrl = "/data.json",
-  exportBehavior = { mode: "default" },
-  importBehavior = { mode: "none" },
+  exportBehavior = { mode: ExportBehaviorMode.Default },
+  importBehavior = { mode: ImportBehaviorMode.None },
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<CatalogueData | null>(null);
@@ -46,12 +41,7 @@ export function AvatarCreatorApp({
   const [appState, setAppState] = useState<"home" | "configurator">("home");
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isAvatarLoading, setIsAvatarLoading] = useState(false);
-<<<<<<< HEAD
   const [stats, setStats] = useState("");
-  // TODO - enable saving
-  const enableSave = false;
-=======
->>>>>>> 18ae5d1 (feat: import option (WP-5338))
 
   useEffect(() => {
     const loadData = async () => {
@@ -100,12 +90,12 @@ export function AvatarCreatorApp({
   }, [avatarLoader]);
 
   useEffect(() => {
-    if (exportBehavior.mode === "external") {
+    if (exportBehavior.mode === ExportBehaviorMode.External) {
       exportBehavior.getAvatarMmlRef.current = getAvatarMml;
     }
 
     return () => {
-      if (exportBehavior.mode === "external") {
+      if (exportBehavior.mode === ExportBehaviorMode.External) {
         exportBehavior.getAvatarMmlRef.current = null;
       }
     };
@@ -120,12 +110,12 @@ export function AvatarCreatorApp({
   );
 
   useEffect(() => {
-    if (importBehavior.mode === "external") {
+    if (importBehavior.mode === ImportBehaviorMode.External) {
       importBehavior.importMmlStringRef.current = loadAvatarMml;
     }
 
     return () => {
-      if (importBehavior.mode === "external") {
+      if (importBehavior.mode === ImportBehaviorMode.External) {
         importBehavior.importMmlStringRef.current = null;
       }
     };
@@ -162,7 +152,6 @@ export function AvatarCreatorApp({
         />
       )}
 
-
       {data && avatarLoader ? (
         <MmlButtons
           data={data}
@@ -172,10 +161,11 @@ export function AvatarCreatorApp({
         />
       ) : null}
 
-
       {data && avatarLoader && app && <Emotes data={data} appState={appState} app={app} />}
 
       {avatarLoader && avatarLoader.debugAssets && <pre className={styles.stats}>{stats}</pre>}
     </div>
   );
 }
+
+export { ExportBehaviorMode, ImportBehaviorMode };
