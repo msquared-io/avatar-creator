@@ -208,28 +208,22 @@ export class AvatarLoader extends EventHandler {
   loadAnimation(name: string, url: string) {
     const fileName = url.split("/").slice(-1)[0];
 
-    const asset: Asset = new Asset(
-      fileName,
-      "container",
-      { url: url, filename: fileName },
-      undefined,
-      {
-        // filter out translation from animation,
-        // apart from the root
-        // TODO - this option is untyped in playcanvas
-        animation: {
-          preprocess: (data: {
-            name: string;
-            samplers: Array<{ input: number; output: number }>;
-            channels: Array<{ sampler: number; target: { node: number; path: string } }>;
-          }) => {
-            data.channels = data.channels.filter((item) => {
-              return item.target.node <= 2 || item.target.path === "rotation";
-            });
-          },
+    const asset: Asset = new Asset(fileName, "container", { url, filename: fileName }, undefined, {
+      // filter out translation from animation,
+      // apart from the root
+      // TODO - this option is untyped in playcanvas
+      animation: {
+        preprocess: (data: {
+          name: string;
+          samplers: Array<{ input: number; output: number }>;
+          channels: Array<{ sampler: number; target: { node: number; path: string } }>;
+        }) => {
+          data.channels = data.channels.filter((item) => {
+            return item.target.node <= 2 || item.target.path === "rotation";
+          });
         },
-      } as any,
-    );
+      },
+    } as any);
 
     asset.ready(() => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
