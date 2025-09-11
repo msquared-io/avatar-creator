@@ -18,15 +18,13 @@ import {
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
 
 import { addAnimationData, AnimGraphData, generateDefaultAnimGraph } from "../AnimGraphData";
-// import animGraphData from "../assets/anim-graph.json";
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
+import { humanFileSize } from "./utils";
 
 /*
-
-    Implements loading, animating and rendering
-    based on provided GLB files for various slots
-
-*/
+ * Implements loading, animating and rendering
+ * based on provided GLB files for various slots
+ */
 
 /**
  * Fired when new GLB has started loading for a slot
@@ -57,18 +55,31 @@ const slots = [
   "torso",
 ];
 
-const keyReplace = {
+const slotToClass = {
   "top:secondary": "topSecondary",
   "bottom:secondary": "bottomSecondary",
 };
 
+const classToSlot = {
+  topSecondary: "top:secondary",
+  bottomSecondary: "bottom:secondary",
+};
+
+// Assets are removed from the cache after 1 seconds
+const ASSET_EXPIRES = 1000;
+
 export class AvatarLoader extends EventHandler {
   private rootAsset: Asset | null = null;
   private assets: { [key: string]: Asset } = {};
-  private entities = {};
+  private assetsCache = new Set<Asset>();
+  private assetsCacheByUrl = new Map<string, Asset>();
+  private slotByAsset = new Map<Asset, string>();
+  private urlByAsset = new Map<Asset, string>();
+  private assetTimers = new Map<Asset, number>();
 
   public urls: { [key: string]: string | null } = {};
   public loading = new Map<string, string>();
+  public debugAssets: boolean = false;
 
   private next = new Map<string, string | null>();
   private index = new Map<
@@ -103,6 +114,8 @@ export class AvatarLoader extends EventHandler {
     public data: CatalogueData,
   ) {
     super();
+
+    this.app.on("update", this.checkAssetsCache, this);
 
     this.indexData();
   }
@@ -195,28 +208,22 @@ export class AvatarLoader extends EventHandler {
   loadAnimation(name: string, url: string) {
     const fileName = url.split("/").slice(-1)[0];
 
-    const asset: Asset = new Asset(
-      fileName,
-      "container",
-      { url: `${url}.glb`, filename: fileName },
-      undefined,
-      {
-        // filter out translation from animation,
-        // apart from the root
-        // TODO - this option is untyped in playcanvas
-        animation: {
-          preprocess: (data: {
-            name: string;
-            samplers: Array<{ input: number; output: number }>;
-            channels: Array<{ sampler: number; target: { node: number; path: string } }>;
-          }) => {
-            data.channels = data.channels.filter((item) => {
-              return item.target.node <= 2 || item.target.path === "rotation";
-            });
-          },
+    const asset: Asset = new Asset(fileName, "container", { url, filename: fileName }, undefined, {
+      // filter out translation from animation,
+      // apart from the root
+      // TODO - this option is untyped in playcanvas
+      animation: {
+        preprocess: (data: {
+          name: string;
+          samplers: Array<{ input: number; output: number }>;
+          channels: Array<{ sampler: number; target: { node: number; path: string } }>;
+        }) => {
+          data.channels = data.channels.filter((item) => {
+            return item.target.node <= 2 || item.target.path === "rotation";
+          });
         },
-      } as any,
-    );
+      },
+    } as any);
 
     asset.ready(() => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -418,9 +425,19 @@ export class AvatarLoader extends EventHandler {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const name = url.split("/").pop()!;
-    const asset = new Asset(name, "container", { url, filename: name });
+
+    let asset = this.assetsCacheByUrl.get(url);
+    if (!asset) {
+      asset = new Asset(name, "container", { url, filename: name });
+      this.app.assets.add(asset);
+      this.assetsCache.add(asset);
+      this.assetsCacheByUrl.set(url, asset);
+      this.assetTimers.set(asset, performance.now());
+      this.slotByAsset.set(asset, slot);
+      this.urlByAsset.set(asset, url);
+    }
+
     this.loading.set(slot, url);
-    this.app.assets.add(asset);
 
     this.urls[slot] = url;
 
@@ -469,6 +486,8 @@ export class AvatarLoader extends EventHandler {
           this.unload(slot);
         }
       }
+
+      this.updateStats();
     });
 
     asset.once("error", () => {
@@ -567,7 +586,7 @@ export class AvatarLoader extends EventHandler {
       if (key === "torso") continue;
       const url = this.urls[key];
       if (!url) continue;
-      const className = key in keyReplace ? keyReplace[key as keyof typeof keyReplace] : key;
+      const className = key in slotToClass ? slotToClass[key as keyof typeof slotToClass] : key;
       code += `${formatted ? "\t" : ""}<m-model class="${className}" src="${encodeURI(url)}"></m-model>${formatted ? "\n" : ""}`;
     }
 
@@ -576,6 +595,10 @@ export class AvatarLoader extends EventHandler {
     return code;
   }
 
+  /**
+   * Loads an avatar from an MML code
+   * @param {string} code The MML code to load
+   */
   loadAvatarMml(code: string) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(code, "text/html");
@@ -623,7 +646,7 @@ export class AvatarLoader extends EventHandler {
 
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i];
-      const slotName = slot in keyReplace ? keyReplace[slot as keyof typeof keyReplace] : slot;
+      const slotName = slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
       const node = character.querySelector(`m-model.${slot}`);
       const src = node?.getAttribute("src");
 
@@ -655,5 +678,77 @@ export class AvatarLoader extends EventHandler {
     this.slotEntities[slot].render!.materialAssets = [];
 
     delete this.urls[slot];
+  }
+
+  /**
+   * Updates the stats for stored assets
+   * This is only used for debugging and displayed when the debugAssets flag is true
+   */
+  updateStats() {
+    if (!this.debugAssets) return;
+
+    this.fire(
+      "stats",
+      JSON.stringify(
+        {
+          assets: this.app.assets.list().length,
+          textures: humanFileSize(this.app.stats.vram.tex),
+          vertexBuffers: humanFileSize(this.app.stats.vram.vb),
+          indexBuffers: humanFileSize(this.app.stats.vram.ib),
+        },
+        null,
+        4,
+      ),
+    );
+  }
+
+  /**
+   * Clears an asset from the cache
+   * @param {Asset} asset The asset to clear from the cache
+   */
+  clearAssetResources(asset: Asset) {
+    this.app.assets.remove(asset);
+    asset.unload();
+
+    this.assetTimers.delete(asset);
+    this.assetsCache.delete(asset);
+    this.slotByAsset.delete(asset);
+
+    const url: string = this.urlByAsset.get(asset) as string;
+    this.assetsCacheByUrl.delete(url);
+
+    this.urlByAsset.delete(asset);
+  }
+
+  /**
+   * Called on update from playcanvas
+   * Clears any assets that have not been used within the expire time
+   * Resets the expiry time for assets currently still active
+   */
+  checkAssetsCache() {
+    const now: number = performance.now();
+
+    for (const asset of this.assetsCache) {
+      if (!asset.file) {
+        continue;
+      }
+
+      const slot: string = this.slotByAsset.get(asset) as string;
+      const url: string = this.urlByAsset.get(asset) as string;
+
+      if (this.urls[slot] === url || this.next.get(slot) === url) {
+        // still active
+        this.assetTimers.set(asset, now);
+      } else {
+        // check if enough time has passed
+        const time: number = this.assetTimers.get(asset) as number;
+
+        if (now - time > ASSET_EXPIRES) {
+          this.clearAssetResources(asset);
+        }
+      }
+    }
+
+    this.updateStats();
   }
 }

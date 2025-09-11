@@ -43,6 +43,10 @@
         height: 60px;
     }
 
+    .active {
+        width: auto;
+    }
+
     .hidden {
         right: -60px !important;
         width: 60px !important;

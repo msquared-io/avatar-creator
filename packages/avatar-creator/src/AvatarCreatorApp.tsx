@@ -17,7 +17,6 @@ import { CatalogueData } from "./CatalogueData";
 import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
 import { Emotes } from "./components/Emotes";
-import Logo from "./components/Logo";
 import Mml from "./components/Mml";
 import mmlStyles from "./components/Mml.module.css";
 import { MmlButtons } from "./components/MmlButtons";
@@ -57,6 +56,7 @@ export function AvatarCreatorApp({
   const [appState, setAppState] = useState<"home" | "configurator">("home");
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isAvatarLoading, setIsAvatarLoading] = useState(false);
+  const [stats, setStats] = useState("");
   // TODO - enable saving
   const enableSave = false;
 
@@ -76,6 +76,10 @@ export function AvatarCreatorApp({
     // this should be created only once
     const loader = new AvatarLoader(app, data);
     setAvatarLoader(loader);
+
+    loader.on("stats", (stats) => {
+      setStats(stats.replace(/"/g, ""));
+    });
 
     // Set up global loading listeners
     if (loader) {
@@ -139,7 +143,6 @@ export function AvatarCreatorApp({
       <Renderer onInitialize={setApp} />
       <div className={styles.spinner} />
       <div className={styles.separatorLine} />
-      <Logo appState={appState} />
 
       {data && avatarLoader && (
         <ButtonCustomize label="Customize" onStateChange={setAppState} appState={appState} />
@@ -174,6 +177,8 @@ export function AvatarCreatorApp({
       )}
 
       {data && avatarLoader && app && <Emotes data={data} appState={appState} app={app} />}
+
+      {avatarLoader && avatarLoader.debugAssets && <pre className={styles.stats}>{stats}</pre>}
     </div>
   );
 }
