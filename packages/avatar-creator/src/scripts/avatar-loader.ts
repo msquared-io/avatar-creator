@@ -18,7 +18,6 @@ import {
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
 
 import { addAnimationData, AnimGraphData, generateDefaultAnimGraph } from "../AnimGraphData";
-// import animGraphData from "../assets/anim-graph.json";
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
 
 /*
@@ -198,7 +197,7 @@ export class AvatarLoader extends EventHandler {
     const asset: Asset = new Asset(
       fileName,
       "container",
-      { url: `${url}.glb`, filename: fileName },
+      { url: url, filename: fileName },
       undefined,
       {
         // filter out translation from animation,
