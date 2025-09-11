@@ -69,6 +69,15 @@
     opacity: 1;
 }
 
+.stats {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    padding: 8px;
+}
+
 @media screen and (max-width: 1024px) {
     .loading .spinner {
         top: calc(25% - 64px);
@@ -82,4 +91,4 @@
     100% {
         transform: rotate(360deg);
     }
-} 
+}
