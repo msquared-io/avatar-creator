@@ -213,8 +213,8 @@ main() {
     
     print_success "Created tag v$new_version"
     
-    # Publish to npm (if running in CI or if NPM_TOKEN is set)
-    if [ -n "$NODE_AUTH_TOKEN" ] || [ -n "$NPM_TOKEN" ]; then
+    # Publish to npm if NPM_TOKEN is set
+    if [ -n "$NPM_TOKEN" ]; then
         print_info "Publishing to npm..."
         cd packages/avatar-creator
         npm publish --access public

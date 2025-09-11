@@ -40,10 +40,10 @@ jobs:
 
       - name: Run release script
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NEW_VERSION: ${{ github.event.inputs.version }}
         run: |
-          ./scripts/release-new-version.sh "$NEW_VERSION"
+          NPM_TOKEN="$NPM_TOKEN" ./scripts/release-new-version.sh "$NEW_VERSION"
 
       - name: Push changes and tags
         run: |
