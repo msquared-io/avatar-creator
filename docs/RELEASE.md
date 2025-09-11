@@ -56,8 +56,8 @@ git lfs pull
 # Build the package
 npm run build
 
-# Run the release script
-./scripts/release-new-version.sh 0.1.6
+# Run the release script - replacing X.Y.Z with your desired version number
+./scripts/release-new-version.sh X.Y.Z
 ```
 
 ## Version Validation Rules
