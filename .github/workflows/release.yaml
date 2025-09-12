@@ -38,25 +38,23 @@ jobs:
           ./scripts/check-version-changed.sh
 
       - name: Setup Git LFS
+        if: steps.check_version.outputs.should_release == 'true'
         run: |
           git lfs install
           git lfs pull
 
       - name: Build package with caching
+        if: steps.check_version.outputs.should_release == 'true'
         uses: ./.github/actions/npm-install-build-and-cache
 
       - name: Configure Git
-        if:
-          github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main') &&
-          steps.check_version.outputs.should_release == 'true'
+        if: steps.check_version.outputs.should_release == 'true'
         run: |
           git config --local user.email "release-action@github.com"
           git config --local user.name "GitHub Release Action"
 
       - name: Release if version changed
-        if:
-          github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main') &&
-          steps.check_version.outputs.should_release == 'true'
+        if: steps.check_version.outputs.should_release == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
