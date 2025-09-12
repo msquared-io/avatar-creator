@@ -76,5 +76,4 @@ export type CatalogueBodyTypeData = Record<CatalogueBodyType, BodyTypeBodyData &
 export type CatalogueData = DeepReadonly<{
   skin: Array<CatalogueSkin>;
   bodyTypes: CatalogueBodyTypeData;
-  animations: Array<CatalogueAnimation>;
 }>;

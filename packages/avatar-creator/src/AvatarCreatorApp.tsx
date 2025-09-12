@@ -13,7 +13,7 @@ import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 
 import styles from "./AvatarCreatorApp.module.css";
-import { CatalogueData } from "./CatalogueData";
+import { CatalogueAnimation, CatalogueData } from "./CatalogueData";
 import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
 import { Emotes } from "./components/Emotes";
@@ -25,6 +25,7 @@ import { ImportBehavior, ImportBehaviorMode } from "./types/ImportBehavior";
 
 type AvatarCreatorAppProps = {
   dataUrl?: string;
+  animationsUrl?: string;
   exportBehavior?: ExportBehavior;
   importBehavior?: ImportBehavior;
   hideProfileBadge?: boolean;
@@ -32,11 +33,13 @@ type AvatarCreatorAppProps = {
 
 export function AvatarCreatorApp({
   dataUrl = "/data.json",
+  animationsUrl = "/animations.json",
   exportBehavior = { mode: ExportBehaviorMode.Default },
   importBehavior = { mode: ImportBehaviorMode.None },
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<CatalogueData | null>(null);
+  const [animations, setAnimations] = useState<CatalogueAnimation[] | null>(null);
   const [avatarLoader, setAvatarLoader] = useState<AvatarLoader | null>(null);
   const [appState, setAppState] = useState<"home" | "configurator">("home");
   const [isDataLoading, setIsDataLoading] = useState(true);
@@ -46,18 +49,23 @@ export function AvatarCreatorApp({
   useEffect(() => {
     const loadData = async () => {
       setIsDataLoading(true);
-      const res = await fetch(dataUrl);
-      const raw = await res.json();
-      setData(raw);
+
+      const [dataRaw, animationsRaw] = await Promise.all([
+        fetch(dataUrl).then((r) => r.json()),
+        fetch(animationsUrl).then((r) => r.json()),
+      ]);
+      setData(dataRaw);
+      setAnimations(animationsRaw.animations);
+
       setIsDataLoading(false);
     };
     loadData();
-  }, [dataUrl]);
+  }, [dataUrl, animationsUrl]);
 
   useEffect(() => {
-    if (!app || !data || avatarLoader) return;
+    if (!app || !data || !animations || avatarLoader) return;
     // this should be created only once
-    const loader = new AvatarLoader(app, data);
+    const loader = new AvatarLoader(app, data, animations);
     setAvatarLoader(loader);
 
     loader.on("stats", (stats) => {
@@ -161,7 +169,9 @@ export function AvatarCreatorApp({
         />
       ) : null}
 
-      {data && avatarLoader && app && <Emotes data={data} appState={appState} app={app} />}
+      {animations && avatarLoader && app && (
+        <Emotes animations={animations} appState={appState} app={app} />
+      )}
 
       {avatarLoader && avatarLoader.debugAssets && <pre className={styles.stats}>{stats}</pre>}
     </div>
