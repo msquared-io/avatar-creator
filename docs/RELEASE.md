@@ -1,104 +1,80 @@
 # Release Guide
 
-This guide explains how to set up the automated release process for the `@msquared/avatar-creator`
-npm package.
+This guide explains the automated release process for the `@msquared/avatar-creator` npm package.
 
 ## Overview
 
-The release process consists of:
+Releases are automated on pushes to the `main` branch. If the `version` field in
+`packages/avatar-creator/package.json` changes compared to the previous commit, CI will:
 
-1. **GitHub Action** (`.github/workflows/release.yml`) - Automated workflow triggered manually
-2. **Release Script** (`scripts/release-new-version.sh`) - Can be run locally or in CI
+- Build the package.
+- Tag the current commit as `vX.Y.Z` (derived from `package.json`).
+- Publish `@msquared/avatar-creator@X.Y.Z` to npm.
 
-## Features
+You can still run the release script locally to publish the version currently in `package.json`.
 
-✅ **Manual Trigger**: GitHub Action can be triggered manually with version input  
-✅ **Version Validation**: Ensures no unexpected version jumps (max +1 per part)  
-✅ **Semantic Versioning**: Enforces proper semver format and rules  
-✅ **NPM Existence Check**: Prevents publishing duplicate versions  
-✅ **Git Tagging**: Automatically creates and pushes version tags  
-✅ **Local & CI Support**: Script works both locally and in GitHub Actions
+## CI: Automatic Release on Push to main
 
-## Usage
+The workflow at `.github/workflows/release.yaml` runs on every push to `main`. It compares the
+previous and current `packages/avatar-creator/package.json` versions. When they differ, it builds
+and invokes `scripts/release-new-version.sh` to tag and publish.
 
-### GitHub Action (Recommended)
+### To cut a new release via CI
 
-1. Go to your repository → Actions → "Release New Version"
-2. Click "Run workflow"
-3. Enter the new version number (e.g., `0.1.6`, `0.2.0`, `1.0.0`)
-4. Click "Run workflow"
+1. Update `packages/avatar-creator/package.json` with the new version.
+2. Commit and merge to `main` (via PR).
+3. CI will tag the merge commit and publish to npm automatically.
 
-The action will:
+## Local Usage
 
-- Validate the version number
-- Check npm for existing versions
-- Build the package
-- Update package.json
-- Create a commit and tag
-- Push to main branch
-- Publish to npm
-
-### Local Usage
-
-You can also run the release script locally:
+You can also run the release script locally to tag and publish the version already present in
+`package.json`:
 
 ```bash
-# Set your NPM_TOKEN for authenticating whilst publishing
+# Authenticate for npm publish.
 export NPM_TOKEN=your_npm_token_here
 
-# Make sure you're on the main branch and up to date
+# Make sure you're on the commit you want to tag and publish.
 git checkout main
 git pull origin main
 
-# Ensure Git LFS files are available
+# Ensure Git LFS files are available.
 git lfs pull
 
-# Build the package
-npm run build
+# Build the package.
+npm run build --workspace @msquared/avatar-creator || (cd packages/avatar-creator && npm run build)
 
-# Run the release script - replacing X.Y.Z with your desired version number
+# Run the release script (reads version from package.json by default).
+./scripts/release-new-version.sh
+```
+
+Optionally, you can pass an explicit version, but it must match `package.json`:
+
+```bash
 ./scripts/release-new-version.sh X.Y.Z
 ```
 
-## Version Validation Rules
+## Notes
 
-The script enforces these rules:
-
-### ✅ Valid Version Bumps
-
-- `0.1.5` → `0.1.6` (patch bump)
-- `0.1.5` → `0.2.0` (minor bump, patch resets to 0)
-- `0.1.5` → `1.0.0` (major bump, minor and patch reset to 0)
-
-### ❌ Invalid Version Bumps
-
-- `0.1.5` → `0.1.4` (downgrade)
-- `0.1.5` → `0.1.5` (same version)
-- `0.1.5` → `0.1.7` (patch jumps by 2)
-- `0.1.5` → `0.3.0` (minor jumps by 2)
-- `0.1.5` → `1.0.1` (major bump but patch not reset to 0)
-- `0.1.5` → `1.1.0` (major bump but minor not reset to 0)
+- The script checks that the version does not already exist on npm.
+- The script tags the current commit as `vX.Y.Z` and pushes that tag.
+- No files are modified by the script; you are responsible for bumping the version in `package.json`
+  before releasing.
 
 ## Troubleshooting
 
 ### Error: "Version already exists on npm"
 
-- Check what versions exist: `npm view @msquared/avatar-creator versions --json`
-- Use a different version number
+- Check existing versions: `npm view @msquared/avatar-creator versions --json`.
+- Use a different version number and update `package.json`.
 
 ### Error: "Permission denied to push"
 
-- Verify `GITHUB_TOKEN` has `contents: write` permission
-- Check if branch protection rules are blocking the push
+- Verify `GITHUB_TOKEN` has `contents: write` permission in CI.
+- Check if branch protection rules are blocking the push.
 
 ### Error: "NPM publish failed"
 
-- Verify `NPM_TOKEN` is correctly set in GitHub Secrets
-- Check token has write permissions for `@msquared` scope
-- Ensure you're a maintainer/owner of the npm package
-
-### Error: "Invalid version jump"
-
-- Follow semantic versioning rules (see above)
-- Only increment version parts by 1
-- Reset lower parts to 0 when higher parts increase
+- Verify `NPM_TOKEN` is correctly set in GitHub Secrets (CI) or your shell (local).
+- Ensure the token has publish permissions for the `@msquared` scope.
+- Ensure you're a maintainer/owner of the npm package.

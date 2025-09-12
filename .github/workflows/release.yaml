@@ -1,12 +1,8 @@
 name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "New version number (e.g., 0.1.6, 0.2.0, 1.0.0)"
-        required: true
-        type: string
+  push:
+    branches: ["main"]
 
 permissions:
   contents: write
@@ -25,27 +21,36 @@ jobs:
           fetch-depth: 0
           lfs: true
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Determine if version changed
+        id: check_version
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          bash ./scripts/check-version-changed.sh
+
       - name: Setup Git LFS
         run: |
           git lfs install
           git lfs pull
 
       - name: Build package with caching
+        if: steps.check_version.outputs.should_release == 'true'
         uses: ./.github/actions/npm-install-build-and-cache
 
       - name: Configure Git
+        if: steps.check_version.outputs.should_release == 'true'
         run: |
           git config --local user.email "release-action@github.com"
           git config --local user.name "GitHub Release Action"
 
-      - name: Run release script
+      - name: Release if version changed
+        if: steps.check_version.outputs.should_release == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NEW_VERSION: ${{ github.event.inputs.version }}
         run: |
-          ./scripts/release-new-version.sh "$NEW_VERSION"
-
-      - name: Push changes and tags
-        run: |
-          git push origin main
-          git push --tags
+          ./scripts/release-new-version.sh
