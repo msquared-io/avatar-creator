@@ -7,6 +7,11 @@ PACKAGE_JSON_PATH="packages/avatar-creator/package.json"
 # Determine current version from package.json.
 CURRENT_VERSION=$(node -p "require('./${PACKAGE_JSON_PATH}').version")
 
+# Derive BEFORE_SHA as the SHA of the parent commit if not provided by environment.
+if [ -z "${BEFORE_SHA:-}" ]; then
+  BEFORE_SHA=$(git rev-parse HEAD^ 2>/dev/null || true)
+fi
+
 # Determine previous version from the commit referenced by BEFORE_SHA (if available).
 PREVIOUS_VERSION=""
 if [ -n "${BEFORE_SHA:-}" ] && git cat-file -e "${BEFORE_SHA}^{commit}" >/dev/null 2>&1; then

@@ -3,6 +3,8 @@ name: Release
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["**"]
 
 permissions:
   contents: write
@@ -29,9 +31,11 @@ jobs:
       - name: Determine if version changed
         id: check_version
         env:
-          BEFORE_SHA: ${{ github.event.before }}
+          BEFORE_SHA:
+            ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha ||
+            github.event.before }}
         run: |
-          bash ./scripts/check-version-changed.sh
+          ./scripts/check-version-changed.sh
 
       - name: Setup Git LFS
         run: |
@@ -39,17 +43,20 @@ jobs:
           git lfs pull
 
       - name: Build package with caching
-        if: steps.check_version.outputs.should_release == 'true'
         uses: ./.github/actions/npm-install-build-and-cache
 
       - name: Configure Git
-        if: steps.check_version.outputs.should_release == 'true'
+        if:
+          github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main') &&
+          steps.check_version.outputs.should_release == 'true'
         run: |
           git config --local user.email "release-action@github.com"
           git config --local user.name "GitHub Release Action"
 
       - name: Release if version changed
-        if: steps.check_version.outputs.should_release == 'true'
+        if:
+          github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main') &&
+          steps.check_version.outputs.should_release == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
