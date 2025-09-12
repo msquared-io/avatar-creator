@@ -34,7 +34,7 @@ if [ -n "${GITHUB_OUTPUT:-}" ]; then
     echo "current_version=${CURRENT_VERSION}"
     echo "previous_version=${PREVIOUS_VERSION}"
     echo "should_release=${SHOULD_RELEASE}"
-    echo "${MSG}"
+    echo "message=${MSG}"
   } >> "${GITHUB_OUTPUT}"
 else
   echo "current_version=${CURRENT_VERSION}"
