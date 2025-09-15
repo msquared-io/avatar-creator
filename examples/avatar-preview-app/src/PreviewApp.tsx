@@ -6,9 +6,9 @@
  * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
  */
 
-import { AvatarCreatorApp } from "@msquared/avatar-creator";
+import { AvatarCreatorApp, ImportBehaviorMode } from "@msquared/avatar-creator";
 
 export default function PreviewApp() {
   const dataUrl = process.env.NEXT_PUBLIC_CATALOGUE_DATA_URL || "/data.json";
-  return <AvatarCreatorApp dataUrl={dataUrl} />;
+  return <AvatarCreatorApp dataUrl={dataUrl} importBehavior={{ mode: ImportBehaviorMode.None }} />;
 }

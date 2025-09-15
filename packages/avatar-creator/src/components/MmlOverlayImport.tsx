@@ -12,7 +12,7 @@ import * as React from "react";
 import { MouseEvent, useEffect, useRef } from "react";
 
 import { AvatarLoader } from "../scripts/avatar-loader";
-import { MmlOverlay } from "./MmlButtons";
+import { MmlOverlay } from "./MmlOverlay";
 import styles from "./MmlOverlayImport.module.css";
 
 hljs.registerLanguage("xml", xml);

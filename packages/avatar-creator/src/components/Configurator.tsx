@@ -84,7 +84,7 @@ export default function Configurator({
   const randomSlot = (slot: CataloguePartsKeys) => {
     const list = data.bodyTypes[bodyType][slot].list;
     if (!list.length) {
-      setters[slot]("");
+      setters[slot](null);
       return;
     }
 
