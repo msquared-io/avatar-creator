@@ -16,7 +16,7 @@ You can still run the release script locally to publish the version currently in
 
 ## CI: Automatic Release on Push to main
 
-The workflow at `.github/workflows/release.yaml` runs on every push to `main`. It compares the
+The workflow at `.github/workflows/main.yaml` runs on every push to `main`. It compares the
 previous and current `packages/avatar-creator/package.json` versions. When they differ, it builds
 and invokes `scripts/release-new-version.sh` to tag and publish.
 
