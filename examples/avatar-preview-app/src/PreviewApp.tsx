@@ -7,8 +7,19 @@
  */
 
 import { AvatarCreatorApp, ImportBehaviorMode } from "@msquared/avatar-creator";
+import { CatalogueAnimation } from "@msquared/avatar-creator/build/CatalogueData";
+
+import animations from "../public/animations.json";
+
+const ANIMATIONS = animations.animations as CatalogueAnimation[];
 
 export default function PreviewApp() {
   const dataUrl = process.env.NEXT_PUBLIC_CATALOGUE_DATA_URL || "/data.json";
-  return <AvatarCreatorApp dataUrl={dataUrl} importBehavior={{ mode: ImportBehaviorMode.None }} />;
+  return (
+    <AvatarCreatorApp
+      dataUrl={dataUrl}
+      animations={ANIMATIONS}
+      importBehavior={{ mode: ImportBehaviorMode.None }}
+    />
+  );
 }

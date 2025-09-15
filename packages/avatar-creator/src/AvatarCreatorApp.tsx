@@ -25,7 +25,7 @@ import { ImportBehavior, ImportBehaviorMode } from "./types/ImportBehavior";
 
 type AvatarCreatorAppProps = {
   dataUrl?: string;
-  animationsUrl?: string;
+  animations?: CatalogueAnimation[];
   exportBehavior?: ExportBehavior;
   importBehavior?: ImportBehavior;
   hideProfileBadge?: boolean;
@@ -33,13 +33,12 @@ type AvatarCreatorAppProps = {
 
 export function AvatarCreatorApp({
   dataUrl = "/data.json",
-  animationsUrl = "/animations.json",
+  animations = [],
   exportBehavior = { mode: ExportBehaviorMode.Default },
   importBehavior = { mode: ImportBehaviorMode.None },
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<CatalogueData | null>(null);
-  const [animations, setAnimations] = useState<CatalogueAnimation[] | null>(null);
   const [avatarLoader, setAvatarLoader] = useState<AvatarLoader | null>(null);
   const [appState, setAppState] = useState<"home" | "configurator">("home");
   const [isDataLoading, setIsDataLoading] = useState(true);
@@ -50,20 +49,16 @@ export function AvatarCreatorApp({
     const loadData = async () => {
       setIsDataLoading(true);
 
-      const [dataRaw, animationsRaw] = await Promise.all([
-        fetch(dataUrl).then((r) => r.json()),
-        fetch(animationsUrl).then((r) => r.json()),
-      ]);
+      const dataRaw = await fetch(dataUrl).then((r) => r.json());
       setData(dataRaw);
-      setAnimations(animationsRaw.animations);
 
       setIsDataLoading(false);
     };
     loadData();
-  }, [dataUrl, animationsUrl]);
+  }, [dataUrl]);
 
   useEffect(() => {
-    if (!app || !data || !animations || avatarLoader) return;
+    if (!app || !data || avatarLoader) return;
     // this should be created only once
     const loader = new AvatarLoader(app, data, animations);
     setAvatarLoader(loader);
