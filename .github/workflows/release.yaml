@@ -24,10 +24,8 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Determine if version changed
+      - name: Determine if version differs from npm
         id: check_version
-        env:
-          BEFORE_SHA: ${{ github.event.before }}
         run: |
           ./scripts/check-version-changed.sh
 
@@ -40,6 +38,14 @@ jobs:
       - name: Build package with caching
         if: steps.check_version.outputs.should_release == 'true'
         uses: ./.github/actions/npm-install-build-and-cache
+
+      - name: Type Check
+        if: steps.check_version.outputs.should_release == 'true'
+        run: npm run type-check-all
+
+      - name: Lint
+        if: steps.check_version.outputs.should_release == 'true'
+        run: npm run lint-all
 
       - name: Configure Git
         if: steps.check_version.outputs.should_release == 'true'
