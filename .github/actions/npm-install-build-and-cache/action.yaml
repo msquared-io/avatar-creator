@@ -31,6 +31,12 @@ runs:
       shell: bash
       run: npm ci
 
+    - name: Setup Git LFS
+      shell: bash
+      run: |
+        git lfs install
+        git lfs pull
+
     - name: Build
       shell: bash
       run: npm run build
