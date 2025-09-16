@@ -17,7 +17,6 @@ import {
   StandardMaterial,
 } from "playcanvas";
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 
 import { addAnimationData, AnimGraphData, generateDefaultAnimGraph } from "../AnimGraphData";
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
