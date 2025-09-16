@@ -124,6 +124,8 @@ main() {
 
     # Push the tag
     print_info "Pushing tag $tag..."
+    git config user.email "release-action@github.com"
+    git config user.name "GitHub Release Action"
     git push origin "$tag"
     print_success "Pushed tag $tag"
 
