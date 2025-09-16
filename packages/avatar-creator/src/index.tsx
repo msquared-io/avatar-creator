@@ -7,3 +7,4 @@
  */
 
 export * from "./AvatarCreatorApp";
+export * from "./CatalogueData";
