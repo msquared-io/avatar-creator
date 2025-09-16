@@ -12,8 +12,9 @@ import { AppBase } from "playcanvas";
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 
+import { AnimationData } from "./AnimationData";
 import styles from "./AvatarCreatorApp.module.css";
-import { CatalogueAnimation, CatalogueData } from "./CatalogueData";
+import { CatalogueData } from "./CatalogueData";
 import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
 import { Emotes } from "./components/Emotes";
@@ -25,7 +26,7 @@ import { ImportBehavior, ImportBehaviorMode } from "./types/ImportBehavior";
 
 type AvatarCreatorAppProps = {
   dataUrl?: string;
-  animations?: CatalogueAnimation[];
+  animations?: AnimationData;
   exportBehavior?: ExportBehavior;
   importBehavior?: ImportBehavior;
   hideProfileBadge?: boolean;
