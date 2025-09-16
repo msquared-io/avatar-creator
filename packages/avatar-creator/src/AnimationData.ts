@@ -12,6 +12,13 @@ export enum AnimationType {
   Trigger = "trigger",
 }
 
+/**
+ * @typedef {Object} Animation
+ * @property {string} name - The name of the animation
+ * @property {string} file - The file of the animation
+ * @property {AnimationType} type - The type of the animation: idle, appear, trigger. Idle is the default animation. Appear is the animation that is played when the avatar appears. Trigger is the animation that is played when the avatar is triggered.
+ * @property {string} emote - The emote of the animation
+ */
 export type Animation = {
   name: string;
   file: string;
