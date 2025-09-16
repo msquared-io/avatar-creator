@@ -18,13 +18,9 @@ import {
 } from "playcanvas";
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
 
+import { AnimationData, AnimationType } from "../AnimationData";
 import { addAnimationData, AnimGraphData, generateDefaultAnimGraph } from "../AnimGraphData";
-import {
-  CatalogueAnimation,
-  CatalogueBodyType,
-  CatalogueData,
-  CatalogueSkin,
-} from "../CatalogueData";
+import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
 import { humanFileSize } from "./utils";
 
 /*
@@ -119,7 +115,7 @@ export class AvatarLoader extends EventHandler {
   constructor(
     public app: AppBase,
     public data: CatalogueData,
-    public animations: CatalogueAnimation[],
+    public animations: AnimationData,
   ) {
     super();
 
@@ -176,11 +172,11 @@ export class AvatarLoader extends EventHandler {
       for (const item of this.animations) {
         const name = item.name;
 
-        if (item.idle) {
+        if (item.type === AnimationType.Idle) {
           continue;
         }
 
-        if (item.appear) {
+        if (item.type === AnimationType.Appear) {
           appearAnimName = name;
         }
 

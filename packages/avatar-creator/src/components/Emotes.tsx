@@ -10,7 +10,7 @@ import { AppBase } from "playcanvas";
 import * as React from "react";
 import { useState } from "react";
 
-import { CatalogueAnimation } from "../CatalogueData";
+import { AnimationData, AnimationType } from "../AnimationData";
 import styles from "./Emotes.module.css";
 
 export function Emotes({
@@ -18,7 +18,7 @@ export function Emotes({
   appState,
   app,
 }: {
-  animations: CatalogueAnimation[];
+  animations: AnimationData;
   app: AppBase;
   appState: "home" | "configurator";
 }) {
@@ -46,7 +46,7 @@ export function Emotes({
       className={`${styles.emotes} ${active || emotesCount === 1 ? styles.active : ""} ${appState === "home" ? "" : styles.hidden}`}
     >
       {animations.map((item) => {
-        if (item.idle) {
+        if (item.type === AnimationType.Idle) {
           return null;
         }
 

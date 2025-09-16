@@ -6,7 +6,12 @@
  * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
  */
 
-import { AvatarCreatorApp, CatalogueAnimation, ImportBehaviorMode } from "@msquared/avatar-creator";
+import {
+  AnimationData,
+  AnimationType,
+  AvatarCreatorApp,
+  ImportBehaviorMode,
+} from "@msquared/avatar-creator";
 
 // We import .glb files as URLs via esbuild file loader.
 import clap from "./assets/anim/clap.glb";
@@ -16,37 +21,40 @@ import spawnAndWave from "./assets/anim/spawn_and_wave.glb";
 import thumbsDown from "./assets/anim/thumbs_down.glb";
 import thumbsUp from "./assets/anim/thumbs_up.glb";
 
-const ANIMATIONS: CatalogueAnimation[] = [
+const ANIMATIONS: AnimationData = [
   {
     name: "Idle",
     file: idle,
-    idle: true,
-    emote: "👋",
+    type: AnimationType.Idle,
   },
   {
     name: "Appear",
     file: spawnAndWave,
+    type: AnimationType.Appear,
     emote: "😎",
-    appear: true,
   },
   {
     name: "Clap",
     file: clap,
+    type: AnimationType.Trigger,
     emote: "👏",
   },
   {
     name: "Wave",
     file: pickMe,
+    type: AnimationType.Trigger,
     emote: "👋",
   },
   {
     name: "ThumbsDown",
     file: thumbsDown,
+    type: AnimationType.Trigger,
     emote: "👎",
   },
   {
     name: "ThumbsUp",
     file: thumbsUp,
+    type: AnimationType.Trigger,
     emote: "👍",
   },
 ];

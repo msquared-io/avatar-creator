@@ -6,5 +6,6 @@
  * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
  */
 
+export * from "./AnimationData";
 export * from "./AvatarCreatorApp";
 export * from "./CatalogueData";

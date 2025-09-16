@@ -63,14 +63,6 @@ export type BodyTypeBodyData = {
   };
 };
 
-export type CatalogueAnimation = {
-  name: string;
-  file: string;
-  emote: string;
-  idle?: boolean;
-  appear?: boolean;
-};
-
 export type CatalogueBodyTypeData = Record<CatalogueBodyType, BodyTypeBodyData & CatalogueParts>;
 
 export type CatalogueData = DeepReadonly<{

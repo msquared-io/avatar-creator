@@ -4,4 +4,4 @@ Commands:
 
 - dev: `npm run dev`.
 - build: `npm run build`.
-- start: `npm run start` (serve built files).aa
+- start: `npm run start` (serve built files).
