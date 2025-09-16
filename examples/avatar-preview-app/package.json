@@ -6,7 +6,6 @@
   "dependencies": {
     "@msquared/avatar-creator": "*",
     "highlight.js": "^11.11.1",
-    "playcanvas": "^2.7.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
