@@ -13,7 +13,6 @@ import {
   ImportBehaviorMode,
 } from "@msquared/avatar-creator";
 
-// We import .glb files as URLs via esbuild file loader.
 import clap from "./assets/anim/clap.glb";
 import idle from "./assets/anim/idle.glb";
 import pickMe from "./assets/anim/pick_me.glb";
