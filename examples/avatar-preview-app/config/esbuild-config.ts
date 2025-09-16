@@ -1,0 +1,123 @@
+import path from "node:path";
+import type * as esbuild from "esbuild";
+import { copy } from "esbuild-plugin-copy";
+
+type SourcemapOption = esbuild.BuildOptions["sourcemap"];
+
+export interface CreateEsbuildOptionsParams {
+  entryFile: string;
+  outdir: string;
+  publicDir: string;
+  outbase: string;
+  sourceRoot: string;
+  publicPath?: string;
+  sourcemap?: SourcemapOption;
+  preserveSymlinks?: boolean;
+  assetNames?: string;
+  liveReloadPath?: string; // If provided, injects a reload websocket banner.
+}
+
+export function createEsbuildOptions(
+  params: CreateEsbuildOptionsParams,
+): esbuild.BuildOptions {
+  const {
+    entryFile,
+    outdir,
+    publicDir,
+    outbase,
+    sourceRoot,
+    publicPath = "/",
+    sourcemap = "linked",
+    preserveSymlinks = true,
+    assetNames = "[dir]/[name]-[hash]",
+    liveReloadPath,
+  } = params;
+
+  const bannerJs = liveReloadPath
+    ? `(() => {
+  const path = '${liveReloadPath}';
+  const endpoint = () => (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + path;
+  let ws = null;
+  let retries = 0;
+  let timer = 0;
+  let hasEverConnected = false;
+  function connect() {
+    try {
+      ws = new WebSocket(endpoint());
+    } catch (e) {
+      scheduleReconnect();
+      return;
+    }
+    ws.addEventListener('open', () => {
+      retries = 0;
+      if (hasEverConnected) {
+        // Reconnected after a prior connection -> bundle may have changed.
+        location.reload();
+        return;
+      }
+      hasEverConnected = true;
+      console.debug('[reload] websocket connected');
+    });
+    ws.addEventListener('message', () => {
+      console.debug('[reload] message received -> reload');
+      location.reload();
+    });
+    ws.addEventListener('close', () => {
+      scheduleReconnect();
+    });
+    ws.addEventListener('error', () => {
+      try { ws && ws.close(); } catch {}
+    });
+  }
+  function scheduleReconnect() {
+    const delay = Math.min(30000, 500 * Math.pow(2, retries++));
+    clearTimeout(timer);
+    timer = window.setTimeout(connect, delay);
+    console.debug('[reload] websocket reconnecting in', delay, 'ms');
+  }
+  if (!window.__esbuildLiveReload) {
+    window.__esbuildLiveReload = true;
+    connect();
+  }
+})();`
+    : undefined;
+
+  return {
+    entryPoints: { index: entryFile },
+    bundle: true,
+    format: "esm",
+    target: ["es2022"],
+    write: true,
+    metafile: true,
+    sourcemap,
+    outdir,
+    assetNames,
+    preserveSymlinks,
+    loader: {
+      ".wgsl": "text",
+      ".html": "text",
+      ".svg": "file",
+      ".png": "file",
+      ".jpg": "file",
+      ".glb": "file",
+      ".hdr": "file",
+      ".webp": "file",
+    },
+    outbase,
+    sourceRoot,
+    publicPath,
+    alias: {
+      playcanvas: "./node_modules/playcanvas/src",
+    },
+    external: ["node:worker_threads"],
+    plugins: [
+      copy({
+        resolveFrom: "cwd",
+        assets: { from: [path.join(publicDir, "**/*")], to: [outdir] },
+      }),
+    ],
+    banner: bannerJs ? { js: bannerJs } : undefined,
+  } satisfies esbuild.BuildOptions;
+}
+
+

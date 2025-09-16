@@ -6,12 +6,5 @@
  * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
  */
 
-import { ClientOnly } from "./client";
-
-export function generateStaticParams() {
-  return [{ slug: [""] }];
-}
-
-export default function Page() {
-  return <ClientOnly />;
-}
+// This file is obsolete after migrating away from Next.js.
+export {};

@@ -6,5 +6,7 @@
  * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
  */
 
-// This file is obsolete after migrating away from Next.js.
-export {};
+declare module "*.glb" {
+  const src: string;
+  export default src;
+}

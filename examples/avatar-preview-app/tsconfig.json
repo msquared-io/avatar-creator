@@ -3,13 +3,13 @@
     "downlevelIteration": true,
     "esModuleInterop": true,
     "incremental": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "lib": [
       "esnext",
       "dom"
     ],
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noImplicitAny": true,
     "preserveConstEnums": true,
     "resolveJsonModule": true,
@@ -25,16 +25,11 @@
     "allowJs": true,
     "noEmit": true,
     "isolatedModules": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    "plugins": []
   },
   "include": [
     "./src",
     "./*.ts",
-    ".next/types/**/*.ts",
     "build/types/**/*.ts"
   ],
   "exclude": [

@@ -6,12 +6,5 @@
  * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
  */
 
-"use client";
-
-import dynamic from "next/dynamic";
-
-const PreviewApp = dynamic(() => import("../../PreviewApp"), { ssr: false });
-
-export function ClientOnly() {
-  return <PreviewApp />;
-}
+// This file is obsolete after migrating away from Next.js.
+export {};
