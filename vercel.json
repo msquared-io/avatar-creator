@@ -3,7 +3,7 @@
   "buildCommand": "cd examples/avatar-preview-app && npm run build",
   "devCommand": "cd examples/avatar-preview-app && npm run dev",
   "outputDirectory": "examples/avatar-preview-app/build",
-  "installCommand": "git lfs install && git remote add origin https://github.com/${VERCEL_GIT_REPO_OWNER}/${VERCEL_GIT_REPO_SLUG}.git && git lfs pull --include='packages/**' --include='examples/avatar-preview-app/src/**' && npm install",
+  "installCommand": "git lfs install && git lfs pull --include='packages/**' --include='examples/avatar-preview-app/src/**' && npm ci",
   "build": {
     "env": {
       "GIT_LFS_SKIP_SMUDGE": "1"
