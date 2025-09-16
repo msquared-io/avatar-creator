@@ -41,5 +41,3 @@ else
   echo "should_release=${SHOULD_RELEASE}"
   echo "${MSG}"
 fi
-
-
