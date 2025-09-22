@@ -22,6 +22,7 @@ import { AnimationData, AnimationType } from "../AnimationData";
 import { addAnimationData, AnimGraphData, generateDefaultAnimGraph } from "../AnimGraphData";
 import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
 import { humanFileSize } from "./utils";
+import { transpileCatalog } from "./transpileCatalog";
 
 /*
  * Implements loading, animating and rendering
@@ -118,6 +119,8 @@ export class AvatarLoader extends EventHandler {
     public animations: AnimationData,
   ) {
     super();
+
+    console.log(JSON.stringify(transpileCatalog(this.data)));
 
     this.app.on("update", this.checkAssetsCache, this);
 
