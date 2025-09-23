@@ -20,9 +20,8 @@ import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/frame
 
 import { AnimationData, AnimationType } from "../AnimationData";
 import { addAnimationData, AnimGraphData, generateDefaultAnimGraph } from "../AnimGraphData";
-import { CatalogueBodyType, CatalogueData, CatalogueSkin } from "../CatalogueData";
+import { Catalog, CatalogBasicPart, CatalogBodyTypeKey, CatalogSkin } from "../types/Catalog";
 import { humanFileSize } from "./utils";
-import { transpileCatalog } from "./transpileCatalog";
 
 /*
  * Implements loading, animating and rendering
@@ -72,8 +71,10 @@ const classToSlot = {
 // Assets are removed from the cache after 1 seconds
 const ASSET_EXPIRES = 1000;
 
+// As we only care about Torso and Leg rendering only the top and bottom slots are indexed.
+const INDEXED_SLOTS = ["top", "bottom"];
+
 export class AvatarLoader extends EventHandler {
-  private rootAsset: Asset | null = null;
   private assets: { [key: string]: Asset } = {};
   private assetsCache = new Set<Asset>();
   private assetsCacheByUrl = new Map<string, Asset>();
@@ -86,22 +87,17 @@ export class AvatarLoader extends EventHandler {
   public debugAssets: boolean = false;
 
   private next = new Map<string, string | null>();
-  private index = new Map<
-    string,
-    {
-      file: string;
-      secondary?: string;
-      torso?: boolean;
-      legs?: boolean;
-    }
-  >();
 
-  legs = true;
+  // This is needed when reloading parts so that it is easy to check Torso and Leg rendering.
+  // As we only care about Torso and Leg rendering only the top and bottom slots are indexed.
+  private modelUrlToPart = new Map<string, CatalogBasicPart>();
+
   preventRandom: boolean = false;
   torso = true;
+  legs = true;
 
-  private bodyType: CatalogueBodyType = "bodyB";
-  private skin: CatalogueSkin | null = null;
+  private bodyType: CatalogBodyTypeKey = "bodyB";
+  private skin: CatalogSkin | null = null;
 
   private entity: Entity | null = null;
   private slotEntities: { [key: string]: Entity } = {};
@@ -115,16 +111,14 @@ export class AvatarLoader extends EventHandler {
    */
   constructor(
     public app: AppBase,
-    public data: CatalogueData,
+    public data: Catalog,
     public animations: AnimationData,
   ) {
     super();
 
-    console.log(JSON.stringify(transpileCatalog(this.data)));
-
     this.app.on("update", this.checkAssetsCache, this);
 
-    this.indexData();
+    this.createIndexedSlotModelUrlToPartMap();
   }
 
   /**
@@ -133,8 +127,6 @@ export class AvatarLoader extends EventHandler {
    */
   createRootEntity(asset: Asset) {
     if (this.entity) return;
-
-    this.rootAsset = asset;
 
     const entity = (asset.resource as ContainerResource).instantiateRenderEntity();
     this.entity = entity;
@@ -254,7 +246,7 @@ export class AvatarLoader extends EventHandler {
    * @param {('bodyB'|'bodyA')} bodyType BodyType for the avatar
    * @param {boolean} [event] If true, then event will be fired for syncing UI state
    */
-  setBodyType(bodyType: CatalogueBodyType, event: boolean = false) {
+  setBodyType(bodyType: CatalogBodyTypeKey, event: boolean = false) {
     this.bodyType = bodyType;
     this.loadTorso();
     if (this.legs) this.loadLegs();
@@ -272,7 +264,7 @@ export class AvatarLoader extends EventHandler {
    * @param {CatalogueSkin} skin A skin from the catalogue
    * @param {boolean} [event] If true, then event will be fired for syncing UI state
    */
-  setSkin(skin: CatalogueSkin, event: boolean = false) {
+  setSkin(skin: CatalogSkin, event: boolean = false) {
     this.skin = skin;
     this.loadTorso();
     if (this.legs) this.loadLegs();
@@ -282,71 +274,78 @@ export class AvatarLoader extends EventHandler {
   /**
    * @returns {CatalogueSkin|null}
    */
-  getSkin(): CatalogueSkin | null {
+  getSkin(): CatalogSkin | null {
     return this.skin;
   }
 
   /**
-   * Modify URL with specific skin index
-   * @param {string} url Url
-   * @param {CatalogueSkin} skin A skin from the catalogue
-   * @returns {string}
-   */
-  getSkinBasedUrl(url: string, skin: CatalogueSkin) {
-    let urlNew = url;
-    if (/_[0-9]{2}$/.test(urlNew)) {
-      urlNew = urlNew.replace(/_[0-9]{2}$/, "");
-    }
-    urlNew += "_" + skin.name;
-    return urlNew;
-  }
-
-  /**
    * @private
+   * Loads either the TorsoArms or Arms body part dependent on if the Arms flag is true.
+   * This body part is skin dependent therefore calling this without the skin set throws and error.
    */
   loadTorso() {
     if (!this.skin) {
       throw new Error("Skin is not set");
     }
     const item = this.torso ? "torsoArms" : "arms";
-    const url = `${this.data.bodyTypes[this.bodyType].body[item]}_${this.skin.name}.glb`;
+    const bodyTypeData = this.data.bodyTypes.find((bodyType) => this.bodyType === bodyType.name);
+    if (!bodyTypeData) {
+      throw new Error("Could not find body type");
+    }
+    const url = bodyTypeData.body[item][this.skin.name].model;
     this.load("torso", url);
   }
 
   /**
    * @private
+   * Loads the Legs body part.
+   * This body part is skin dependent therefore calling this without the skin set throws and error.
    */
   loadLegs() {
     if (!this.skin) {
       throw new Error("Skin is not set");
     }
-    const legs = `${this.data.bodyTypes[this.bodyType].body.legs}_${this.skin.name}.glb`;
+    const bodyTypeData = this.data.bodyTypes.find((bodyType) => this.bodyType === bodyType.name);
+    if (!bodyTypeData) {
+      throw new Error("Could not find body type");
+    }
+    const legs = bodyTypeData.body.legs[this.skin.name].model;
     this.load("legs", legs);
   }
 
   /**
    * @private
+   * Iterates through the INDEXED_SLOTS to create a mapping from model to the part
+   * This is important for reloading models so from the top/bottom parts GLB we can easily look up the requirements for rendering Torso and Legs
+   * This only needs to be ran when the catalog changes - i.e. on initialization
    */
-  indexData() {
-    const slots = ["top", "bottom"] as const;
+  createIndexedSlotModelUrlToPartMap() {
+    for (const bodyType of this.data.bodyTypes) {
+      for (const slot of INDEXED_SLOTS) {
+        const section = bodyType.parts[slot];
 
-    for (const bodyType in this.data.bodyTypes) {
-      for (let s = 0; s < slots.length; s++) {
-        const slot = slots[s];
-        const section = this.data.bodyTypes[bodyType as CatalogueBodyType][slot];
+        if (section.skin) {
+          throw new Error("Did not expect to index skinned parts");
+        }
 
-        for (let i = 0; i < section.list.length; i++) {
-          const item = section.list[i];
-          const url = `${item.file}.glb`;
-          this.index.set(url, item);
+        for (const part of section.parts) {
+          this.modelUrlToPart.set(part.model, part);
         }
       }
     }
   }
 
   /**
-   * @param {string} slot
-   * @param {string} url
+   * Determines whether to show default body parts (torso/legs) when equipping clothing items.
+   *
+   * For "top" slot: Shows torso if no item is equipped or torso flag is true.
+   * Hides torso if an item is equipped and and torso flag is not true.
+   *
+   * For "bottom" slot: Shows legs if no item is equipped or if the item requires legs to be visible.
+   * Hides legs if the item completely covers them i.e. an item is equipped and the legs flag is false.
+   *
+   * @param {string} slot - The clothing slot
+   * @param {string | null} url - The URL of the clothing item being equipped, or null if no item
    * @private
    */
   checkBodySlot(slot: string, url: string | null) {
@@ -354,38 +353,52 @@ export class AvatarLoader extends EventHandler {
       if (!this.urls[slot]) {
         this.torso = true;
         this.loadTorso();
-      } else if (!url || this.index.get(url)?.torso) {
+      } else if (!url || this.modelUrlToPart.get(url)?.torso) {
         this.torso = true;
         this.loadTorso();
       } else {
         this.torso = false;
+        this.loadTorso();
       }
     } else if (slot === "bottom") {
       if (!this.urls[slot]) {
         this.legs = true;
         this.loadLegs();
-      } else if (!url || this.index.get(url)?.legs) {
+      } else if (!url || this.modelUrlToPart.get(url)?.legs) {
         this.legs = true;
         this.loadLegs();
       } else {
         this.legs = false;
+        this.unload("legs");
       }
     }
   }
 
   /**
-   * @param {string} slot
-   * @param {string} url
+   * Determines whether to hide default body parts when removing clothing items.
+   *
+   * Called when unloading a clothing item to check if the underlying body part should
+   * now be hidden. This happens when the removed item didn't cover the body part,
+   * but there's still another item in the slot that might not need the body part visible.
+   *
+   * For "top" slot: If the removed item didn't cover the torso and there's still a top item,
+   * hides the torso and shows only arms.
+   *
+   * For "bottom" slot: If the removed item didn't require legs to be hidden and there's
+   * still a bottom item, hides the legs.
+   *
+   * @param {string} slot - The clothing slot ("top" or "bottom")
+   * @param {string} url - The URL of the clothing item being removed
    * @private
    */
   uncheckBodySlot(slot: string, url: string) {
     if (slot === "top") {
-      if (!this.index.get(url)?.torso && this.urls[slot]) {
+      if (!this.modelUrlToPart.get(url)?.torso && this.urls[slot]) {
         this.torso = false;
         this.loadTorso();
       }
     } else if (slot === "bottom") {
-      if (!this.index.get(url)?.legs && this.urls[slot]) {
+      if (!this.modelUrlToPart.get(url)?.legs && this.urls[slot]) {
         this.legs = false;
         this.unload("legs");
       }
@@ -468,11 +481,6 @@ export class AvatarLoader extends EventHandler {
       }
 
       this.createRootEntity(asset);
-
-      // if (this.assets[slot] && this.rootAsset !== this.assets[slot]) {
-      //     this.assets[slot].unload();
-      //     this.app.assets.remove(this.assets[slot]);
-      // }
 
       this.assets[slot] = asset;
 
@@ -674,8 +682,8 @@ export class AvatarLoader extends EventHandler {
       const bodyType =
         classItems.filter((item) => {
           return bodyTypes.has(item);
-        })?.[0] ?? "BodyA";
-      this.setBodyType(bodyType as CatalogueBodyType, true);
+        })?.[0] ?? "bodyA";
+      this.setBodyType(bodyType as CatalogBodyTypeKey, true);
 
       // skin
       classItems.forEach((item) => {
@@ -686,7 +694,7 @@ export class AvatarLoader extends EventHandler {
 
         const skinName = (skinIndex + "").padStart(2, "0");
 
-        this.setSkin({ name: skinName, index: skinIndex }, true);
+        this.setSkin({ name: skinName }, true);
       });
 
       this.load("torso", character.getAttribute("src"), true);

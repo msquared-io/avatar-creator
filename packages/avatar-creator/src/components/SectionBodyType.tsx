@@ -10,8 +10,8 @@ import * as React from "react";
 
 import iconBodyTypeASVG from "../assets/img/icon-bodytype-a.svg";
 import iconBodyTypeBSVG from "../assets/img/icon-bodytype-b.svg";
-import { CatalogueBodyType } from "../CatalogueData";
 import { AvatarLoader } from "../scripts/avatar-loader";
+import { CatalogBodyTypeKey } from "../types/Catalog";
 import styles from "./SectionBodyType.module.css";
 import SlotItem from "./SlotItem";
 
@@ -20,8 +20,8 @@ export default function SectionBodyType({
   setBodyType,
   avatarLoader,
 }: {
-  bodyType: CatalogueBodyType;
-  setBodyType: (value: CatalogueBodyType) => void;
+  bodyType: CatalogBodyTypeKey;
+  setBodyType: (value: CatalogBodyTypeKey) => void;
   avatarLoader: AvatarLoader;
 }) {
   return (
@@ -35,7 +35,7 @@ export default function SectionBodyType({
           onClick={() => {
             setBodyType("bodyB");
           }}
-          image={iconBodyTypeBSVG}
+          thumbnailUrl={iconBodyTypeBSVG}
         />
         <SlotItem
           bodyType="bodyA"
@@ -44,7 +44,7 @@ export default function SectionBodyType({
           onClick={() => {
             setBodyType("bodyA");
           }}
-          image={iconBodyTypeASVG}
+          thumbnailUrl={iconBodyTypeASVG}
         />
       </ul>
     </div>

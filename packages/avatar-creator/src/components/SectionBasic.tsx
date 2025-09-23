@@ -9,14 +9,15 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 
-import {
-  CatalogueBodyType,
-  CatalogueData,
-  CataloguePart,
-  CataloguePartsKeys,
-  CatalogueSkin,
-} from "../CatalogueData";
 import { AvatarLoader } from "../scripts/avatar-loader";
+import {
+  Catalog,
+  CatalogBasicPart,
+  CatalogBodyTypeKey,
+  CatalogPartKey,
+  CatalogSkin,
+} from "../types/Catalog";
+import { DeepReadonly } from "../types/DeepReadonly";
 import styles from "./SectionBasic.module.css";
 import SlotItem from "./SlotItem";
 
@@ -31,56 +32,59 @@ export default function SectionBasic({
   data,
   avatarLoader,
 }: {
-  slot: CataloguePartsKeys;
+  slot: CatalogPartKey;
   title: string;
-  skin?: CatalogueSkin;
-  bodyType: CatalogueBodyType;
+  skin?: CatalogSkin;
+  bodyType: CatalogBodyTypeKey;
   selected: string | null;
   setSlot: (value: string) => void;
   setSecondary?: (value: string | null) => void;
-  data: CatalogueData;
+  data: Catalog;
   avatarLoader: AvatarLoader;
 }) {
-  const [items, setItems] = useState<Array<CataloguePart>>([]);
+  const [parts, setParts] = useState<DeepReadonly<Array<CatalogBasicPart>>>([]);
 
   useEffect(() => {
     if (!data.bodyTypes) {
       return;
     }
 
-    const items = [];
-
-    const item = data.bodyTypes[bodyType][slot];
-    for (let i = 0; i < item.list.length; i++) {
-      items.push(item.list[i]);
+    const bodyTypeData = data.bodyTypes.find(({ name }) => name === bodyType);
+    const slotSection = bodyTypeData?.parts[slot];
+    if (!slotSection) {
+      setParts([]);
+      return;
     }
 
-    setItems(items);
-  }, [data, bodyType]);
+    if (slotSection.skin) {
+      if (!skin?.name) {
+        setParts([]);
+        return;
+      }
+      setParts(slotSection.parts.map((skinnedPart) => skinnedPart[skin?.name]));
+    } else {
+      setParts(slotSection.parts);
+    }
+  }, [data, skin, bodyType]);
 
   return (
     <div className={styles.section}>
       <h2>{title}</h2>
       <ul>
-        {items.map((item) => {
-          let url = item.file;
-          if (skin !== undefined) url = avatarLoader.getSkinBasedUrl(url, skin);
-
-          const thumbnail = url + ".webp";
-
+        {parts.map((part) => {
           return (
             <SlotItem
-              active={selected === url}
-              key={item.file}
+              active={selected === part.model}
+              key={part.model}
               bodyType={bodyType}
               avatarLoader={avatarLoader}
               slot={slot}
-              url={url}
               onClick={() => {
-                setSlot(url);
-                if (setSecondary) setSecondary(item.secondary ?? null);
+                setSlot(part.model);
+                if (setSecondary) setSecondary(part.secondaryModel ?? null);
               }}
-              image={thumbnail}
+              modelUrl={part.model}
+              thumbnailUrl={part.thumbnail}
             />
           );
         })}

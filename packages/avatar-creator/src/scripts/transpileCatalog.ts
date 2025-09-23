@@ -12,6 +12,7 @@ import {
   CatalogBasicPart,
   CatalogBody,
   CatalogBodyType,
+  CatalogBodyTypeKey,
   CatalogSectionSkinned,
   CatalogSectionUnskinned,
   CatalogSkinnedPart,
@@ -24,9 +25,7 @@ export function transpileCatalog(oldFormatCatalog: CatalogueData): Catalog {
 
   return {
     version: "0.1.0",
-
     skin,
-
     bodyTypes: Object.entries(oldFormatCatalog.bodyTypes).map(
       ([bodyType, bodyTypeData]): CatalogBodyType => {
         const body: CatalogBody = {
@@ -92,6 +91,9 @@ export function transpileCatalog(oldFormatCatalog: CatalogueData): Catalog {
                 if (oldPart.torso) {
                   part.torso = true;
                 }
+                if (oldPart.legs) {
+                  part.legs = true;
+                }
                 if (oldPart.secondary) {
                   part.secondaryModel = `${oldPart.secondary}.glb`;
                 }
@@ -108,7 +110,7 @@ export function transpileCatalog(oldFormatCatalog: CatalogueData): Catalog {
           ...basicParts,
         };
         return {
-          name: bodyType,
+          name: bodyType as CatalogBodyTypeKey,
           parts,
           body,
         };

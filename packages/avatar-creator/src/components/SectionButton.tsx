@@ -8,7 +8,7 @@
 
 import * as React from "react";
 
-import { CataloguePartsKeys } from "../CatalogueData";
+import { CatalogPartKey } from "../types/Catalog";
 import styles from "./SectionButton.module.css";
 
 export default function SectionButton({
@@ -18,11 +18,11 @@ export default function SectionButton({
   droppable,
   dropOver,
 }: {
-  slot: CataloguePartsKeys | "bodyType";
-  setSection: (section: CataloguePartsKeys | "bodyType") => void;
+  slot: CatalogPartKey | "bodyType";
+  setSection: (section: CatalogPartKey | "bodyType") => void;
   active: boolean;
   droppable: boolean;
-  dropOver: CataloguePartsKeys | "window" | null;
+  dropOver: CatalogPartKey | "window" | null;
 }) {
   return (
     <li

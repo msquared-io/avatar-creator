@@ -6,15 +6,20 @@
  * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
  */
 
+import { DeepReadonly } from "./DeepReadonly";
+
 export type CatalogSkin = {
-  name: string; // E.g. "06"
+  name: string;
 };
+
+export type CatalogPartKey = "head" | "hair" | "top" | "bottom" | "shoes" | "outfit";
 
 export type CatalogBasicPart = {
   thumbnail?: string;
   model: string;
   secondaryModel?: string;
   torso?: boolean;
+  legs?: boolean;
 };
 
 export type CatalogSkinnedPart = Record<string, CatalogBasicPart>;
@@ -35,14 +40,16 @@ export type CatalogBody = {
   legs: CatalogSkinnedPart;
 };
 
+export type CatalogBodyTypeKey = "bodyA" | "bodyB";
+
 export type CatalogBodyType = {
-  name: string;
+  name: CatalogBodyTypeKey;
   body: CatalogBody;
   parts: Record<string, CatalogSectionSkinned | CatalogSectionUnskinned>;
 };
 
-export type Catalog = {
+export type Catalog = DeepReadonly<{
   version: "0.1.0";
   skin: CatalogSkin[];
   bodyTypes: CatalogBodyType[];
-};
+}>;

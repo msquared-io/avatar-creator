@@ -9,8 +9,8 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 
-import { CatalogueBodyType } from "../CatalogueData";
 import { AvatarLoader } from "../scripts/avatar-loader";
+import { CatalogBodyTypeKey, CatalogPartKey } from "../types/Catalog";
 import styles from "./SlotItem.module.css";
 
 // Extend Window interface to include avatarLoader
@@ -21,50 +21,54 @@ declare global {
 }
 
 export default function SlotItem({
-  image,
   bodyType,
   skin,
   slot,
-  url,
+  modelUrl,
+  thumbnailUrl,
   active,
   avatarLoader,
   onClick,
 }: {
-  image: string;
-  bodyType?: CatalogueBodyType;
-  skin?: number;
-  slot?: string;
-  url?: string;
+  bodyType?: CatalogBodyTypeKey;
+  skin?: string;
+  slot?: CatalogPartKey;
+  // No secondary needed here as loading events entirely predicated on the primary model.
+  modelUrl?: string;
+  thumbnailUrl?: string;
   active: boolean;
   avatarLoader: AvatarLoader;
   onClick: () => void;
 }) {
   const [loading, setLoading] = useState<boolean>(false);
 
+  // Manages the loading state of the Slot Item.
+  // Does not manage any of the actual loading of the avatar itself.
   useEffect(() => {
-    if (!avatarLoader) return;
+    if (!avatarLoader || !slot) {
+      // If there is no avatar loader return, and do not enter the loading state, as the loading would never actually complete.
+      return;
+    }
 
-    const evtLoading = avatarLoader.on(`loading:${slot}:${url}.glb`, () => {
+    const evtLoading = avatarLoader.on(`loading:${slot}:${modelUrl}`, () => {
       setLoading(true);
     });
 
-    const evtLoaded = avatarLoader.on(`loaded:${slot}:${url}.glb`, () => {
+    const evtLoaded = avatarLoader.on(`loaded:${slot}:${modelUrl}`, () => {
       setLoading(false);
     });
 
-    // Check if already loading
-    if (slot !== undefined && avatarLoader.loading.has(slot)) {
-      const loadingItems = avatarLoader.loading.get(slot);
-      if (loadingItems && loadingItems.indexOf(url + ".glb") !== -1) {
-        setLoading(true);
-      }
+    // Check if already loading, if not then enter the loading state
+    const loadingItems = avatarLoader.loading.get(slot);
+    if (modelUrl && loadingItems && loadingItems.indexOf(modelUrl) !== -1) {
+      setLoading(true);
     }
 
     return () => {
       if (evtLoading && evtLoading.off) evtLoading.off();
       if (evtLoaded && evtLoaded.off) evtLoaded.off();
     };
-  }, [slot, url]);
+  }, [slot, modelUrl]);
 
   return (
     <li
@@ -73,7 +77,7 @@ export default function SlotItem({
       data-skin={skin ?? null}
       onClick={onClick}
     >
-      <img src={image} draggable="false" />
+      <img src={thumbnailUrl} draggable="false" />
     </li>
   );
 }

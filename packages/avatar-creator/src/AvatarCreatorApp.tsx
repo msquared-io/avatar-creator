@@ -21,6 +21,8 @@ import { Emotes } from "./components/Emotes";
 import { MmlButtons } from "./components/MmlButtons";
 import Renderer from "./components/Renderer";
 import { AvatarLoader } from "./scripts/avatar-loader";
+import { transpileCatalog } from "./scripts/transpileCatalog";
+import { Catalog } from "./types/Catalog";
 import { ExportBehavior, ExportBehaviorMode } from "./types/ExportBehavior";
 import { ImportBehavior, ImportBehaviorMode } from "./types/ImportBehavior";
 
@@ -39,7 +41,7 @@ export function AvatarCreatorApp({
   importBehavior = { mode: ImportBehaviorMode.None },
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
-  const [data, setData] = useState<CatalogueData | null>(null);
+  const [data, setData] = useState<Catalog | null>(null);
   const [avatarLoader, setAvatarLoader] = useState<AvatarLoader | null>(null);
   const [appState, setAppState] = useState<"home" | "configurator">("home");
   const [isDataLoading, setIsDataLoading] = useState(true);
@@ -51,7 +53,18 @@ export function AvatarCreatorApp({
       setIsDataLoading(true);
 
       const dataRaw = await fetch(dataUrl).then((r) => r.json());
-      setData(dataRaw);
+
+      // Any catalog without a version number we assume to be the original directory based catalog.
+      // Any future catalog formats are versioned.
+      if (dataRaw.version === undefined) {
+        const transpiledCatalog = transpileCatalog(dataRaw as CatalogueData);
+        setData(transpiledCatalog);
+      } else {
+        if (dataRaw.version !== "0.1.0") {
+          throw new Error("Unsupported catalog version");
+        }
+        setData(dataRaw);
+      }
 
       setIsDataLoading(false);
     };
@@ -158,7 +171,6 @@ export function AvatarCreatorApp({
 
       {data && avatarLoader ? (
         <MmlButtons
-          data={data}
           avatarLoader={avatarLoader}
           exportBehavior={exportBehavior}
           importBehavior={importBehavior}

@@ -64,7 +64,7 @@ export default function PreviewApp() {
     <AvatarCreatorApp
       dataUrl={dataUrl}
       animations={ANIMATIONS}
-      importBehavior={{ mode: ImportBehaviorMode.Copy }}
+      importBehavior={{ mode: ImportBehaviorMode.None }}
     />
   );
 }

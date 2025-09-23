@@ -9,7 +9,6 @@
 import * as React from "react";
 import { useState } from "react";
 
-import { CatalogueData } from "../CatalogueData";
 import { AvatarLoader } from "../scripts/avatar-loader";
 import { ExportBehavior } from "../types/ExportBehavior";
 import { ImportBehavior } from "../types/ImportBehavior";
@@ -21,12 +20,10 @@ import MmlOverlayExport from "./MmlOverlayExport";
 import MmlOverlayImport from "./MmlOverlayImport";
 
 export function MmlButtons({
-  data,
   avatarLoader,
   exportBehavior,
   importBehavior,
 }: {
-  data: CatalogueData | null;
   avatarLoader: AvatarLoader | null;
   exportBehavior: ExportBehavior;
   importBehavior: ImportBehavior;
@@ -36,8 +33,7 @@ export function MmlButtons({
   return (
     <>
       <div className={mmlStyles.mml}>
-        {data &&
-        avatarLoader &&
+        {avatarLoader &&
         (exportBehavior.mode === "default" || exportBehavior.mode === "callback") ? (
           <MmlExportButton
             onClick={() =>
@@ -48,7 +44,7 @@ export function MmlButtons({
           />
         ) : null}
 
-        {data && avatarLoader && importBehavior.mode === "copy" ? (
+        {avatarLoader && importBehavior.mode === "copy" ? (
           <MmlImportButton onClick={() => setActiveOverlay(MmlOverlay.Import)} />
         ) : null}
       </div>
