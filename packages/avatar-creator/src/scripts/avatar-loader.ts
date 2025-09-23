@@ -412,9 +412,8 @@ export class AvatarLoader extends EventHandler {
    *
    * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso'|'outfit')} slot Slot to load
    * @param {string} url Full url to GLB file to load for the slot
-   * @param {boolean} [event] If true, then event will be fired for syncing UI state
    */
-  load(slot: string, url: string | null, event: boolean = false) {
+  load(slot: string, url: string | null) {
     // still loading something for the slot
     if (this.loading.has(slot)) {
       const urlNext = this.next.get(slot);
@@ -470,15 +469,6 @@ export class AvatarLoader extends EventHandler {
     asset.ready(() => {
       this.loading.delete(slot);
       this.fire(`loaded:${slot}:${url}`);
-
-      if (event) {
-        this.fire(`slot:${slot}`, url);
-        if (slot.includes(":secondary")) {
-          this.fire(`slot:secondary`, slot, url);
-        } else {
-          this.fire(`slot:basic`, slot, url);
-        }
-      }
 
       this.createRootEntity(asset);
 
@@ -675,7 +665,7 @@ export class AvatarLoader extends EventHandler {
       }
 
       const src = character.getAttribute("src");
-      this.load("outfit", src, true);
+      this.load("outfit", src);
     } else {
       // body type
       const bodyTypes = new Set(["bodyA", "bodyB"]);
@@ -697,7 +687,7 @@ export class AvatarLoader extends EventHandler {
         this.setSkin({ name: skinName }, true);
       });
 
-      this.load("torso", character.getAttribute("src"), true);
+      this.load("torso", character.getAttribute("src"));
 
       const slots = [
         "legs",
@@ -725,7 +715,7 @@ export class AvatarLoader extends EventHandler {
           this.legs = true;
         }
 
-        this.load(slotName, src, true);
+        this.load(slotName, src);
       }
     }
   }

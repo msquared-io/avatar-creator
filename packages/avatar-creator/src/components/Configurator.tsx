@@ -303,6 +303,7 @@ export default function Configurator({
     randomSlot("head");
   }, [skin]);
 
+  // Ensure the avatar load has the configurator initial state applied on load.
   useEffect(() => {
     avatarLoader.setSkin(skin);
     avatarLoader.setBodyType(bodyType);
@@ -314,22 +315,6 @@ export default function Configurator({
     if (bottomSecondary) avatarLoader.load("bottom:secondary", bottomSecondary);
     if (shoes) avatarLoader.load("shoes", shoes);
     if (outfit) avatarLoader.load("outfit", outfit);
-
-    const evtBodyType = avatarLoader.on("slot:bodyType", (value) => {
-      avatarLoader.preventRandom = true;
-      setBodyType(value);
-      setTimeout(() => {
-        avatarLoader.preventRandom = false;
-      }, 500);
-    });
-    const evtSkin = avatarLoader.on("slot:skin", (value) => {
-      setSkin(value);
-    });
-
-    return () => {
-      evtBodyType.off();
-      evtSkin.off();
-    };
   }, [avatarLoader]);
 
   const unloadOutfit = (exception: string) => {
