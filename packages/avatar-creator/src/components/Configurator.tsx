@@ -292,6 +292,9 @@ export default function Configurator({
   }, [bodyType]);
 
   useEffect(() => {
+    if (outfit) {
+      return;
+    }
     if (head) {
       const skinSibling = findSkinSibling("head", bodyType, head, skin.name, data);
       if (skinSibling) {
@@ -301,7 +304,7 @@ export default function Configurator({
       // If fail to find the skin sibling of the current head then select a random one.
     }
     randomSlot("head");
-  }, [skin]);
+  }, [skin, outfit]);
 
   // Ensure the avatar load has the configurator initial state applied on load.
   useEffect(() => {
@@ -379,7 +382,8 @@ export default function Configurator({
     if (outfit) {
       (Object.keys(setters) as CatalogPartKey[]).forEach((key) => {
         if (key === "outfit") return;
-        setters[key]("");
+
+        setters[key](null);
       });
 
       avatarLoader.legs = false;
@@ -396,7 +400,9 @@ export default function Configurator({
         "bottom:secondary",
         "shoes",
       ];
-      for (const slot of slots) avatarLoader.unload(slot);
+      for (const slot of slots) {
+        avatarLoader.unload(slot);
+      }
     }
 
     avatarLoader.load("outfit", outfit);
