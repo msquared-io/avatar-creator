@@ -22,6 +22,7 @@ export type CatalogBasicPart = {
   legs?: boolean;
 };
 
+// Skin name -> CatalogBasicPart
 export type CatalogSkinnedPart = Record<string, CatalogBasicPart>;
 
 export type CatalogSectionSkinned = {
