@@ -414,7 +414,6 @@ export class AvatarLoader extends EventHandler {
    * @param {string} url Full url to GLB file to load for the slot
    */
   load(slot: string, url: string | null) {
-    console.warn("ssss", slot);
     // still loading something for the slot
     if (this.loading.has(slot)) {
       const urlNext = this.next.get(slot);
@@ -544,7 +543,6 @@ export class AvatarLoader extends EventHandler {
       }
     });
 
-    console.warn("loading", url, asset);
     this.app.assets.load(asset);
   }
 

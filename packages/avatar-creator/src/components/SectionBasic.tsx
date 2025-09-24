@@ -80,7 +80,6 @@ export default function SectionBasic({
               avatarLoader={avatarLoader}
               slot={slot}
               onClick={() => {
-                console.warn("setting", part.model);
                 setSlot(part.model);
                 if (setSecondary) setSecondary(part.secondaryModel ?? null);
               }}
