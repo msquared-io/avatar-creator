@@ -81,6 +81,9 @@ export function transpileCatalog(oldFormatCatalog: CatalogueData): Catalog {
         const basicParts = Object.fromEntries(
           BASIC_PART_KEYS.map((partKey) => {
             const oldPartData = bodyTypeData[partKey];
+            if (!oldPartData) {
+              return [partKey, null];
+            }
             const section: CatalogSectionUnskinned = {
               skin: false,
               parts: oldPartData.list.map((oldPart): CatalogBasicPart => {
@@ -102,7 +105,7 @@ export function transpileCatalog(oldFormatCatalog: CatalogueData): Catalog {
               }),
             };
             return [partKey, section];
-          }),
+          }).filter(([, section]) => section !== null),
         );
 
         const parts: CatalogBodyType["parts"] = {
