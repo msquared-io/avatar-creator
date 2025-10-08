@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd examples/avatar-preview-app && npm run build",
+  "buildCommand": "cd packages/avatar-creator && npm run build && cd ../../examples/avatar-preview-app && npm run build",
   "devCommand": "cd examples/avatar-preview-app && npm run dev",
   "outputDirectory": "examples/avatar-preview-app/build",
   "installCommand": "npm ci"
