@@ -14,6 +14,7 @@ import {
   Entity,
   EventHandler,
   GraphNode,
+  MeshInstance,
   StandardMaterial,
 } from "playcanvas";
 import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/framework/parsers/glb-container-resource";
@@ -314,6 +315,66 @@ export class AvatarLoader extends EventHandler {
   }
 
   /**
+   * Patches emissive color for materials that have emissive maps.
+   * Sets emissive color to white and intensity to 5 for materials with emissive maps
+   * that have low emissive values.
+   * @private
+   */
+  patchEmissiveColor(meshInstances: MeshInstance[]) {
+    for (let i = 0; i < meshInstances.length; i++) {
+      const material = meshInstances[i].material as StandardMaterial;
+      if (
+        material.emissiveMap &&
+        material.emissive.r <= 1 &&
+        material.emissive.g <= 1 &&
+        material.emissive.b <= 1
+      ) {
+        material.emissive.set(1, 1, 1, 1);
+        material.emissiveIntensity = 5;
+      }
+    }
+  }
+
+  /**
+   * Applies GLB container renders and materials to a slot, including additional render entities and emissive patching.
+   */
+  private applyContainerToSlot(slot: string, container: GlbContainerResource): void {
+    // @ts-expect-error - PlayCanvas types specify only a number is accepted, but the comment and implementation allow Asset.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.slotEntities[slot].render!.asset = container.renders[0];
+
+    if (container.renders.length > 1) {
+      for (let i = 1; i < container.renders.length; i++) {
+        const entity = new Entity(`${slot}-${i}`);
+        entity.addComponent("render", {
+          type: "asset",
+          rootBone: this.entity,
+        });
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        entity.render!.asset = container.renders[i] as unknown as number;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        entity.render!.materialAssets = [container.materials[i]] as unknown as Asset[];
+
+        const meshInstancesChild = entity.render?.meshInstances;
+        if (meshInstancesChild) {
+          this.patchEmissiveColor(meshInstancesChild);
+        }
+
+        this.slotEntities[slot].addChild(entity);
+      }
+    }
+
+    // The Asset from GlbContainerResource import misaligns with the "playcanvas" import.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.slotEntities[slot].render!.materialAssets = container.materials as unknown as Asset[];
+
+    const meshInstances = this.slotEntities[slot].render?.meshInstances;
+    if (meshInstances) {
+      this.patchEmissiveColor(meshInstances);
+    }
+  }
+
+  /**
    * @private
    * Iterates through the INDEXED_SLOTS to create a mapping from model to the part
    * This is important for reloading models so from the top/bottom parts GLB we can easily look up the requirements for rendering Torso and Legs
@@ -475,30 +536,7 @@ export class AvatarLoader extends EventHandler {
       this.assets[slot] = asset;
 
       const container = this.assets[slot].resource as GlbContainerResource;
-
-      // @ts-expect-error - PlayCanvas types specify only a number is accepted, but the comment and implementation allow Asset
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.slotEntities[slot].render!.asset = container.renders[0];
-      // The Asset from GlbContainerResource import misaligns with the "playcanvas" import
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.slotEntities[slot].render!.materialAssets = container.materials as unknown as Asset[];
-
-      // patch emissive color
-      const meshInstances = this.slotEntities[slot].render?.meshInstances;
-      if (meshInstances) {
-        for (let i = 0; i < meshInstances.length; i++) {
-          const material = meshInstances[i].material as StandardMaterial;
-          if (
-            material.emissiveMap &&
-            material.emissive.r <= 1 &&
-            material.emissive.g <= 1 &&
-            material.emissive.b <= 1
-          ) {
-            material.emissive.set(1, 1, 1, 1);
-            material.emissiveIntensity = 5;
-          }
-        }
-      }
+      this.applyContainerToSlot(slot, container);
 
       this.uncheckBodySlot(slot, url);
 
@@ -586,13 +624,7 @@ export class AvatarLoader extends EventHandler {
       this.assets[slot] = asset;
 
       const container = this.assets[slot].resource as GlbContainerResource;
-
-      // @ts-expect-error - PlayCanvas types specify only a number is accepted, but the comment and implementation allow Asset
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.slotEntities[slot].render!.asset = container.renders[0];
-      // The Asset from GlbContainerResource import misaligns with the "playcanvas" import
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.slotEntities[slot].render!.materialAssets = container.materials as unknown as Asset[];
+      this.applyContainerToSlot(slot, container);
     });
   }
 

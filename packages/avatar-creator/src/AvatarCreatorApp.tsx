@@ -8,7 +8,10 @@
 
 import "./index.css";
 
+import dracoWasmJs from "base64:./wasm/draco.wasm.js";
+import dracoWasmWasm from "base64:./wasm/draco.wasm.wasm";
 import { AppBase } from "playcanvas";
+import * as playcanvas from "playcanvas";
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -33,6 +36,11 @@ type AvatarCreatorAppProps = {
   importBehavior?: ImportBehavior;
   hideProfileBadge?: boolean;
 };
+
+playcanvas.WasmModule.setConfig("DracoDecoderModule", {
+  glueUrl: "data:text/javascript;base64," + dracoWasmJs,
+  wasmUrl: "data:application/wasm;base64," + dracoWasmWasm,
+});
 
 export function AvatarCreatorApp({
   dataUrl = "/data.json",

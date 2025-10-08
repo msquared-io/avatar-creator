@@ -111,9 +111,6 @@ export function createEsbuildOptions(params) {
     outbase,
     sourceRoot,
     publicPath,
-    alias: {
-      playcanvas: "./node_modules/playcanvas/src",
-    },
     external: ["node:worker_threads"],
     plugins: [
       copy({

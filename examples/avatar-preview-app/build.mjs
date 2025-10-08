@@ -28,23 +28,9 @@ const baseOptions = createEsbuildOptions({
     sourceRoot: path.join(projectRoot, "src"),
 });
 
-const baseAlias = { ...(baseOptions.alias || {}) };
-delete baseAlias.playcanvas;
 
 const buildOptions = {
   ...baseOptions,
-  alias: {
-    ...baseAlias,
-    "@msquared/avatar-creator": path.join(
-      projectRoot,
-      "..",
-      "..",
-      "packages",
-      "avatar-creator",
-      "src",
-      "index.tsx",
-    ),
-  },
   define: {
     "process.env.NEXT_PUBLIC_CATALOGUE_DATA_URL": JSON.stringify(
       process.env.NEXT_PUBLIC_CATALOGUE_DATA_URL || "/data.json",

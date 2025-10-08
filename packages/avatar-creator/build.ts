@@ -1,13 +1,19 @@
-import path from "node:path";
+/**
+ * @license
+ * Copyright Improbable MV Limited.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
+ */
 
 import autoprefixer from "autoprefixer";
 import * as esbuild from "esbuild";
 import postCssPlugin from "esbuild-style-plugin";
-import * as httpServer from "http-server";
 import yargs from "yargs";
 
 import { cssChunksFixPlugin } from "../../build-utils/cssChunksFixPlugin";
 import { dtsPlugin } from "../../build-utils/dtsPlugin";
+import { base64Plugin } from "./utils/base64plugin";
 
 const argv = yargs(process.argv)
   .strictOptions()
@@ -62,6 +68,7 @@ const buildOptions: esbuild.BuildOptions = {
     }),
     cssChunksFixPlugin({ autoInsert: true }),
     dtsPlugin(),
+    base64Plugin(),
   ],
 };
 

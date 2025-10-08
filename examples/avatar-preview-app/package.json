@@ -12,6 +12,7 @@
   "scripts": {
     "type-check": "tsc --noEmit",
     "dev": "node build.mjs --watch & npx serve@latest -l 3000 ./build",
+    "iterate": "npm run dev",
     "build": "node build.mjs --build",
     "start": "npx serve@latest ./build",
     "lint": "eslint \"./**/*.{js,jsx,ts,tsx}\" --max-warnings 0",
