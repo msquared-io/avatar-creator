@@ -28,7 +28,7 @@
   --section-title-padding-bottom: 8px;
   --section-grid-item-size: 96px;
   --sections-rail-height: 400px;
-  --section-menu-width: 500px;
+  --section-menu-width: 460px;
 } 
 
 /* Medium breakpoint overrides. */
@@ -47,7 +47,7 @@
     --section-title-padding-bottom: 6px;
     --section-grid-item-size: 72px;
     --sections-rail-height: 290px;
-    --section-menu-width: 300px;
+    --section-menu-width: 320px;
 }
 }
 
@@ -67,7 +67,7 @@
     --section-title-padding-bottom: 6px;
     --section-grid-item-size: 72px;
     --sections-rail-height: 180px;
-    --section-menu-width: 160px;
+    --section-menu-width: 180px;
 }
 }
 
