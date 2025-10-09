@@ -56,12 +56,6 @@
     }
 }
 
-@media (max-width: 480px) {
-    .buttonVisible {
-        left: calc(50% - 150px);
-    }
-}
-
 /* Size controls for the button graphic. */
 .button {
     width: calc(var(--icon-size) * 4.7);

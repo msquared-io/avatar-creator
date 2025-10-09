@@ -5,7 +5,7 @@
     bottom: 0;
     width: var(--section-menu-width);
     padding-left: calc(var(--gap-l) * 2);
-    padding-top: 68px;
+    padding-top: calc(var(--gap-l) * 2);
     display: grid;
     opacity: 0;
     pointer-events: none;
