@@ -28,7 +28,8 @@
   --section-title-padding-bottom: 8px;
   --section-grid-item-size: 96px;
   --sections-rail-height: 400px;
-  --section-menu-width: 460px;
+  --section-menu-width: 450px;
+  --customize-button-font-size: 48px;
 } 
 
 /* Medium breakpoint overrides. */
@@ -42,34 +43,16 @@
     --gap-m: 14px;
     --gap-l: 20px;
     --padding-sides: 16px;
-    --title-font-size: 32px;
+    --title-font-size: 28px;
     --section-title-font-size: 20px;
     --section-title-padding-bottom: 6px;
     --section-grid-item-size: 72px;
     --sections-rail-height: 290px;
     --section-menu-width: 320px;
+    --customize-button-font-size: 36px;
 }
 }
 
-/* Small breakpoint overrides. */
-@media (max-width: 640px) or (max-height: 640px) {
-  :root {
-    --icon-size: 32px;
-    --icon-size-inner: 24px;
-    --spinner-size: 32px;
-    --gap-xs: 2px;
-    --gap-s: 6px;
-    --gap-m: 12px;
-    --gap-l: 16px;
-    --padding-sides: 12px;
-    --title-font-size: 24px;
-    --section-title-font-size: 18px;
-    --section-title-padding-bottom: 6px;
-    --section-grid-item-size: 72px;
-    --sections-rail-height: 180px;
-    --section-menu-width: 180px;
-}
-}
 
 
 

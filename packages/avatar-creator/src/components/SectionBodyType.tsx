@@ -26,7 +26,7 @@ export default function SectionBodyType({
 }) {
   return (
     <div className={styles.section}>
-      <h2>Body Type</h2>
+      <h2>Body</h2>
       <ul>
         <SlotItem
           bodyType="bodyB"

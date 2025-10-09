@@ -21,7 +21,7 @@
     top: 50%;
     transform: translate(0, -50%);
     color: #000;
-    font-size: calc(var(--icon-size-inner) * 0.9);
+    font-size: calc(var(--customize-button-font-size));
     font-weight: 600;
 }
 
@@ -58,7 +58,7 @@
 
 /* Size controls for the button graphic. */
 .button {
-    width: calc(var(--icon-size) * 4.7);
+    width: calc(var(--icon-size) * 4.2);
     height: calc(var(--icon-size) * 1.0);
 }
 .button svg {
