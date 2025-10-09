@@ -17,12 +17,11 @@
 
 .button span {
     position: absolute;
-    left: 0;
-    top: 0;
-    line-height: calc(var(--icon-size) * 1.4);
+    left: 10%;
+    top: 50%;
+    transform: translate(0, -50%);
     color: #000;
     font-size: calc(var(--icon-size-inner) * 0.9);
-    padding-left: var(--gap-l);
     font-weight: 600;
 }
 
@@ -52,7 +51,8 @@
     }
 
     .button {
-        bottom: calc(var(--sections-rail-height) + var(--gap-m));
+        left: 50%;
+        transform: translateX(-50%);
     }
 }
 

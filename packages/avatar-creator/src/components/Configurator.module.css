@@ -3,8 +3,8 @@
     left: calc(-400px - 90px);
     top: 0;
     bottom: 0;
-    width: 400px;
-    padding-left: 90px;
+    width: var(--section-menu-width);
+    padding-left: calc(var(--gap-l) * 2);
     padding-top: 68px;
     display: grid;
     opacity: 0;

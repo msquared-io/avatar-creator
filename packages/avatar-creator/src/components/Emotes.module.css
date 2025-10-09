@@ -38,7 +38,6 @@
 @media (max-aspect-ratio: 1/1) {
     .emotes {
         right: var(--padding-sides);
-        bottom: calc(var(--sections-rail-height) + var(--gap-m));
         width: var(--icon-size);
         height: var(--icon-size);
     }
