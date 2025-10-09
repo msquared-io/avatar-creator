@@ -419,7 +419,9 @@ export default function Configurator({
     <div className={configuratorClasses}>
       <ConfiguratorBack onStateChange={onStateChange} />
 
-      <h2 className={styles.title}>Customise</h2>
+      <div className={styles.titleContainer}>
+        <h2 className={styles.title}>Customize</h2>
+      </div>
 
       <div className={styles.main}>
         <ul
