@@ -9,4 +9,75 @@
   --button-border: 2px solid #a07fc6;
   --button-border-color-hover: var(--button-background-active);
   --button-border-radius: 24px 4px 24px 4px;
+  /* Responsive scales. */
+  --breakpoint-small: 640px;
+  --breakpoint-medium: 1024px;
+
+  /* Default scale assumes large. */
+  --icon-size: 96px;
+  --icon-size-inner: 64px;
+  --spinner-size: 64px;
+  --spinner-border: 5px;
+  --gap-xs: 4px;
+  --gap-s: 8px;
+  --gap-m: 16px;
+  --gap-l: 24px;
+  --padding-sides: 20px;
+  --title-font-size: 48px;
+  --section-title-font-size: 32px;
+  --section-title-padding-bottom: 8px;
+  --section-grid-item-size: 96px;
+  --sections-rail-height: 370px;
 } 
+
+/* Medium breakpoint overrides. */
+@media (max-width: 960px) or (max-height: 960px) {
+  :root {
+    --icon-size: 64px;
+    --icon-size-inner: 48px;
+    --spinner-size: 48px;
+    --gap-xs: 3px;
+    --gap-s: 8px;
+    --gap-m: 14px;
+    --gap-l: 20px;
+    --padding-sides: 16px;
+    --title-font-size: 32px;
+    --section-title-font-size: 20px;
+    --section-title-padding-bottom: 6px;
+    --section-grid-item-size: 72px;
+    --sections-rail-height: 340px;
+  }
+}
+
+/* Small breakpoint overrides. */
+@media (max-width: 640px) or (max-height: 640px) {
+  :root {
+    --icon-size: 32px;
+    --icon-size-inner: 24px;
+    --spinner-size: 32px;
+    --gap-xs: 2px;
+    --gap-s: 6px;
+    --gap-m: 12px;
+    --gap-l: 16px;
+    --padding-sides: 12px;
+    --title-font-size: 24px;
+    --section-title-font-size: 18px;
+    --section-title-padding-bottom: 6px;
+    --section-grid-item-size: 72px;
+    --sections-rail-height: 300px;
+  }
+}
+
+
+
+/* Landscape vs portrait flags for layout. */
+@media (orientation: portrait) {
+  :root {
+    --layout-orientation: portrait;
+  }
+}
+@media (orientation: landscape) {
+  :root {
+    --layout-orientation: landscape;
+  }
+}

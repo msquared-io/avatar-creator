@@ -1,6 +1,6 @@
 .back {
-    width: 52px;
-    height: 52px;
+    width: calc(var(--icon-size) * 0.54);
+    height: calc(var(--icon-size) * 0.54);
     border-radius: 32px;
     user-select: none;
     cursor: pointer;
@@ -16,10 +16,10 @@
     fill: #fff;
 }
 
-@media screen and (max-width: 1024px) {
+@media (max-aspect-ratio: 1/1) {
     .back {
         position: absolute;
-        left: 20px;
-        top: calc(-100svh + 370px + 30px);
+        left: var(--padding-sides);
+        top: calc(-100svh + var(--sections-rail-height) + var(--gap-l));
     }
-} 
+}

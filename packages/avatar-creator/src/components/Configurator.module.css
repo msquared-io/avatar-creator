@@ -22,8 +22,8 @@
 }
 
 .back {
-    width: 52px;
-    height: 52px;
+    width: calc(var(--icon-size) * 0.54);
+    height: calc(var(--icon-size) * 0.54);
     border-radius: 32px;
     user-select: none;
     cursor: pointer;
@@ -40,8 +40,8 @@
 }
 
 .title {
-    font-size: 48px;
-    margin-top: 30px;
+    font-size: var(--title-font-size);
+    margin-top: var(--gap-l);
     margin-bottom: 0px;
     user-select: none;
     height: 70px;
@@ -52,13 +52,13 @@
     flex-grow: 1;
     display: flex;
     user-select: none;
-    margin-top: 30px;
+    margin-top: var(--gap-l);
 }
 
 .sections {
-    width: 98px;
+    width: var(--icon-size);
     margin: 0;
-    padding: 0 0 32px 0;
+    padding: 0 0 var(--gap-l) 0;
     flex-grow: 1;
     list-style: none;
     min-width: min-content;
@@ -75,44 +75,45 @@
     flex-grow: 1;
     overflow-x: hidden;
     overflow-y: auto;
-    padding-left: 16px;
-    padding-right: 8px;
-    padding-bottom: 32px;
+    padding-left: var(--gap-m);
+    padding-right: var(--gap-s);
+    padding-bottom: var(--gap-l);
 }
 
-@media screen and (max-width: 1024px) {
+/* Portrait orientation uses horizontal layout along the bottom. */
+@media (max-aspect-ratio: 1/1) {
     .configurator {
         display: block;
         top: unset;
         right: 0;
         width: auto;
-        height: 370px;
+        height: var(--sections-rail-height);
         padding: 0;
     }
 
     .back {
         position: absolute;
-        left: 20px;
-        top: calc(-100svh + 370px + 30px);
+        left: var(--padding-sides);
+        top: calc(-100svh + var(--sections-rail-height) + var(--gap-l));
     }
 
     .title {
         margin-top: 0;
-        padding: 0 20px;
+        padding: 0 var(--padding-sides);
         line-height: 70px;
         border-bottom: 1px solid rgba(203, 166, 255, 0.25);
     }
 
     .main {
-        margin-top: 16px;
+        margin-top: var(--gap-m);
         max-width: 100vw;
         flex-direction: column;
     }
 
     .sections {
-        width: calc(100vw - 40px);
-        max-width: calc(100vw - 40px);
-        padding: 0 20px;
+        width: calc(100vw - (var(--padding-sides) * 2));
+        max-width: calc(100vw - (var(--padding-sides) * 2));
+        padding: 0 var(--padding-sides);
         min-height: min-content;
         min-width: auto;
         white-space: nowrap;
@@ -120,12 +121,10 @@
         overflow-y: hidden;
     }
 
-    .sections::-webkit-scrollbar {
-        height: 0px;
-    }
+    .sections::-webkit-scrollbar { height: 0px; }
 
     .items {
-        padding: 4px 20px 17px 20px;
+        padding: var(--gap-xs) var(--padding-sides) calc(var(--gap-s) + var(--gap-m)) var(--padding-sides);
         overflow-y: hidden;
         overflow-x: auto;
         display: flex;
@@ -133,6 +132,6 @@
         flex-wrap: nowrap;
         flex-flow: flex-start;
         align-items: justify;
-        gap: 4px;
+        gap: var(--gap-xs);
     }
 }

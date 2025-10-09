@@ -22,8 +22,8 @@ export default function ConfiguratorBack({
   return (
     <div className={styles.back} onClick={onClick}>
       <svg
-        width="52"
-        height="52"
+        width="100%"
+        height="100%"
         viewBox="0 0 52 52"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
