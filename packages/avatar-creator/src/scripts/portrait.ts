@@ -22,9 +22,6 @@ import Camera from "./camera";
     Modifies rendering for one frame to render a portrait image and return a file
 */
 
-// image resolution
-const RESOLUTION = 256;
-
 // image format, can be: image/png or image/webp
 const FORMAT = "image/png";
 
@@ -35,13 +32,14 @@ const FORMAT = "image/png";
 
 /**
  * @param {Application} app PlayCanvas Application
+ * @param {number} resolution Image resolution
  * @param {PortraitRendered} callback Will be called when portrait image is generated
  */
-const render = (app: AppBase, callback: (dataUrl: string) => void) => {
+const render = (app: AppBase, resolution: number, callback: (dataUrl: string) => void) => {
   const canvas = app.graphicsDevice.canvas;
 
   // set image resolution
-  app.setCanvasResolution(RESOLUTION_FIXED, RESOLUTION, RESOLUTION);
+  app.setCanvasResolution(RESOLUTION_FIXED, resolution, resolution);
 
   // configure camera
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

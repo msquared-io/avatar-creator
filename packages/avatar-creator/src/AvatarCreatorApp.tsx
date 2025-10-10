@@ -24,9 +24,11 @@ import { Emotes } from "./components/Emotes";
 import { MmlButtons } from "./components/MmlButtons";
 import Renderer from "./components/Renderer";
 import { AvatarLoader } from "./scripts/avatar-loader";
+import { render as renderPortrait } from "./scripts/portrait";
 import { transpileCatalog } from "./scripts/transpileCatalog";
 import { Catalog } from "./types/Catalog";
 import { ExportBehavior, ExportBehaviorMode } from "./types/ExportBehavior";
+import { GenerateAvatarImageBehavior } from "./types/GeneratePortraitBehavior";
 import { ImportBehavior, ImportBehaviorMode } from "./types/ImportBehavior";
 
 type AvatarCreatorAppProps = {
@@ -34,6 +36,7 @@ type AvatarCreatorAppProps = {
   animations?: AnimationData;
   exportBehavior?: ExportBehavior;
   importBehavior?: ImportBehavior;
+  generateAvatarImageBehavior?: GenerateAvatarImageBehavior;
   hideProfileBadge?: boolean;
 };
 
@@ -47,6 +50,7 @@ export function AvatarCreatorApp({
   animations = [],
   exportBehavior = { mode: ExportBehaviorMode.Default },
   importBehavior = { mode: ImportBehaviorMode.None },
+  generateAvatarImageBehavior = undefined,
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<Catalog | null>(null);
@@ -145,6 +149,29 @@ export function AvatarCreatorApp({
       }
     };
   }, [importBehavior, loadAvatarMml]);
+
+  const generateAvatarImage = useCallback(
+    (resolution: number, callback: (dataUrl: string) => void) => {
+      if (!app) {
+        return;
+      }
+      renderPortrait(app, resolution, callback);
+    },
+    [app],
+  );
+
+  useEffect(() => {
+    if (!generateAvatarImageBehavior) {
+      return;
+    }
+    generateAvatarImageBehavior.generateAvatarImageRef.current = generateAvatarImage;
+
+    return () => {
+      if (generateAvatarImageBehavior.generateAvatarImageRef.current) {
+        generateAvatarImageBehavior.generateAvatarImageRef.current = null;
+      }
+    };
+  }, [generateAvatarImage]);
 
   const isLoading = isDataLoading || isAvatarLoading;
 
