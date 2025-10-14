@@ -30,6 +30,24 @@
   --sections-rail-height: 400px;
   --section-menu-width: 450px;
   --customize-button-font-size: 48px;
+
+  /* Slot button background and borders */
+  --theming-slot-button-normal-fill: rgba(0, 0, 0, 0.15);
+  --theming-slot-button-normal-stroke: rgba(0, 0, 0, 0.0);
+  --theming-slot-button-hover-stroke: rgb(108, 0, 244);
+  --theming-slot-button-hover-fill: rgba(108, 0, 244, 0.5);
+
+  /* Icon colors */
+  --theming-icon-color-normal: #cba6ff;
+  --theming-icon-color-selected: #fff;
+
+  /* Section button background and borders */
+  --theming-section-button-normal-fill: rgba(0, 0, 0, 0.5);
+  --theming-section-button-normal-stroke: #a07fc6;
+  --theming-section-button-hover-fill: rgba(108, 0, 244, 0.5);
+  --theming-section-button-hover-stroke: #6c00f4;
+  --theming-section-button-selected-fill: #6c00f4;
+  --theming-section-button-selected-stroke: #6c00f4;
 } 
 
 /* Medium breakpoint overrides. */

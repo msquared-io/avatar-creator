@@ -3,18 +3,20 @@
     float: left;
     width: var(--icon-size);
     height: var(--icon-size);
-    margin: var(--gap-xs);
     overflow: hidden;
-    background-image: url("../assets/img/button-slot-normal.svg");
     background-size: cover;
     backdrop-filter: blur(8px);
     mask-image: url("../assets/img/button-slot-mask.svg");
     mask-size: cover;
     cursor: pointer;
+
+    stroke: var(--theming-slot-button-normal-stroke);
+    fill: var(--theming-slot-button-normal-fill);
 }
 
 .slotItem:hover {
-    background-image: url("../assets/img/button-slot-hover.svg");
+    stroke: var(--theming-slot-button-hover-stroke);
+    fill: var(--theming-slot-button-hover-fill);
 }
 
 .slotItem.loading::after {
@@ -33,15 +35,20 @@
 }
 
 .slotItem.active {
-    background-image: url("../assets/img/button-slot-hover.svg");
+    stroke: var(--theming-slot-button-hover-stroke);
+    fill: var(--theming-slot-button-hover-fill);
 }
 
-.slotItem img {
-    width: calc(100% - (var(--gap-xs) * 2));
-    padding: var(--gap-xs);
+.slotItemImage {
     user-select: none;
-    mask-image: url("../assets/img/button-mask.svg");
-    mask-size: cover;
+    object-fit: cover;
+}
+
+.slotSkinMask {
+    user-select: none;
+    border-radius: 50%;
+    object-fit: cover;
+    clip-path: circle(50%);
 }
 
 @keyframes spinRotation {
