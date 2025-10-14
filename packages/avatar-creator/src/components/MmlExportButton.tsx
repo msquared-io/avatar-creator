@@ -12,7 +12,6 @@ import parentStyles from "./Mml.module.css";
 import styles from "./MmlButtons.module.css";
 
 export default function MmlExportButton({ onClick }: { onClick: () => void }) {
-  console.log("MmlExportButton");
   return (
     <div className={`${parentStyles.button} ${styles.export}`} onClick={onClick}>
       <span>Export</span>

@@ -59,12 +59,3 @@
         transform: rotate(360deg);
     }
 }
-
-@media screen and (max-width: 1024px) {
-    .export {
-        display: none;
-    }
-    .import {
-        display: none;
-    }
-} 
