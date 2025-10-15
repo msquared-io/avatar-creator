@@ -21,24 +21,6 @@
     pointer-events: all;
 }
 
-.back {
-    width: calc(var(--icon-size) * 0.54);
-    height: calc(var(--icon-size) * 0.54);
-    border-radius: 32px;
-    user-select: none;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-}
-
-.back:hover svg path.circle {
-    fill: #6201eb;
-    stroke: #6201eb;
-}
-
-.back:hover svg path.arrow {
-    fill: #fff;
-}
-
 .titleContainer {
     display: flex;
     align-items: flex-end;
@@ -50,6 +32,7 @@
     margin-top: var(--gap-l);
     margin-bottom: 0px;
     user-select: none;
+    color: var(--theming-primary-text-color);
 }
 
 .main {
