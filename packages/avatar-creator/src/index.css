@@ -9,8 +9,8 @@
     background: rgba(203, 166, 255, 0.5);
 }
 ::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
+    background: var(--theming-secondary-text-color);
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #fff;
+    background: var(--theming-primary-text-color);
 }

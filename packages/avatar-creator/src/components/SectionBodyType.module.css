@@ -1,11 +1,11 @@
 .section h2 {
     position: relative;
-    border-bottom: 1px solid var(--color-primary);
+    border-bottom: 1px solid var(--theming-secondary-text-color);
     font-weight: normal;
     font-size: var(--section-title-font-size);
     padding-bottom: var(--section-title-padding-bottom);
     margin: 0 0 var(--gap-s) 0;
-    color: var(--color-primary);
+    color: var(--theming-secondary-text-color);
 }
 
 .section ul {
