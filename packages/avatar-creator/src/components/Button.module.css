@@ -50,8 +50,8 @@
   z-index: 1;
   display: flex;
   width: 100%;
-  align-items: space-between;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
   gap: var(--gap-s);
   padding: 0 var(--gap-m);
   transition: all 100ms ease;
@@ -147,13 +147,6 @@
   align-items: center;
   justify-content: center;
   transition: color 100ms ease;
-}
-
-.iconLeft {
-  order: -1;
-}
-
-.iconRight {
   order: 1;
 }
 
