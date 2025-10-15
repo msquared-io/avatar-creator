@@ -6,8 +6,6 @@
     overflow: hidden;
     background-size: cover;
     backdrop-filter: blur(8px);
-    mask-image: url("../assets/img/button-slot-mask.svg");
-    mask-size: cover;
     cursor: pointer;
 
     stroke: var(--theming-slot-button-normal-stroke);

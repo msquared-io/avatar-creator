@@ -6,12 +6,10 @@
     cursor: pointer;
     background-size: var(--icon-size) var(--icon-size);
     backdrop-filter: blur(8px);
-    mask-image: url("../assets/img/button-slot-mask.svg");
-    mask-size: cover;
 
     stroke: var(--theming-section-button-normal-stroke);
     fill: var(--theming-section-button-normal-fill);
-    stroke-width: 4px;
+    stroke-width: 2px;
     /* Color is used for icon as the icon svgs rely on currentColor*/
     color: var(--theming-icon-color-normal);
 }
@@ -59,9 +57,6 @@
     opacity: 0.5;
 }
 
-.dropOver {
-    background-image: url("../assets/img/button-hover.svg");
-}
 .dropOver svg path {
     fill: #fff;
 }
