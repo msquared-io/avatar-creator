@@ -23,6 +23,7 @@
     white-space: pre-wrap;
     word-break: break-all;
     border: 1px solid var(--theming-primary-text-color);
+    gap: var(--gap-m);
 }
 
 .button {
