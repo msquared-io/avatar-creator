@@ -2,22 +2,24 @@
     position: relative;
     width: var(--icon-size);
     height: var(--icon-size);
-    margin-bottom: var(--gap-xs);
     overflow: hidden;
     cursor: pointer;
-    background-image: url("../assets/img/button-normal.svg");
     background-size: var(--icon-size) var(--icon-size);
     backdrop-filter: blur(8px);
     mask-image: url("../assets/img/button-slot-mask.svg");
     mask-size: cover;
+
+    stroke: var(--theming-section-button-normal-stroke);
+    fill: var(--theming-section-button-normal-fill);
+    stroke-width: 4px;
+    /* Color is used for icon as the icon svgs rely on currentColor*/
+    color: var(--theming-icon-color-normal);
 }
 
 .sectionButton:hover {
-    background-image: url("../assets/img/button-hover.svg");
-}
-
-.sectionButton:hover svg path {
-    fill: #fff;
+    stroke: var(--theming-section-button-hover-stroke);
+    fill: var(--theming-section-button-hover-fill);
+    color: var(--theming-icon-color-hover);
 }
 
 .sectionButton.loading::after {
@@ -36,7 +38,9 @@
 }
 
 .sectionButton.active {
-    background-image: url("../assets/img/button-hover.svg");
+    stroke: var(--theming-section-button-selected-stroke);
+    fill: var(--theming-section-button-selected-fill);
+    color: var(--theming-icon-color-selected);
 }
 
 .sectionButton.active svg path {
@@ -62,98 +66,50 @@
     fill: #fff;
 }
 
-/* BodyType slot */
-.sectionButton[data-slot="bodyType"]:hover .icon,
-.sectionButton[data-slot="bodyType"].active .icon {
-    background-image: url("../assets/img/icon-bodytype-hover.svg");
-}
-
-.sectionButton[data-slot="bodyType"] .icon {
-    background-image: url("../assets/img/icon-bodytype.svg");
-}
-
-/* Head slot */
-.sectionButton[data-slot="head"]:hover .icon,
-.sectionButton[data-slot="head"].active .icon {
-    background-image: url("../assets/img/icon-head-hover.svg");
-}
-
-.sectionButton[data-slot="head"] .icon {
-    background-image: url("../assets/img/icon-head.svg");
-}
-
-/* Hair slot */
-.sectionButton[data-slot="hair"]:hover .icon,
-.sectionButton[data-slot="hair"].active .icon {
-    background-image: url("../assets/img/icon-hair-hover.svg");
-}
-
-.sectionButton[data-slot="hair"] .icon {
-    background-image: url("../assets/img/icon-hair.svg");
-}
-
-/* Top slot */
-.sectionButton[data-slot="top"]:hover .icon,
-.sectionButton[data-slot="top"].active .icon {
-    background-image: url("../assets/img/icon-top-hover.svg");
-}
-
-.sectionButton[data-slot="top"] .icon {
-    background-image: url("../assets/img/icon-top.svg");
-}
-
-/* Bottom slot */
-.sectionButton[data-slot="bottom"]:hover .icon,
-.sectionButton[data-slot="bottom"].active .icon {
-    background-image: url("../assets/img/icon-bottom-hover.svg");
-}
-
-.sectionButton[data-slot="bottom"] .icon {
-    background-image: url("../assets/img/icon-bottom.svg");
-}
-
-/* Shoes slot */
-.sectionButton[data-slot="shoes"]:hover .icon,
-.sectionButton[data-slot="shoes"].active .icon {
-    background-image: url("../assets/img/icon-shoes-hover.svg");
-}
-
-.sectionButton[data-slot="shoes"] .icon {
-    background-image: url("../assets/img/icon-shoes.svg");
-}
-
-/* Outfit slot */
-.sectionButton[data-slot="outfit"]:hover .icon,
-.sectionButton[data-slot="outfit"].active .icon {
-    background-image: url("../assets/img/icon-outfit-hover.svg");
-}
-
-.sectionButton[data-slot="outfit"] .icon {
-    background-image: url("../assets/img/icon-outfit.svg");
-}
-
-.sectionButton[data-slot="outfit"] {
-    background-image: url("../assets/img/button-shiny.svg");
-}
-
-.sectionButton[data-slot="outfit"]:hover,
-.sectionButton.active[data-slot="outfit"] {
-    background-image: url("../assets/img/button-shiny-hover.svg");
-}
-
-
 .icon {
-    width: 100%;
-    height: 100%;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: var(--icon-size-inner);
+    pointer-events: none;
+    color: var(--theming-icon-color-normal);
+}
+.icon:hover {
+    color: var(--theming-icon-color-hover);
+}
+.iconActive {
+    pointer-events: none;
+    color: var(--theming-icon-color-selected);
+}
+
+.sectionButtonIcon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    max-width: calc(100% - 20px);
+    max-height: calc(100% - 20px);
+    width: auto;
+    height: auto;
 }
 
 .sectionButton svg {
-    position: absolute;
-    top: calc(50% - (var(--icon-size-inner) / 2));
-    left: calc(50% - (var(--icon-size-inner) / 2));
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.sectionButton svg foreignObject {
+    position: relative;
+    z-index: 1;
+}
+
+.sectionButton svg foreignObject > div {
+    pointer-events: none;
+}
+
+.sectionButton svg foreignObject svg {
+    max-width: var(--icon-size-inner, 64px);
+    max-height: var(--icon-size-inner, 64px);
+    width: auto;
+    height: auto;
 }
 
 .sectionButton svg path {
