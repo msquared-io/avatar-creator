@@ -7,9 +7,30 @@
  */
 
 import * as React from "react";
+import { useMemo } from "react";
+
 import { CatalogPartKey } from "../types/Catalog";
-import styles from "./SectionButton.module.css";
+import { IconBodyType } from "./icons/IconBodyType";
+import { IconBottom } from "./icons/IconBottom";
+import { IconHair } from "./icons/IconHair";
 import { IconHead } from "./icons/IconHead";
+import { IconOutfit } from "./icons/IconOutfit";
+import { IconShoes } from "./icons/IconShoes";
+import { IconTop } from "./icons/IconTop";
+import styles from "./SectionButton.module.css";
+
+const ICONS: Record<
+  CatalogPartKey | "bodyType",
+  React.FC<{ containerWidth: number; containerHeight: number }>
+> = {
+  bodyType: IconBodyType,
+  head: IconHead,
+  hair: IconHair,
+  top: IconTop,
+  bottom: IconBottom,
+  shoes: IconShoes,
+  outfit: IconOutfit,
+};
 
 export default function SectionButton({
   slot,
@@ -24,6 +45,10 @@ export default function SectionButton({
   droppable: boolean;
   dropOver: CatalogPartKey | "window" | null;
 }) {
+  const IconComponent = useMemo(() => {
+    return ICONS[slot];
+  }, [slot]);
+
   return (
     <svg
       className={`${styles.sectionButton} ${active && dropOver === null ? styles.active : ""} ${dropOver === slot ? styles.dropOver : ""} ${droppable && dropOver === "window" ? styles.dropTarget : ""} ${!droppable && dropOver !== null ? styles.dropInvalid : ""}`}
@@ -42,7 +67,7 @@ export default function SectionButton({
         stroke="inherit"
         fill="inherit"
       />
-      <IconHead containerWidth={98} containerHeight={98} />
+      <IconComponent containerWidth={98} containerHeight={98} />
     </svg>
   );
 }
