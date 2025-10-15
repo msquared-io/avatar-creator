@@ -112,10 +112,6 @@
     height: auto;
 }
 
-.sectionButton svg path {
-    fill: var(--color-primary);
-}
-
 /* Horizontal rail spacing when arranged inline. */
 @media (max-aspect-ratio: 1/1) {
     .sectionButton {
