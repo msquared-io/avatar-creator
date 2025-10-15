@@ -26,7 +26,7 @@
     left: calc(50% - (var(--spinner-size) / 2));
     width: var(--spinner-size);
     height: var(--spinner-size);
-    border: var(--spinner-border) solid var(--color-spinner);
+    border: var(--spinner-border) solid var(--theming-spinner-color);
     border-bottom-color: transparent;
     border-radius: 50%;
     display: inline-block;
