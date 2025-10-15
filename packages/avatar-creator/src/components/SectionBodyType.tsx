@@ -29,7 +29,6 @@ export default function SectionBodyType({
       <h2>Body</h2>
       <ul>
         <SlotItem
-          bodyType="bodyB"
           active={bodyType === "bodyB"}
           avatarLoader={avatarLoader}
           onClick={() => {
@@ -38,7 +37,6 @@ export default function SectionBodyType({
           thumbnailUrl={iconBodyTypeBSVG}
         />
         <SlotItem
-          bodyType="bodyA"
           active={bodyType === "bodyA"}
           avatarLoader={avatarLoader}
           onClick={() => {

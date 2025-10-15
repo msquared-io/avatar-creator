@@ -22,16 +22,8 @@
     height: var(--icon-size);
     margin: var(--gap-xs);
     overflow: hidden;
-    background-image: url("../assets/img/button-slot-normal.svg");
-    background-size: cover;
     backdrop-filter: blur(8px);
-    mask-image: url("../assets/img/button-slot-mask.svg");
-    mask-size: cover;
     cursor: pointer;
-}
-
-.skin ul li:hover {
-    background-image: url("../assets/img/button-slot-hover.svg");
 }
 
 .skin ul li.loading::after {
@@ -49,16 +41,11 @@
     animation: spinRotation 1s linear infinite;
 }
 
-.skin ul li.active {
-    background-image: url("../assets/img/button-slot-hover.svg");
-}
-
 .skin ul li img {
     border-radius: 100px;
     margin: var(--gap-s);
     width: calc(100% - (var(--gap-s) * 2));
     padding: 0;
-    mask-image: none;
 }
 
 @media (max-aspect-ratio: 1/1) {
