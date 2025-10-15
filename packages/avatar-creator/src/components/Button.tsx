@@ -19,8 +19,6 @@ export interface ButtonProps {
   size?: "medium" | "large";
   /** Icon to display (positioned on right by default) */
   icon?: React.ReactNode;
-  /** Position of the icon */
-  iconPosition?: "left" | "right";
   /** Loading state */
   loading?: boolean;
   /** Disabled state */
@@ -40,7 +38,6 @@ export default function Button({
   variant = "primary",
   size = "medium",
   icon,
-  iconPosition = "right",
   loading = false,
   disabled = false,
   onClick,
@@ -55,10 +52,6 @@ export default function Button({
     loading ? styles.loading : "",
     className,
   ]
-    .filter(Boolean)
-    .join(" ");
-
-  const iconClasses = [styles.icon, iconPosition === "left" ? styles.iconLeft : styles.iconRight]
     .filter(Boolean)
     .join(" ");
 
@@ -87,7 +80,7 @@ export default function Button({
       </svg>
       <span className={`${styles.content} ${loading ? styles.contentLoading : ""}`}>
         {children}
-        {icon ? <span className={iconClasses}>{icon}</span> : null}
+        {icon ? <span className={styles.icon}>{icon}</span> : null}
       </span>
     </button>
   );
