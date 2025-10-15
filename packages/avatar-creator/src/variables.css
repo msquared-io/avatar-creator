@@ -45,14 +45,18 @@
   --theming-secondary-text-color: #cba6ff;
 
   /* Button theming variables */
-  --theming-button-primary-fill: #6201eb;
-  --theming-button-primary-stroke: #6201eb;
-  --theming-button-primary-text-color: #ffffff;
-  --theming-button-primary-icon-color: #ffffff;
-  --theming-button-primary-text-color-hover: #ffffff;
-  --theming-button-primary-icon-color-hover: #ffffff;
+  --theming-button-primary-fill: #F2F2F2;
+  --theming-button-primary-stroke: #rgba(0, 0, 0, 0);
+  --theming-button-primary-fill-hover: rgb(108,0,244);
+  --theming-button-primary-stroke-hover: #rgba(0, 0, 0, 0);
+  --theming-button-primary-text-color: #000000;
+  --theming-button-primary-icon-color: #000000;
+  --theming-button-primary-text-color-hover: #000000;
+  --theming-button-primary-icon-color-hover: #000000;
   --theming-button-secondary-fill: #000000;
   --theming-button-secondary-stroke: #cba6ff;
+  --theming-button-secondary-fill-hover: rgb(108,0,244);
+  --theming-button-secondary-stroke-hover: rgba(0,0,0,0);
   --theming-button-secondary-text-color: #ffffff;
   --theming-button-secondary-icon-color: #cba6ff;
   --theming-button-secondary-text-color-hover: #ffffff;
