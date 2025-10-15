@@ -39,15 +39,16 @@
 
   /* Icon colors */
   --theming-icon-color-normal: #cba6ff;
+  --theming-icon-color-hover: #fff;
   --theming-icon-color-selected: #fff;
 
   /* Section button background and borders */
-  --theming-section-button-normal-fill: rgba(0, 0, 0, 0.5);
-  --theming-section-button-normal-stroke: #a07fc6;
-  --theming-section-button-hover-fill: rgba(108, 0, 244, 0.5);
-  --theming-section-button-hover-stroke: #6c00f4;
-  --theming-section-button-selected-fill: #6c00f4;
-  --theming-section-button-selected-stroke: #6c00f4;
+  --theming-section-button-normal-fill: rgba(0, 0, 0, 0.15);
+  --theming-section-button-normal-stroke: rgba(203,166,255,0.5);
+  --theming-section-button-hover-fill: rgb(108,0,244);
+  --theming-section-button-hover-stroke: rgb(108,0,244);
+  --theming-section-button-selected-fill: rgb(108,0,244);
+  --theming-section-button-selected-stroke: rgb(108,0,244);
 } 
 
 /* Medium breakpoint overrides. */
