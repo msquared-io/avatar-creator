@@ -10,9 +10,15 @@ import * as React from "react";
 
 export default function IconExport() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="16"
+      height="16"
+      viewBox="163 18 16.64 16.64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
-        d="M14 2V12.67L12.33 12.65V4.33L12.25 4.25L3.67 12.83L2.5 11.67L11.08 3.08L11 3H2.67V2H14Z"
+        d="M179.64 18V31.99L177.66 31.97V21.64L177.55 21.53L164.46 34.64L163 33.2L176.11 20.09L176 19.98H165.68V18H179.64Z"
         fill="currentColor"
       />
     </svg>
