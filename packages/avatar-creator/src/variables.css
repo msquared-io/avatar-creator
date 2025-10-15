@@ -1,21 +1,14 @@
 :root {
-  --color-drop: rgba(108, 0, 244, 0.5);
-  --color-spinner: #fff;
-  --button-background: rgba(0, 0, 0, 0.5);
-  --button-background-active: #6c00f4;
-  --button-background-hover: rgba(108, 0, 244, 0.5);
-  --button-border: 2px solid #a07fc6;
-  --button-border-color-hover: var(--button-background-active);
-  --button-border-radius: 24px 4px 24px 4px;
-  /* Responsive scales. */
-  --breakpoint-small: 640px;
-  --breakpoint-medium: 1024px;
+  --color-drop: rgba(108, 0, 244, 0.5); /* This is the color of the sections when it is a drop target */
+
+  /* Spinner color */
+  --theming-spinner-color: #fff;
+  --spinner-size: 64px;
+  --spinner-border: 5px;
 
   /* Default scale assumes large. */
   --icon-size: 96px;
   --icon-size-inner: 64px;
-  --spinner-size: 64px;
-  --spinner-border: 5px;
   --gap-xs: 4px;
   --gap-s: 8px;
   --gap-m: 16px;
