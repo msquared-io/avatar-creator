@@ -43,6 +43,20 @@
 
   --theming-primary-text-color: #ffffff;
   --theming-secondary-text-color: #cba6ff;
+
+  /* Button theming variables */
+  --theming-button-primary-fill: #6201eb;
+  --theming-button-primary-stroke: #6201eb;
+  --theming-button-primary-text-color: #ffffff;
+  --theming-button-primary-icon-color: #ffffff;
+  --theming-button-primary-text-color-hover: #ffffff;
+  --theming-button-primary-icon-color-hover: #ffffff;
+  --theming-button-secondary-fill: #000000;
+  --theming-button-secondary-stroke: #cba6ff;
+  --theming-button-secondary-text-color: #ffffff;
+  --theming-button-secondary-icon-color: #cba6ff;
+  --theming-button-secondary-text-color-hover: #ffffff;
+  --theming-button-secondary-icon-color-hover: #ffffff;
 } 
 
 /* Medium breakpoint overrides. */

@@ -1,0 +1,204 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+  transition: all 100ms ease;
+  text-decoration: none;
+  outline: none;
+  overflow: hidden;
+}
+
+.button:focus {
+  outline: 2px solid rgba(98, 1, 235, 0.5);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* SVG background styling */
+.buttonSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: all 100ms ease;
+}
+
+.background {
+  transition: fill 100ms ease;
+}
+
+.border {
+  transition: fill 100ms ease;
+  opacity: 0.3;
+}
+
+/* Content positioning */
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  align-items: space-between;
+  justify-content: center;
+  gap: var(--gap-s);
+  padding: 0 var(--gap-m);
+  transition: all 100ms ease;
+}
+
+.contentLoading {
+  opacity: 0.5;
+}
+
+/* Size variants */
+.medium {
+  min-width: 200px;
+  height: 52px;
+  font-size: 14px;
+}
+
+.large {
+  min-width: 300px;
+  height: 72px;
+  font-size: 44px;
+}
+
+/* Primary variant */
+.primary .background {
+  fill: var(--theming-button-primary-fill);
+}
+
+.primary .border {
+  fill: var(--theming-button-primary-stroke);
+}
+
+.primary .content {
+  color: var(--theming-button-primary-text-color);
+}
+
+.primary:hover:not(:disabled) .background {
+  fill: var(--theming-button-primary-fill);
+  filter: brightness(1.1);
+}
+
+.primary:hover:not(:disabled) .border {
+  fill: var(--theming-button-primary-stroke);
+}
+
+.primary:hover:not(:disabled) .content {
+  color: var(--theming-button-primary-text-color-hover);
+}
+
+.primary .icon {
+  color: var(--theming-button-primary-icon-color);
+}
+
+.primary:hover:not(:disabled) .icon {
+  color: var(--theming-button-primary-icon-color-hover);
+}
+
+/* Secondary variant */
+.secondary .background {
+  fill: var(--theming-button-secondary-fill);
+}
+
+.secondary .border {
+  fill: var(--theming-button-secondary-stroke);
+}
+
+.secondary .content {
+  color: var(--theming-button-secondary-text-color);
+}
+
+.secondary:hover:not(:disabled) .background {
+  fill: var(--theming-button-primary-fill);
+}
+
+.secondary:hover:not(:disabled) .border {
+  fill: var(--theming-button-primary-stroke);
+}
+
+.secondary:hover:not(:disabled) .content {
+  color: var(--theming-button-secondary-text-color-hover);
+}
+
+.secondary .icon {
+  color: var(--theming-button-secondary-icon-color);
+}
+
+.secondary:hover:not(:disabled) .icon {
+  color: var(--theming-button-secondary-icon-color-hover);
+}
+
+/* Icon styling */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 100ms ease;
+}
+
+.iconLeft {
+  order: -1;
+}
+
+.iconRight {
+  order: 1;
+}
+
+/* Loading state */
+.loading {
+  position: relative;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+  z-index: 2;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) or (max-height: 960px) {
+  .medium {
+    min-width: 200px;
+    height: 52px;
+    font-size: 28px;
+    font-weight: 500;
+  }
+
+  .large {
+    min-width: 300px;
+    height: 72px;
+    font-size: 44px;
+  }
+
+  .content {
+    padding: 0 var(--gap-s);
+  }
+}
