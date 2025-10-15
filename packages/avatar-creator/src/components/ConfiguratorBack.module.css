@@ -5,15 +5,27 @@
     user-select: none;
     cursor: pointer;
     backdrop-filter: blur(8px);
+
+
 }
 
+.back svg :global(path.circle) {
+    fill: transparent;
+    stroke: var(--theming-secondary-text-color);
+}
+
+.back svg :global(path.arrow) {
+    fill: var(--theming-secondary-text-color);
+}
+
+
 .back:hover svg :global(path.circle) {
-    fill: #6201eb;
-    stroke: #6201eb;
+    fill: var(--theming-button-primary-fill-hover);
+    stroke: var(--theming-button-primary-fill-hover);;
 }
 
 .back:hover svg :global(path.arrow) {
-    fill: #fff;
+    fill: var(--theming-primary-text-color);
 }
 
 @media (max-aspect-ratio: 1/1) {
