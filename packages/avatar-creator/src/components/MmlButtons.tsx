@@ -12,9 +12,10 @@ import { useState } from "react";
 import { AvatarLoader } from "../scripts/avatar-loader";
 import { ExportBehavior } from "../types/ExportBehavior";
 import { ImportBehavior } from "../types/ImportBehavior";
+import Button from "./Button";
+import IconExport from "./icons/IconExport";
+import IconImport from "./icons/IconImport";
 import mmlStyles from "./Mml.module.css";
-import MmlExportButton from "./MmlExportButton";
-import MmlImportButton from "./MmlImportButton";
 import { MmlOverlay } from "./MmlOverlay";
 import MmlOverlayExport from "./MmlOverlayExport";
 import MmlOverlayImport from "./MmlOverlayImport";
@@ -35,17 +36,29 @@ export function MmlButtons({
       <div className={mmlStyles.mml}>
         {avatarLoader &&
         (exportBehavior.mode === "default" || exportBehavior.mode === "callback") ? (
-          <MmlExportButton
+          <Button
+            variant="secondary"
+            size="medium"
+            icon={<IconExport />}
             onClick={() =>
               exportBehavior.mode === "default"
                 ? setActiveOverlay(MmlOverlay.Export)
                 : exportBehavior.onExport(avatarLoader.getAvatarMml())
             }
-          />
+          >
+            Export
+          </Button>
         ) : null}
 
         {avatarLoader && importBehavior.mode === "copy" ? (
-          <MmlImportButton onClick={() => setActiveOverlay(MmlOverlay.Import)} />
+          <Button
+            variant="secondary"
+            size="medium"
+            icon={<IconImport />}
+            onClick={() => setActiveOverlay(MmlOverlay.Import)}
+          >
+            Import
+          </Button>
         ) : null}
       </div>
 
