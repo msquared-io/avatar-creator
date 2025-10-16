@@ -20,7 +20,6 @@
     left: 10%;
     top: 50%;
     transform: translate(0, -50%);
-    color: #000;
     font-size: calc(var(--customize-button-font-size));
     font-weight: 600;
 }
@@ -31,18 +30,6 @@
     opacity: 1;
     pointer-events: all;
     cursor: pointer;
-}
-
-.buttonVisible:hover span {
-    color: #fff;
-}
-
-.buttonVisible:hover svg path {
-    fill: #6201eb;
-}
-
-.buttonVisible svg path {
-    fill: #fff;
 }
 
 @media (max-aspect-ratio: 1/1) {
