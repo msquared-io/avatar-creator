@@ -41,9 +41,6 @@
     color: var(--theming-icon-color-selected);
 }
 
-.sectionButton.active svg path {
-    fill: #fff;
-}
 
 /* Drag'n'Drop styles */
 .dropTarget {
@@ -59,18 +56,6 @@
 
 .dropOver svg path {
     fill: #fff;
-}
-
-.icon {
-    pointer-events: none;
-    color: var(--theming-icon-color-normal);
-}
-.icon:hover {
-    color: var(--theming-icon-color-hover);
-}
-.iconActive {
-    pointer-events: none;
-    color: var(--theming-icon-color-selected);
 }
 
 .sectionButtonIcon {
