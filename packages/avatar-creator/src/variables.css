@@ -46,9 +46,9 @@
 
   /* Button theming variables */
   --theming-button-primary-fill: #F2F2F2;
-  --theming-button-primary-stroke: #rgba(0, 0, 0, 0);
+  --theming-button-primary-stroke: rgba(0, 0, 0, 0);
   --theming-button-primary-fill-hover: rgb(108,0,244);
-  --theming-button-primary-stroke-hover: #rgba(0, 0, 0, 0);
+  --theming-button-primary-stroke-hover: rgba(0, 0, 0, 0);
   --theming-button-primary-text-color: #000000;
   --theming-button-primary-icon-color: #000000;
   --theming-button-primary-text-color-hover: #000000;

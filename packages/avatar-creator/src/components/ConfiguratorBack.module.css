@@ -5,8 +5,6 @@
     user-select: none;
     cursor: pointer;
     backdrop-filter: blur(8px);
-
-
 }
 
 .back svg :global(path.circle) {
@@ -17,7 +15,6 @@
 .back svg :global(path.arrow) {
     fill: var(--theming-secondary-text-color);
 }
-
 
 .back:hover svg :global(path.circle) {
     fill: var(--theming-button-primary-fill-hover);
