@@ -76,7 +76,6 @@ export default function SectionBasic({
             <SlotItem
               active={selected === part.model}
               key={part.model}
-              bodyType={bodyType}
               avatarLoader={avatarLoader}
               slot={slot}
               onClick={() => {
