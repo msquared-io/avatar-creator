@@ -75,23 +75,41 @@ const ASSET_EXPIRES = 1000;
 // As we only care about Torso and Leg rendering only the top and bottom slots are indexed.
 const INDEXED_SLOTS = ["top", "bottom"];
 
-export class AvatarLoader extends EventHandler {
-  private assets: { [key: string]: Asset } = {};
-  private assetsCache = new Set<Asset>();
-  private assetsCacheByUrl = new Map<string, Asset>();
-  private slotByAsset = new Map<Asset, string>();
-  private urlByAsset = new Map<Asset, string>();
-  private assetTimers = new Map<Asset, number>();
+// Asset Cache Key is combination of slot and url as its possible for different slots to use the same asset.
+// In this case we duplicate the caching of the same asset for simplicity.
+function getAssetCacheKey(slot: string, url: string) {
+  return `${slot}-${url}`;
+}
 
-  public urls: { [key: string]: string | null } = {};
-  public loading = new Map<string, string>();
+export class AvatarLoader extends EventHandler {
+  private assetsBySlot: { [key: string]: Asset } = {};
+
+  private assetsCacheByCacheKey = new Map<string, Asset>();
+
+  // Maps from an asset to which slot uses it.
+  private slotByCacheKey = new Map<string, string>();
+
+  // Maps from an asset to which url it is from.
+  private urlByCacheKey = new Map<string, string>();
+
+  // Maps from an asset to the time it was added to the cache/last used.
+  private assetTimersByCacheKey = new Map<string, number>();
+
+  public currentUrlBySlot: { [key: string]: string | null } = {};
+
+  // Mapping of what is currently being loaded for a specific slot.
+  public loadingUrlBySlot = new Map<string, string>();
   public debugAssets: boolean = false;
 
-  private next = new Map<string, string | null>();
+  // Mapping of what is the next item to load for a specific slot.
+  // This is needed if something is currently loading for a slot but we want to load another item for that slot.
+  // Whilst we wait for the current item to load we place the next item in the queue.
+  // Once any slot finishes loading we check the queue and load the next item if there is one - if so automatically load the next item.
+  private nextUrlBySlot = new Map<string, string>();
 
   // This is needed when reloading parts so that it is easy to check Torso and Leg rendering.
   // As we only care about Torso and Leg rendering only the top and bottom slots are indexed.
-  private modelUrlToPart = new Map<string, CatalogBasicPart>();
+  private slotModelUrlToPart = new Map<string, CatalogBasicPart>();
 
   preventRandom: boolean = false;
   torso = true;
@@ -203,7 +221,7 @@ export class AvatarLoader extends EventHandler {
   }
 
   has(slot: string) {
-    return !!this.urls[slot];
+    return !!this.currentUrlBySlot[slot];
   }
 
   /**
@@ -390,7 +408,7 @@ export class AvatarLoader extends EventHandler {
         }
 
         for (const part of section.parts) {
-          this.modelUrlToPart.set(part.model, part);
+          this.slotModelUrlToPart.set(`${slot}-${part.model}`, part);
         }
       }
     }
@@ -411,10 +429,10 @@ export class AvatarLoader extends EventHandler {
    */
   checkBodySlot(slot: string, url: string | null) {
     if (slot === "top") {
-      if (!this.urls[slot]) {
+      if (!this.currentUrlBySlot[slot]) {
         this.torso = true;
         this.loadTorso();
-      } else if (!url || this.modelUrlToPart.get(url)?.torso) {
+      } else if (!url || this.slotModelUrlToPart.get(`${slot}-${url}`)?.torso) {
         this.torso = true;
         this.loadTorso();
       } else {
@@ -422,10 +440,10 @@ export class AvatarLoader extends EventHandler {
         this.loadTorso();
       }
     } else if (slot === "bottom") {
-      if (!this.urls[slot]) {
+      if (!this.currentUrlBySlot[slot]) {
         this.legs = true;
         this.loadLegs();
-      } else if (!url || this.modelUrlToPart.get(url)?.legs) {
+      } else if (!url || this.slotModelUrlToPart.get(`${slot}-${url}`)?.legs) {
         this.legs = true;
         this.loadLegs();
       } else {
@@ -454,12 +472,12 @@ export class AvatarLoader extends EventHandler {
    */
   uncheckBodySlot(slot: string, url: string) {
     if (slot === "top") {
-      if (!this.modelUrlToPart.get(url)?.torso && this.urls[slot]) {
+      if (!this.slotModelUrlToPart.get(`${slot}-${url}`)?.torso && this.currentUrlBySlot[slot]) {
         this.torso = false;
         this.loadTorso();
       }
     } else if (slot === "bottom") {
-      if (!this.modelUrlToPart.get(url)?.legs && this.urls[slot]) {
+      if (!this.slotModelUrlToPart.get(`${slot}-${url}`)?.legs && this.currentUrlBySlot[slot]) {
         this.legs = false;
         this.unload("legs");
       }
@@ -474,91 +492,86 @@ export class AvatarLoader extends EventHandler {
    * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso'|'outfit')} slot Slot to load
    * @param {string} url Full url to GLB file to load for the slot
    */
-  load(slot: string, url: string | null) {
-    // still loading something for the slot
-    if (this.loading.has(slot)) {
-      const urlNext = this.next.get(slot);
-      if (urlNext) this.fire(`loaded:${slot}:${urlNext}`);
-
-      if (url !== null && this.loading.get(url) === url) {
-        this.next.delete(slot);
-      } else {
-        if (url) this.next.set(slot, url);
-        this.urls[slot] = url;
-        this.fire(`loading:${slot}:${url}`);
-      }
-      return;
-    }
-
-    if (url === null) {
-      if (this.slotEntities[slot]) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this.slotEntities[slot].render!.asset = 0;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this.slotEntities[slot].render!.materialAssets = [];
+  load(slot: string, url: string) {
+    // Check if something is still being loaded for this slot.
+    // If so we cannot load another item for this slot until the current item has loaded.
+    // Therefore we set the next, overriding the existing value if there is one as we no longer need to load that one.
+    if (this.loadingUrlBySlot.has(slot)) {
+      const urlNext = this.nextUrlBySlot.get(slot);
+      // If something is already in the next queue we fire an event before clearing it so that it no longer has the loading state.
+      if (urlNext) {
+        this.fire(`loaded:${slot}:${urlNext}`);
       }
 
-      delete this.urls[slot];
+      this.nextUrlBySlot.set(slot, url);
+      this.currentUrlBySlot[slot] = url;
+      this.fire(`loading:${slot}:${url}`);
 
-      if (!this.urls["outfit"]) this.checkBodySlot(slot, url);
-
+      // Return here - once the current asset is loaded the newly set one above will be handled.
       return;
     }
 
     this.fire(`loading:${slot}:${url}`);
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const name = url.split("/").pop()!;
-
-    let asset = this.assetsCacheByUrl.get(url);
-    if (!asset) {
-      asset = new Asset(name, "container", { url, filename: name });
-      this.app.assets.add(asset);
-      this.assetsCache.add(asset);
-      this.assetsCacheByUrl.set(url, asset);
-      this.assetTimers.set(asset, performance.now());
-      this.slotByAsset.set(asset, slot);
-      this.urlByAsset.set(asset, url);
+    const name = url.split("/").pop();
+    if (!name) {
+      throw new Error("Could not get name from URL");
     }
 
-    this.loading.set(slot, url);
+    const cacheKey = getAssetCacheKey(slot, url);
+    let asset = this.assetsCacheByCacheKey.get(cacheKey);
+    if (!asset) {
+      console.warn("loading new asset:", cacheKey);
+      asset = new Asset(cacheKey, "container", {
+        url,
+        filename: name,
+        // Have to specify our own hash here because if there is one part used in multiple slots when the cached assets are cleaned up then it causes the internal textures of the model to be cleaned up.
+        // e.g. given top model.glb and top:secondary model.glb both may load the same asset.
+        // This asset internally may load some textures etc.
+        // The play canvas registry I think shares these textures if the hashes match.
+        // Therefore if we don't specify our own hash then the internal textures will be cleaned up when the first asset is unloaded.
+        hash: cacheKey,
+      }); // maybe issue with unloading is due to asset name - possibly could combine with slot?
+      this.app.assets.add(asset);
+      this.assetsCacheByCacheKey.set(cacheKey, asset);
+      this.assetTimersByCacheKey.set(cacheKey, performance.now());
+      this.slotByCacheKey.set(cacheKey, slot);
+      this.urlByCacheKey.set(cacheKey, url);
+    }
 
-    this.urls[slot] = url;
+    this.loadingUrlBySlot.set(slot, url);
+
+    this.currentUrlBySlot[slot] = url;
 
     this.checkBodySlot(slot, url);
 
     asset.ready(() => {
-      this.loading.delete(slot);
+      this.loadingUrlBySlot.delete(slot);
+      // Fire events so that both the slot item and the configurator can be updated.
       this.fire(`loaded:${slot}:${url}`);
+      this.fire(`loaded:${slot}`, url);
 
       this.createRootEntity(asset);
 
-      this.assets[slot] = asset;
+      this.assetsBySlot[slot] = asset;
 
-      const container = this.assets[slot].resource as GlbContainerResource;
+      const container = asset.resource as GlbContainerResource;
       this.applyContainerToSlot(slot, container);
 
       this.uncheckBodySlot(slot, url);
 
       // load next in queue
-      if (this.next.has(slot)) {
-        const urlNext = this.next.get(slot);
-        this.next.delete(slot);
-        if (urlNext) {
-          this.load(slot, urlNext);
-        } else {
-          this.unload(slot);
-        }
+      const urlNext = this.nextUrlBySlot.get(slot);
+      if (urlNext) {
+        this.nextUrlBySlot.delete(slot);
+        this.load(slot, urlNext);
       }
-
       this.updateStats();
     });
 
     asset.once("error", () => {
-      this.loading.delete(slot);
+      this.loadingUrlBySlot.delete(slot);
       this.fire(`loaded:${slot}:${url}`);
-
-      this.assets[slot] = asset;
 
       // @ts-expect-error - PlayCanvas types specify only a number is accepted, but the comment and implementation allow Asset
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -570,18 +583,14 @@ export class AvatarLoader extends EventHandler {
       this.uncheckBodySlot(slot, url);
 
       // load next in queue
-      if (this.next.has(slot)) {
-        const urlNext = this.next.get(slot);
-        this.next.delete(slot);
-        if (urlNext) {
-          this.load(slot, urlNext);
-        } else {
-          this.unload(slot);
-        }
+      const urlNext = this.nextUrlBySlot.get(slot);
+      if (urlNext) {
+        this.nextUrlBySlot.delete(slot);
+        this.load(slot, urlNext);
       }
     });
 
-    this.app.assets.load(asset);
+    this.app.assets.load(asset, { force: true });
   }
 
   /**
@@ -592,12 +601,12 @@ export class AvatarLoader extends EventHandler {
    * @param {string} objectUrl base64 string containing GLB file providede by URL.createObjectURL from local file
    */
   loadCustom(slot: string, url: string, objectUrl: string) {
-    if (this.loading.has(slot)) {
+    if (this.loadingUrlBySlot.has(slot)) {
       return;
     }
 
     this.fire(`loading:${slot}:${url}`);
-    this.loading.set(slot, url);
+    this.loadingUrlBySlot.set(slot, url);
 
     if (slot === "top") {
       this.torso = true;
@@ -616,14 +625,14 @@ export class AvatarLoader extends EventHandler {
 
       if (!asset) return;
 
-      this.urls[slot] = url;
+      this.currentUrlBySlot[slot] = url;
 
-      this.loading.delete(slot);
+      this.loadingUrlBySlot.delete(slot);
       this.fire(`loaded:${slot}:${url}`);
 
-      this.assets[slot] = asset;
+      this.assetsBySlot[slot] = asset;
 
-      const container = this.assets[slot].resource as GlbContainerResource;
+      const container = asset.resource as GlbContainerResource;
       this.applyContainerToSlot(slot, container);
     });
   }
@@ -636,16 +645,16 @@ export class AvatarLoader extends EventHandler {
   getAvatarMml(formatted: boolean = false) {
     let code = "";
 
-    const outfit = this.urls.outfit ?? "";
+    const outfit = this.currentUrlBySlot.outfit ?? "";
     const className = outfit
       ? "outfit"
       : [this.getBodyType(), `skin${this.getSkin()?.name ?? ""}`].join(" ");
 
-    code += `<m-character class="${className}" src="${encodeURI(outfit || (this.urls.torso ?? ""))}">${formatted ? "\n" : ""}`;
+    code += `<m-character class="${className}" src="${encodeURI(outfit || (this.currentUrlBySlot.torso ?? ""))}">${formatted ? "\n" : ""}`;
 
-    for (const key in this.urls) {
+    for (const key in this.currentUrlBySlot) {
       if (key === "torso" || key === "outfit") continue;
-      const url = this.urls[key];
+      const url = this.currentUrlBySlot[key];
       if (!url) continue;
       const className = key in slotToClass ? slotToClass[key as keyof typeof slotToClass] : key;
       code += `${formatted ? "\t" : ""}<m-model class="${className}" src="${encodeURI(url)}"></m-model>${formatted ? "\n" : ""}`;
@@ -697,7 +706,9 @@ export class AvatarLoader extends EventHandler {
       }
 
       const src = character.getAttribute("src");
-      this.load("outfit", src);
+      if (src) {
+        this.load("outfit", src);
+      }
     } else {
       // body type
       const bodyTypes = new Set(["bodyA", "bodyB"]);
@@ -719,7 +730,10 @@ export class AvatarLoader extends EventHandler {
         this.setSkin({ name: skinName }, true);
       });
 
-      this.load("torso", character.getAttribute("src"));
+      const torsoSrc = character.getAttribute("src");
+      if (torsoSrc) {
+        this.load("torso", torsoSrc);
+      }
 
       const slots = [
         "legs",
@@ -738,7 +752,7 @@ export class AvatarLoader extends EventHandler {
         const node = character.querySelector(`m-model.${slot}`);
         const src = node?.getAttribute("src");
 
-        if (!node || !src) {
+        if (!src) {
           this.unload(slotName);
           continue;
         }
@@ -756,8 +770,11 @@ export class AvatarLoader extends EventHandler {
    * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso')} slot Slot to unload
    */
   unload(slot: string) {
-    if (this.loading.has(slot)) {
-      this.next.set(slot, null);
+    // Ensure that any item in the queue to load is cleared.
+    if (this.loadingUrlBySlot.has(slot)) {
+      // Fire the loaded event on the item that will no longer be loaded so that the loading state on the item is cleared.
+      this.fire(`loaded:${slot}:${this.nextUrlBySlot.get(slot)}`);
+      this.nextUrlBySlot.delete(slot);
       return;
     }
 
@@ -768,7 +785,7 @@ export class AvatarLoader extends EventHandler {
       this.slotEntities[slot].render!.materialAssets = [];
     }
 
-    delete this.urls[slot];
+    delete this.currentUrlBySlot[slot];
   }
 
   /**
@@ -797,18 +814,15 @@ export class AvatarLoader extends EventHandler {
    * Clears an asset from the cache
    * @param {Asset} asset The asset to clear from the cache
    */
-  clearAssetResources(asset: Asset) {
+  clearAssetResources(asset: Asset, slot: string, url: string) {
+    const cacheKey = getAssetCacheKey(slot, url);
     this.app.assets.remove(asset);
     asset.unload();
 
-    this.assetTimers.delete(asset);
-    this.assetsCache.delete(asset);
-    this.slotByAsset.delete(asset);
-
-    const url: string = this.urlByAsset.get(asset) as string;
-    this.assetsCacheByUrl.delete(url);
-
-    this.urlByAsset.delete(asset);
+    this.assetsCacheByCacheKey.delete(cacheKey);
+    this.assetTimersByCacheKey.delete(cacheKey);
+    this.urlByCacheKey.delete(cacheKey);
+    this.slotByCacheKey.delete(cacheKey);
   }
 
   /**
@@ -819,23 +833,18 @@ export class AvatarLoader extends EventHandler {
   checkAssetsCache() {
     const now: number = performance.now();
 
-    for (const asset of this.assetsCache) {
-      if (!asset.file) {
-        continue;
-      }
+    for (const [cacheKey, asset] of this.assetsCacheByCacheKey.entries()) {
+      const [slot, url] = cacheKey.split("-");
 
-      const slot: string = this.slotByAsset.get(asset) as string;
-      const url: string = this.urlByAsset.get(asset) as string;
-
-      if (this.urls[slot] === url || this.next.get(slot) === url) {
+      if (this.currentUrlBySlot[slot] === url || this.nextUrlBySlot.get(slot) === url) {
         // still active
-        this.assetTimers.set(asset, now);
+        this.assetTimersByCacheKey.set(cacheKey, now);
       } else {
         // check if enough time has passed
-        const time: number = this.assetTimers.get(asset) as number;
+        const time: number = this.assetTimersByCacheKey.get(cacheKey) ?? 0;
 
         if (now - time > ASSET_EXPIRES) {
-          this.clearAssetResources(asset);
+          this.clearAssetResources(asset, slot, url);
         }
       }
     }

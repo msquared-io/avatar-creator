@@ -57,7 +57,7 @@ export default function SlotItem({
     });
 
     // Check if already loading, if not then enter the loading state
-    const loadingItems = avatarLoader.loading.get(slot);
+    const loadingItems = avatarLoader.loadingUrlBySlot.get(slot);
     if (modelUrl && loadingItems && loadingItems.indexOf(modelUrl) !== -1) {
       setLoading(true);
     }
