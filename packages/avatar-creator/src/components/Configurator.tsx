@@ -320,7 +320,50 @@ export default function Configurator({
     if (outfit) avatarLoader.load("outfit", outfit);
   }, [avatarLoader]);
 
-  const unloadOutfit = (exception: string) => {
+  // This useEffect ensures that whatever the latest thing to be loaded is actually what the configurator is displaying.
+  useEffect(() => {
+    if (!avatarLoader) return;
+    const bodyTypeLoaded = avatarLoader.on(`slot:bodyType`, (bodyType: CatalogBodyTypeKey) => {
+      setBodyType(bodyType);
+    });
+    const skinLoaded = avatarLoader.on(`slot:skin`, (skin: CatalogSkin) => {
+      setSkin(skin);
+    });
+    const headLoaded = avatarLoader.on(`loaded:head`, (url: string) => {
+      setHead(url);
+    });
+    const hairLoaded = avatarLoader.on(`loaded:hair`, (url: string) => {
+      setHair(url);
+    });
+    const topLoaded = avatarLoader.on(`loaded:top`, (url: string) => {
+      setTop(url);
+    });
+    const topSecondaryLoaded = avatarLoader.on(`loaded:top:secondary`, (url: string) => {
+      setTopSecondary(url);
+    });
+    const bottomLoaded = avatarLoader.on(`loaded:bottom`, (url: string) => {
+      setBottom(url);
+    });
+    const bottomSecondaryLoaded = avatarLoader.on(`loaded:bottom:secondary`, (url: string) => {
+      setBottomSecondary(url);
+    });
+    const shoesLoaded = avatarLoader.on(`loaded:shoes`, (url: string) => {
+      setShoes(url);
+    });
+    return () => {
+      if (bodyTypeLoaded) bodyTypeLoaded.off();
+      if (skinLoaded) skinLoaded.off();
+      if (headLoaded) headLoaded.off();
+      if (hairLoaded) hairLoaded.off();
+      if (topLoaded) topLoaded.off();
+      if (topSecondaryLoaded) topSecondaryLoaded.off();
+      if (bottomLoaded) bottomLoaded.off();
+      if (bottomSecondaryLoaded) bottomSecondaryLoaded.off();
+      if (shoesLoaded) shoesLoaded.off();
+    };
+  }, [avatarLoader]);
+
+  const unloadOutfit = (exception?: string) => {
     if (avatarLoader.has("outfit")) {
       setOutfit(null);
       avatarLoader.unload("outfit");
@@ -344,38 +387,67 @@ export default function Configurator({
   useEffect(() => {
     if (!avatarLoader) return;
     if (head && (outfit || avatarLoader.has("outfit"))) unloadOutfit("head");
-    avatarLoader.load("head", head);
+    if (head) {
+      avatarLoader.load("head", head);
+    } else {
+      avatarLoader.unload("head");
+    }
   }, [head]);
   useEffect(() => {
     if (!avatarLoader) return;
     if (hair && (outfit || avatarLoader.has("outfit"))) unloadOutfit("hair");
-    avatarLoader.load("hair", hair);
+    if (hair) {
+      avatarLoader.load("hair", hair);
+    } else {
+      avatarLoader.unload("hair");
+    }
   }, [hair]);
   useEffect(() => {
     if (!avatarLoader) return;
     if (top && (outfit || avatarLoader.has("outfit"))) unloadOutfit("top");
-    avatarLoader.load("top", top);
+    if (top) {
+      avatarLoader.load("top", top);
+    } else {
+      avatarLoader.unload("top");
+    }
   }, [top]);
   useEffect(() => {
     if (!avatarLoader) return;
     if (topSecondary && (outfit || avatarLoader.has("outfit"))) unloadOutfit("top:secondary");
-    avatarLoader.load("top:secondary", topSecondary);
+    if (topSecondary) {
+      avatarLoader.load("top:secondary", topSecondary);
+    } else {
+      avatarLoader.unload("top:secondary");
+    }
   }, [topSecondary]);
   useEffect(() => {
     if (!avatarLoader) return;
     if (bottom && (outfit || avatarLoader.has("outfit"))) unloadOutfit("bottom");
-    avatarLoader.load("bottom", bottom);
+    if (bottom) {
+      avatarLoader.load("bottom", bottom);
+    } else {
+      avatarLoader.unload("bottom");
+    }
   }, [bottom]);
   useEffect(() => {
     if (!avatarLoader) return;
     if (bottomSecondary && (outfit || avatarLoader.has("outfit"))) unloadOutfit("bottom:secondary");
-    avatarLoader.load("bottom:secondary", bottomSecondary);
+    if (bottomSecondary) {
+      avatarLoader.load("bottom:secondary", bottomSecondary);
+    } else {
+      avatarLoader.unload("bottom:secondary");
+    }
   }, [bottomSecondary]);
   useEffect(() => {
     if (!avatarLoader) return;
     if (shoes && (outfit || avatarLoader.has("outfit"))) unloadOutfit("shoes");
-    avatarLoader.load("shoes", shoes);
+    if (shoes) {
+      avatarLoader.load("shoes", shoes);
+    } else {
+      avatarLoader.unload("shoes");
+    }
   }, [shoes]);
+
   useEffect(() => {
     if (!avatarLoader) return;
 
@@ -403,9 +475,11 @@ export default function Configurator({
       for (const slot of slots) {
         avatarLoader.unload(slot);
       }
+      avatarLoader.load("outfit", outfit);
+    } else {
+      // If the outfit is set to null then we treat it as if the outfit is unloaded which leads to total randomization of the avatar.
+      unloadOutfit();
     }
-
-    avatarLoader.load("outfit", outfit);
   }, [outfit]);
 
   const configuratorClasses = [

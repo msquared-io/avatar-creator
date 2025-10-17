@@ -97,7 +97,7 @@ export function AvatarCreatorApp({
     if (loader) {
       // Listen for any loading events
       const checkLoading = () => {
-        if (loader?.loading?.size > 0) {
+        if (loader?.loadingUrlBySlot?.size > 0) {
           setIsAvatarLoading(true);
         } else {
           setIsAvatarLoading(false);
