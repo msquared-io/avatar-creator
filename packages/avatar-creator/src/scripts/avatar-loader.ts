@@ -834,7 +834,9 @@ export class AvatarLoader extends EventHandler {
     const now: number = performance.now();
 
     for (const [cacheKey, asset] of this.assetsCacheByCacheKey.entries()) {
-      const [slot, url] = cacheKey.split("-");
+      // Set a limit of 1 so that we only split on the first occurrence of the hyphen between slot and url.
+      // This avoids accidentally splitting when the url contains a hyphen.
+      const [slot, url] = cacheKey.split("-", 1);
 
       if (this.currentUrlBySlot[slot] === url || this.nextUrlBySlot.get(slot) === url) {
         // still active
