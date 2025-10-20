@@ -99,7 +99,7 @@ export class AvatarLoader extends EventHandler {
 
   // Mapping of what is currently being loaded for a specific slot.
   public loadingUrlBySlot = new Map<string, string>();
-  public debugAssets: boolean = false;
+  public debugAssets: boolean = true;
 
   // Mapping of what is the next item to load for a specific slot.
   // This is needed if something is currently loading for a slot but we want to load another item for that slot.
@@ -521,7 +521,6 @@ export class AvatarLoader extends EventHandler {
     const cacheKey = getAssetCacheKey(slot, url);
     let asset = this.assetsCacheByCacheKey.get(cacheKey);
     if (!asset) {
-      console.warn("loading new asset:", cacheKey);
       asset = new Asset(cacheKey, "container", {
         url,
         filename: name,
@@ -803,6 +802,7 @@ export class AvatarLoader extends EventHandler {
           textures: humanFileSize(this.app.stats.vram.tex),
           vertexBuffers: humanFileSize(this.app.stats.vram.vb),
           indexBuffers: humanFileSize(this.app.stats.vram.ib),
+          storedAssets: this.app.assets.list().map((asset) => asset.name),
         },
         null,
         4,
