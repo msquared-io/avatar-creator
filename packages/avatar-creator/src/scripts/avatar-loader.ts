@@ -99,7 +99,7 @@ export class AvatarLoader extends EventHandler {
 
   // Mapping of what is currently being loaded for a specific slot.
   public loadingUrlBySlot = new Map<string, string>();
-  public debugAssets: boolean = true;
+  public debugAssets: boolean = false;
 
   // Mapping of what is the next item to load for a specific slot.
   // This is needed if something is currently loading for a slot but we want to load another item for that slot.
