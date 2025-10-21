@@ -21,7 +21,9 @@
     "tsBuildInfoFile": "tsconfig.tsbuildinfo",
     "types": [
       "node"
-    ]
+    ],
+    "declarationMap": true,
+    "declaration": true
   },
   "include": [
     "./src",
