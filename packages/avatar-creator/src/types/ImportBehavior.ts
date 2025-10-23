@@ -24,4 +24,5 @@ export type ImportBehavior =
   | {
       mode: ImportBehaviorMode.External;
       importMmlStringRef: RefObject<((mml: string) => void) | null>;
+      onImportReady: () => void;
     };

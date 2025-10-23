@@ -143,6 +143,7 @@ export function AvatarCreatorApp({
   useEffect(() => {
     if (importBehavior.mode === ImportBehaviorMode.External) {
       importBehavior.importMmlStringRef.current = loadAvatarMml;
+      importBehavior.onImportReady();
     }
 
     return () => {
