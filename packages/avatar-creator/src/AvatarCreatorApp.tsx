@@ -38,6 +38,7 @@ type AvatarCreatorAppProps = {
   importBehavior?: ImportBehavior;
   generateAvatarImageBehavior?: GenerateAvatarImageBehavior;
   hideProfileBadge?: boolean;
+  skyboxUrls?: string[];
 };
 
 playcanvas.WasmModule.setConfig("DracoDecoderModule", {
@@ -51,6 +52,7 @@ export function AvatarCreatorApp({
   exportBehavior = { mode: ExportBehaviorMode.Default },
   importBehavior = { mode: ImportBehaviorMode.None },
   generateAvatarImageBehavior = undefined,
+  skyboxUrls,
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<Catalog | null>(null);
@@ -186,7 +188,7 @@ export function AvatarCreatorApp({
 
   return (
     <div id="root" className={rootClasses}>
-      <Renderer onInitialize={setApp} />
+      <Renderer onInitialize={setApp} skyboxUrls={skyboxUrls} />
       <div className={styles.spinner} />
       <div className={styles.separatorLine} />
 

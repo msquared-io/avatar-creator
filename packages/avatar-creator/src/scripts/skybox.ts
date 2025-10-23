@@ -21,11 +21,10 @@ import { AppBase, Asset, EnvLighting, Texture } from "playcanvas";
  */
 const load = (
   app: AppBase,
-  url: string,
-  filename: string,
+  file: { url: string; filename?: string },
   callback: (asset: Asset, skybox: Texture, atlas: Texture) => void,
 ) => {
-  const asset = new Asset("cubemap", "texture", { url, filename }, { mipmaps: false });
+  const asset = new Asset("cubemap", "texture", file, { mipmaps: false });
 
   asset.once("load", () => {
     const texture: Texture = asset.resource as Texture;

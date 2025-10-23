@@ -32,6 +32,7 @@ import {
 
 */
 import floorPngUrl from "../assets/img/floor.png";
+// Default skybox images (used as fallback if no custom skybox URLs are provided)
 import skyboxHighUrl from "../assets/img/skybox-high.hdr";
 import skyboxLowUrl from "../assets/img/skybox-low.hdr";
 import skyboxMidUrl from "../assets/img/skybox-mid.hdr";
@@ -40,7 +41,7 @@ import loadSkybox from "./skybox";
 
 const cameraFrameScriptName = "cameraFrame";
 
-const initialize = (app: AppBase) => {
+const initialize = (app: AppBase, customSkyboxUrls?: string[]) => {
   app.root.addComponent("script");
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   app.root.script!.create("input");
@@ -135,28 +136,45 @@ const initialize = (app: AppBase) => {
   app.assets.add(textureFloorAsset);
   app.assets.load(textureFloorAsset);
 
+  const skyboxImages =
+    customSkyboxUrls && customSkyboxUrls.length
+      ? customSkyboxUrls.map((url) => ({ url }))
+      : [
+          { url: skyboxLowUrl, filename: "skybox-low.hdr" },
+          { url: skyboxMidUrl, filename: "skybox-mid.hdr" },
+          { url: skyboxHighUrl, filename: "skybox-high.hdr" },
+        ];
+
   // Progressively load skybox from lowest quality to highest
   // to avoid long loading with black background
   // TODO - this doesn't make a whole lot of sense now that the assets are baked into the JS - the loading is not progressive
-  // low
-  loadSkybox(app, skyboxLowUrl, "skybox-low.hdr", (assetLow, skybox, prefiltered) => {
-    app.scene.skybox = skybox;
-    app.scene.envAtlas = prefiltered;
+  const loadSkyboxSequentially = (
+    files: { url: string; filename?: string }[],
+    index = 0,
+    previousAsset?: Asset,
+  ) => {
+    if (index >= files.length) return;
 
-    // mid
-    loadSkybox(app, skyboxMidUrl, "skybox-mid.hdr", (assetMid, skybox, prefiltered) => {
+    const file = files[index];
+
+    loadSkybox(app, file, (asset, skybox, prefiltered) => {
       app.scene.skybox = skybox;
       app.scene.envAtlas = prefiltered;
-      assetLow.unload();
 
-      // high
-      loadSkybox(app, skyboxHighUrl, "skybox-high.hdr", (asset, skybox, prefiltered) => {
-        app.scene.skybox = skybox;
-        app.scene.envAtlas = prefiltered;
-        assetMid.unload();
-      });
+      // Unload previous asset to free memory
+      if (previousAsset) {
+        previousAsset.unload();
+      }
+
+      // Load next skybox if available
+      if (index < files.length - 1) {
+        loadSkyboxSequentially(files, index + 1, asset);
+      }
     });
-  });
+  };
+
+  // Start loading skyboxes sequentially
+  loadSkyboxSequentially(skyboxImages);
 
   // make skybox less intense
   app.scene.skyboxIntensity = 0.5;

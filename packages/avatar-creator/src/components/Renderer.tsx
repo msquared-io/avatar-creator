@@ -32,7 +32,13 @@ import Camera from "../scripts/camera";
 import Input from "../scripts/input";
 import styles from "./Renderer.module.css";
 
-export default function Renderer({ onInitialize }: { onInitialize: (app: AppBase) => void }) {
+export default function Renderer({
+  onInitialize,
+  skyboxUrls,
+}: {
+  onInitialize: (app: AppBase) => void;
+  skyboxUrls?: string[];
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -76,8 +82,8 @@ export default function Renderer({ onInitialize }: { onInitialize: (app: AppBase
     registerScript(Camera.class as unknown as typeof ScriptType, Camera.name, app);
     registerScript(Input.class as unknown as typeof ScriptType, Input.name, app);
 
-    // initialize application
-    appInitialize(app);
+    // initialize application with custom skybox URLs if provided
+    appInitialize(app, skyboxUrls);
 
     // start
     app.start();
