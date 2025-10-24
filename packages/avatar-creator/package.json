@@ -25,6 +25,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "lucide-react": "0.546.0",
     "playcanvas": "^2.7.7",
     "highlight.js": "^11.11.1",
     "react": "^19.1.0"

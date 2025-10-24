@@ -6,42 +6,45 @@
  * found in the LICENSE file at https://github.com/msquared-io/avatar-creator/blob/main/LICENSE
  */
 
+import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
 
 import { AvatarLoader } from "../scripts/avatar-loader";
-import { ExportBehavior } from "../types/ExportBehavior";
-import { ImportBehavior } from "../types/ImportBehavior";
+import { ExportBehavior, ExportBehaviorMode } from "../types/ExportBehavior";
+import { ImportBehavior, ImportBehaviorMode } from "../types/ImportBehavior";
 import Button from "./Button";
-import IconExport from "./icons/IconExport";
-import IconImport from "./icons/IconImport";
 import mmlStyles from "./Mml.module.css";
 import { MmlOverlay } from "./MmlOverlay";
 import MmlOverlayExport from "./MmlOverlayExport";
 import MmlOverlayImport from "./MmlOverlayImport";
 
-export function MmlButtons({
-  avatarLoader,
-  exportBehavior,
-  importBehavior,
-}: {
+type Props = {
   avatarLoader: AvatarLoader | null;
   exportBehavior: ExportBehavior;
   importBehavior: ImportBehavior;
-}) {
+  isPreviewMode: boolean;
+};
+
+export function MmlButtons({ avatarLoader, exportBehavior, importBehavior, isPreviewMode }: Props) {
   const [activeOverlay, setActiveOverlay] = useState<MmlOverlay>(MmlOverlay.None);
+
+  if (isPreviewMode) {
+    exportBehavior = { mode: ExportBehaviorMode.None };
+  }
 
   return (
     <>
       <div className={mmlStyles.mml}>
         {avatarLoader &&
-        (exportBehavior.mode === "default" || exportBehavior.mode === "callback") ? (
+        (exportBehavior.mode === ExportBehaviorMode.Default ||
+          exportBehavior.mode === ExportBehaviorMode.Callback) ? (
           <Button
             variant="secondary"
             size="medium"
-            icon={<IconExport />}
+            icon={<ArrowUpRight />}
             onClick={() =>
-              exportBehavior.mode === "default"
+              exportBehavior.mode === ExportBehaviorMode.Default
                 ? setActiveOverlay(MmlOverlay.Export)
                 : exportBehavior.onExport(avatarLoader.getAvatarMml())
             }
@@ -50,11 +53,11 @@ export function MmlButtons({
           </Button>
         ) : null}
 
-        {avatarLoader && importBehavior.mode === "copy" ? (
+        {avatarLoader && importBehavior.mode === ImportBehaviorMode.Copy ? (
           <Button
             variant="secondary"
             size="medium"
-            icon={<IconImport />}
+            icon={<ArrowDownLeft />}
             onClick={() => setActiveOverlay(MmlOverlay.Import)}
           >
             Import
