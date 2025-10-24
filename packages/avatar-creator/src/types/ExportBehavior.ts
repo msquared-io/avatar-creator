@@ -9,12 +9,16 @@
 import { RefObject } from "react";
 
 export enum ExportBehaviorMode {
+  None = "none",
   Default = "default",
   External = "external",
   Callback = "callback",
 }
 
 export type ExportBehavior =
+  | {
+      mode: ExportBehaviorMode.None;
+    }
   | {
       mode: ExportBehaviorMode.Default;
     }

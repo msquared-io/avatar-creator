@@ -1,6 +1,6 @@
 {
   "name": "@msquared/avatar-creator",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "A tool to create avatars",
   "homepage": "https://github.com/msquared-io/avatar-creator",
   "license": "MIT",
@@ -25,6 +25,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "lucide-react": "0.546.0",
     "playcanvas": "^2.7.7",
     "highlight.js": "^11.11.1",
     "react": "^19.1.0"

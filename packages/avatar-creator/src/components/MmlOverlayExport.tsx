@@ -8,12 +8,12 @@
 
 import hljs from "highlight.js";
 import xml from "highlight.js/lib/languages/xml";
+import { Copy } from "lucide-react";
 import * as React from "react";
 import { MouseEvent, useEffect, useRef } from "react";
 
 import { AvatarLoader } from "../scripts/avatar-loader";
 import Button from "./Button";
-import IconCopy from "./icons/IconCopy";
 import { MmlOverlay } from "./MmlOverlay";
 import styles from "./MmlOverlayExport.module.css";
 
@@ -70,7 +70,7 @@ export default function MmlOverlayExport({
         <Button variant="secondary" size="medium" onClick={onClose}>
           Close
         </Button>
-        <Button variant="secondary" size="medium" onClick={onCopy} icon={<IconCopy />}>
+        <Button variant="secondary" size="medium" onClick={onCopy} icon={<Copy />}>
           Copy
         </Button>
       </div>

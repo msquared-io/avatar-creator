@@ -37,7 +37,7 @@ type AvatarCreatorAppProps = {
   exportBehavior?: ExportBehavior;
   importBehavior?: ImportBehavior;
   generateAvatarImageBehavior?: GenerateAvatarImageBehavior;
-  hideProfileBadge?: boolean;
+  isPreviewMode?: boolean;
   skyboxUrls?: string[];
 };
 
@@ -52,6 +52,7 @@ export function AvatarCreatorApp({
   exportBehavior = { mode: ExportBehaviorMode.Default },
   importBehavior = { mode: ImportBehaviorMode.None },
   generateAvatarImageBehavior = undefined,
+  isPreviewMode = false,
   skyboxUrls,
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
@@ -193,7 +194,7 @@ export function AvatarCreatorApp({
       <div className={styles.spinner} />
       <div className={styles.separatorLine} />
 
-      {data && avatarLoader && (
+      {data && avatarLoader && !isPreviewMode && (
         <ButtonCustomize label="Customize" onStateChange={setAppState} appState={appState} />
       )}
 
@@ -212,6 +213,7 @@ export function AvatarCreatorApp({
           avatarLoader={avatarLoader}
           exportBehavior={exportBehavior}
           importBehavior={importBehavior}
+          isPreviewMode={isPreviewMode}
         />
       ) : null}
 
