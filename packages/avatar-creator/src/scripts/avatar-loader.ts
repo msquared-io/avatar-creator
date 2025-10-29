@@ -741,19 +741,12 @@ export class AvatarLoader extends EventHandler {
         this.load("torso", torsoSrc);
       }
 
-      const slots = [
-        "legs",
-        "head",
-        "hair",
-        "top",
-        "topSecondary",
-        "bottom",
-        "bottomSecondary",
-        "shoes",
-      ];
+      const ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO = ALL_SLOTS_CLASS_NAMES.filter(
+        (slot) => slot !== "outfit" && slot !== "torso",
+      );
 
-      for (let i = 0; i < slots.length; i++) {
-        const slot = slots[i];
+      for (let i = 0; i < ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO.length; i++) {
+        const slot = ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO[i];
         const slotName = slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
         const node = character.querySelector(`m-model.${slot}`);
         const src = node?.getAttribute("src");
