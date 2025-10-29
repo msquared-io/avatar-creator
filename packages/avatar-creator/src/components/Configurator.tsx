@@ -111,11 +111,18 @@ export default function Configurator({
   };
 
   const randomAll = (exception = "") => {
+    avatarLoader.startRandomization();
+
     (Object.keys(setters) as CatalogPartKey[]).forEach((key) => {
       if (key === "outfit") return;
       if (key === exception) return;
       randomSlot(key);
     });
+
+    // Delay completion trigger to _hopefully_ avoid race conditions if we try to import an avatar during randomization.
+    setTimeout(() => {
+      avatarLoader.completeRandomization();
+    }, 300);
   };
 
   const randomSlot = (slot: CatalogPartKey) => {

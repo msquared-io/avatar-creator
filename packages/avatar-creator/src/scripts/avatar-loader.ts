@@ -134,6 +134,31 @@ export class AvatarLoader extends EventHandler {
 
   private animGraphData: AnimGraphData = generateDefaultAnimGraph();
 
+  private isRandomizing: boolean = false;
+  private postRandomizationQueue: Array<() => void> = [];
+
+  startRandomization() {
+    this.isRandomizing = true;
+  }
+
+  completeRandomization() {
+    this.isRandomizing = false;
+
+    // Process any queued operations
+    while (this.postRandomizationQueue.length > 0) {
+      const operation = this.postRandomizationQueue.shift();
+      operation?.();
+    }
+  }
+
+  queueAfterRandomization(operation: () => void) {
+    if (!this.isRandomizing) {
+      operation();
+    } else {
+      this.postRandomizationQueue.push(operation);
+    }
+  }
+
   /**
    * @param {AppBase} app PlayCanvas AppBase
    * @param {Object} data Data that contains all urls for slots, with their related flags (e.g. if slot should also show a torso or legs)
@@ -681,92 +706,97 @@ export class AvatarLoader extends EventHandler {
   }
 
   /**
-   * Loads an avatar from an MML code
+   * Loads an avatar from an MML code. Note that this will be called after randomization has completed.
    * @param {string} code The MML code to load
    */
   loadAvatarMml(code: string) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(code, "text/html");
-    const rootNode = doc.body;
+    // Use the queue system to ensure this runs after any randomization
+    this.queueAfterRandomization(() => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(code, "text/html");
+      const rootNode = doc.body;
 
-    const character = rootNode.querySelector("m-character");
-    if (!character) {
-      console.log("character not found");
-      return;
-    }
-
-    const classItems = Array.from(character.classList);
-    const outfit = classItems.includes("outfit");
-
-    if (outfit) {
-      const ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT = ALL_SLOTS_CLASS_NAMES.filter(
-        (slot) => slot !== "outfit",
-      );
-
-      this.torso = false;
-      this.legs = false;
-
-      // Unload all slots except outfit
-      for (let i = 0; i < ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT.length; i++) {
-        const slot = ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT[i];
-        const slotName = slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
-        this.unload(slotName);
+      const character = rootNode.querySelector("m-character");
+      if (!character) {
+        console.log("character not found");
+        return;
       }
 
-      // Load the outfit
-      const src = character.getAttribute("src");
-      if (src) {
-        this.load("outfit", src);
-      }
-    } else {
-      // body type
-      const bodyTypes = new Set(["bodyA", "bodyB"]);
-      const bodyType =
-        classItems.filter((item) => {
-          return bodyTypes.has(item);
-        })?.[0] ?? "bodyA";
-      this.setBodyType(bodyType as CatalogBodyTypeKey, true);
+      const classItems = Array.from(character.classList);
+      const outfit = classItems.includes("outfit");
 
-      // skin
-      classItems.forEach((item) => {
-        if (!item.startsWith("skin")) return;
+      if (outfit) {
+        const ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT = ALL_SLOTS_CLASS_NAMES.filter(
+          (slot) => slot !== "outfit",
+        );
 
-        const skinIndex = parseInt(item.slice(4), 10);
-        if (isNaN(skinIndex)) return;
+        this.torso = false;
+        this.legs = false;
 
-        const skinName = (skinIndex + "").padStart(2, "0");
-
-        this.setSkin({ name: skinName }, true);
-      });
-
-      // Load torso
-      const torsoSrc = character.getAttribute("src");
-      if (torsoSrc) {
-        this.load("torso", torsoSrc);
-      }
-
-      const ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO = ALL_SLOTS_CLASS_NAMES.filter(
-        (slot) => slot !== "outfit" && slot !== "torso",
-      );
-
-      for (let i = 0; i < ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO.length; i++) {
-        const slot = ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO[i];
-        const slotName = slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
-        const node = character.querySelector(`m-model.${slot}`);
-        const src = node?.getAttribute("src");
-
-        if (!src) {
+        // Unload all slots except outfit
+        for (let i = 0; i < ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT.length; i++) {
+          const slot = ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT[i];
+          const slotName =
+            slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
           this.unload(slotName);
-          continue;
         }
 
-        if (slot === "legs") {
-          this.legs = true;
+        // Load the outfit
+        const src = character.getAttribute("src");
+        if (src) {
+          this.load("outfit", src);
+        }
+      } else {
+        // body type
+        const bodyTypes = new Set(["bodyA", "bodyB"]);
+        const bodyType =
+          classItems.filter((item) => {
+            return bodyTypes.has(item);
+          })?.[0] ?? "bodyA";
+        this.setBodyType(bodyType as CatalogBodyTypeKey, true);
+
+        // skin
+        classItems.forEach((item) => {
+          if (!item.startsWith("skin")) return;
+
+          const skinIndex = parseInt(item.slice(4), 10);
+          if (isNaN(skinIndex)) return;
+
+          const skinName = (skinIndex + "").padStart(2, "0");
+
+          this.setSkin({ name: skinName }, true);
+        });
+
+        // Load torso
+        const torsoSrc = character.getAttribute("src");
+        if (torsoSrc) {
+          this.load("torso", torsoSrc);
         }
 
-        this.load(slotName, src);
+        const ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO = ALL_SLOTS_CLASS_NAMES.filter(
+          (slot) => slot !== "outfit" && slot !== "torso",
+        );
+
+        for (let i = 0; i < ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO.length; i++) {
+          const slot = ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO[i];
+          const slotName =
+            slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
+          const node = character.querySelector(`m-model.${slot}`);
+          const src = node?.getAttribute("src");
+
+          if (!src) {
+            this.unload(slotName);
+            continue;
+          }
+
+          if (slot === "legs") {
+            this.legs = true;
+          }
+
+          this.load(slotName, src);
+        }
       }
-    }
+    });
   }
 
   /**
