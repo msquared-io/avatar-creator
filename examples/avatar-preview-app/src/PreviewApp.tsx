@@ -65,6 +65,7 @@ export default function PreviewApp() {
       dataUrl={dataUrl}
       animations={ANIMATIONS}
       importBehavior={{ mode: ImportBehaviorMode.Copy }}
+      maximumFrameRate={30}
     />
   );
 }

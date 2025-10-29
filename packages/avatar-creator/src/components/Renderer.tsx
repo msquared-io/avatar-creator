@@ -35,14 +35,23 @@ import styles from "./Renderer.module.css";
 export default function Renderer({
   onInitialize,
   skyboxUrls,
+  maximumFrameRate: maximumFrameRate,
 }: {
   onInitialize: (app: AppBase) => void;
   skyboxUrls?: string[];
+  maximumFrameRate?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     initialize();
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, []);
 
   async function initialize() {
@@ -89,6 +98,27 @@ export default function Renderer({
     app.start();
 
     onInitialize(app);
+
+    if (maximumFrameRate !== undefined) {
+      // Disable auto-rendering to manually control frame rate
+      app.autoRender = false;
+
+      let lastFrameTime = performance.now();
+      const targetFrameTime = 1000 / maximumFrameRate;
+
+      function renderLoop() {
+        const now = performance.now();
+        const elapsed = now - lastFrameTime;
+
+        if (elapsed >= targetFrameTime) {
+          app.renderNextFrame = true;
+          lastFrameTime = now - (elapsed % targetFrameTime);
+        }
+
+        animationFrameRef.current = requestAnimationFrame(renderLoop);
+      }
+      renderLoop();
+    }
   }
 
   return <canvas id="canvas" className={styles.canvas} ref={canvasRef} />;
