@@ -10,7 +10,7 @@ import { AppBase } from "playcanvas";
 import * as React from "react";
 import { useEffect, useState } from "react";
 
-import { AvatarLoader } from "../scripts/avatar-loader";
+import { ALL_SLOTS_WITHOUT_OUTFIT, AvatarLoader } from "../scripts/avatar-loader";
 import {
   Catalog,
   CatalogBasicPart,
@@ -239,18 +239,7 @@ export default function Configurator({
           const obj = URL.createObjectURL(file);
 
           if (slot === "outfit") {
-            const slots = [
-              "head",
-              "hair",
-              "top",
-              "top:secondary",
-              "bottom",
-              "bottom:secondary",
-              "shoes",
-              "legs",
-              "torso",
-            ];
-            for (const slot of slots) {
+            for (const slot of ALL_SLOTS_WITHOUT_OUTFIT) {
               avatarLoader.unload(slot);
             }
 
@@ -283,12 +272,18 @@ export default function Configurator({
     };
   }, []);
 
+  const [shouldRandomizeAvatar, setShouldRandomizeAvatar] = useState(true);
+
   useEffect(() => {
-    if (avatarLoader.preventRandom) {
-      avatarLoader.preventRandom = false;
+    if (avatarLoader.preventRandom || !shouldRandomizeAvatar) {
+      if (shouldRandomizeAvatar) {
+        setShouldRandomizeAvatar(false);
+      }
       return;
     }
+
     randomAll();
+    setShouldRandomizeAvatar(false);
   }, [bodyType]);
 
   useEffect(() => {
@@ -302,8 +297,8 @@ export default function Configurator({
         return;
       }
       // If fail to find the skin sibling of the current head then select a random one.
+      randomSlot("head");
     }
-    randomSlot("head");
   }, [skin, outfit]);
 
   // Ensure the avatar load has the configurator initial state applied on load.
@@ -461,18 +456,7 @@ export default function Configurator({
       avatarLoader.legs = false;
       avatarLoader.torso = false;
 
-      const slots = [
-        "torso",
-        "legs",
-        "head",
-        "hair",
-        "top",
-        "top:secondary",
-        "bottom",
-        "bottom:secondary",
-        "shoes",
-      ];
-      for (const slot of slots) {
+      for (const slot of ALL_SLOTS_WITHOUT_OUTFIT) {
         avatarLoader.unload(slot);
       }
       avatarLoader.load("outfit", outfit);
@@ -578,6 +562,8 @@ export default function Configurator({
               bodyType={bodyType}
               setBodyType={(value) => {
                 setBodyType(value);
+                // Assets are body type specific, so we need to randomize the avatar if the body type changes
+                setShouldRandomizeAvatar(true);
               }}
               avatarLoader={avatarLoader}
             />
