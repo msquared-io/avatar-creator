@@ -35,9 +35,11 @@ import styles from "./Renderer.module.css";
 export default function Renderer({
   onInitialize,
   skyboxUrls,
+  maximumFrameRate: maximumFrameRate,
 }: {
   onInitialize: (app: AppBase) => void;
   skyboxUrls?: string[];
+  maximumFrameRate?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -79,9 +81,6 @@ export default function Renderer({
     app.init(options);
     app.scene.clusteredLightingEnabled = false;
 
-    // Disable auto-rendering to manually control frame rate
-    app.autoRender = false;
-
     // resizing
     app.setCanvasFillMode(FILLMODE_FILL_WINDOW);
     app.setCanvasResolution(RESOLUTION_AUTO);
@@ -100,22 +99,26 @@ export default function Renderer({
 
     onInitialize(app);
 
-    let lastFrameTime = performance.now();
-    const targetFrameTime = 1000 / 30;
+    if (maximumFrameRate !== undefined) {
+      // Disable auto-rendering to manually control frame rate
+      app.autoRender = false;
 
-    function renderLoop() {
-      const now = performance.now();
-      const elapsed = now - lastFrameTime;
+      let lastFrameTime = performance.now();
+      const targetFrameTime = 1000 / maximumFrameRate;
 
-      if (elapsed >= targetFrameTime) {
-        app.renderNextFrame = true;
-        lastFrameTime = now - (elapsed % targetFrameTime);
+      function renderLoop() {
+        const now = performance.now();
+        const elapsed = now - lastFrameTime;
+
+        if (elapsed >= targetFrameTime) {
+          app.renderNextFrame = true;
+          lastFrameTime = now - (elapsed % targetFrameTime);
+        }
+
+        animationFrameRef.current = requestAnimationFrame(renderLoop);
       }
-
-      animationFrameRef.current = requestAnimationFrame(renderLoop);
+      renderLoop();
     }
-
-    renderLoop();
   }
 
   return <canvas id="canvas" className={styles.canvas} ref={canvasRef} />;
