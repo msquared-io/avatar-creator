@@ -40,9 +40,16 @@ export default function Renderer({
   skyboxUrls?: string[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     initialize();
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, []);
 
   async function initialize() {
@@ -72,6 +79,9 @@ export default function Renderer({
     app.init(options);
     app.scene.clusteredLightingEnabled = false;
 
+    // Disable auto-rendering to manually control frame rate
+    app.autoRender = false;
+
     // resizing
     app.setCanvasFillMode(FILLMODE_FILL_WINDOW);
     app.setCanvasResolution(RESOLUTION_AUTO);
@@ -89,6 +99,23 @@ export default function Renderer({
     app.start();
 
     onInitialize(app);
+
+    let lastFrameTime = performance.now();
+    const targetFrameTime = 1000 / 30;
+
+    function renderLoop() {
+      const now = performance.now();
+      const elapsed = now - lastFrameTime;
+
+      if (elapsed >= targetFrameTime) {
+        app.renderNextFrame = true;
+        lastFrameTime = now - (elapsed % targetFrameTime);
+      }
+
+      animationFrameRef.current = requestAnimationFrame(renderLoop);
+    }
+
+    renderLoop();
   }
 
   return <canvas id="canvas" className={styles.canvas} ref={canvasRef} />;
