@@ -67,7 +67,11 @@ const slotToClass = {
 };
 
 const ALL_SLOTS_CLASS_NAMES = [
-  ...ALL_SLOTS.map((slot) => slotToClass[slot as keyof typeof slotToClass]),
+  ...ALL_SLOTS.map((slot) =>
+    slotToClass[slot as keyof typeof slotToClass]
+      ? slotToClass[slot as keyof typeof slotToClass]
+      : slot,
+  ),
 ];
 
 const classToSlot = {
