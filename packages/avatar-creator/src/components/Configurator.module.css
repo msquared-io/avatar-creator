@@ -50,6 +50,7 @@
     min-width: min-content;
     overflow-x: hidden;
     overflow-y: scroll;
+    overscroll-behavior: contain;
 }
 
 .sections::-webkit-scrollbar {
@@ -64,6 +65,7 @@
     padding-left: var(--gap-m);
     padding-right: var(--gap-s);
     padding-bottom: var(--gap-l);
+    overscroll-behavior: contain;
 }
 
 /* Portrait orientation uses horizontal layout along the bottom. */
@@ -111,6 +113,8 @@
         white-space: nowrap;
         overflow-x: auto;
         overflow-y: hidden;
+        touch-action: pan-x;
+        overscroll-behavior: contain;
     }
 
     .sections::-webkit-scrollbar { height: 0px; }
@@ -125,5 +129,7 @@
         flex-flow: flex-start;
         align-items: justify;
         gap: var(--gap-xs);
+        touch-action: pan-x;
+        overscroll-behavior: contain;
     }
 }
