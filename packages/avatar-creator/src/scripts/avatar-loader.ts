@@ -46,7 +46,7 @@ import { humanFileSize } from "./utils";
  */
 
 // supported slots
-const slots = [
+export const ALL_SLOTS = [
   "head",
   "hair",
   "top",
@@ -59,10 +59,20 @@ const slots = [
   "outfit",
 ];
 
+export const ALL_SLOTS_WITHOUT_OUTFIT = [...ALL_SLOTS.filter((slot) => slot !== "outfit")];
+
 const slotToClass = {
   "top:secondary": "topSecondary",
   "bottom:secondary": "bottomSecondary",
 };
+
+const ALL_SLOTS_CLASS_NAMES = [
+  ...ALL_SLOTS.map((slot) =>
+    slotToClass[slot as keyof typeof slotToClass]
+      ? slotToClass[slot as keyof typeof slotToClass]
+      : slot,
+  ),
+];
 
 const classToSlot = {
   topSecondary: "top:secondary",
@@ -111,7 +121,6 @@ export class AvatarLoader extends EventHandler {
   // As we only care about Torso and Leg rendering only the top and bottom slots are indexed.
   private slotModelUrlToPart = new Map<string, CatalogBasicPart>();
 
-  preventRandom: boolean = false;
   torso = true;
   legs = true;
 
@@ -123,6 +132,31 @@ export class AvatarLoader extends EventHandler {
   private animTrack: AnimTrack | null = null;
 
   private animGraphData: AnimGraphData = generateDefaultAnimGraph();
+
+  private isRandomizing: boolean = false;
+  private postRandomizationQueue: Array<() => void> = [];
+
+  startRandomization() {
+    this.isRandomizing = true;
+  }
+
+  completeRandomization() {
+    this.isRandomizing = false;
+
+    // Process any queued operations
+    while (this.postRandomizationQueue.length > 0) {
+      const operation = this.postRandomizationQueue.shift();
+      operation?.();
+    }
+  }
+
+  queueAfterRandomization(operation: () => void) {
+    if (!this.isRandomizing) {
+      operation();
+    } else {
+      this.postRandomizationQueue.push(operation);
+    }
+  }
 
   /**
    * @param {AppBase} app PlayCanvas AppBase
@@ -169,9 +203,9 @@ export class AvatarLoader extends EventHandler {
       }
     });
 
-    for (let i = 0; i < slots.length; i++) {
-      const entity = new Entity(slots[i]);
-      this.slotEntities[slots[i]] = entity;
+    for (let i = 0; i < ALL_SLOTS.length; i++) {
+      const entity = new Entity(ALL_SLOTS[i]);
+      this.slotEntities[ALL_SLOTS[i]] = entity;
       entity.addComponent("render", {
         type: "asset",
         rootBone: this.entity,
@@ -472,12 +506,18 @@ export class AvatarLoader extends EventHandler {
    */
   uncheckBodySlot(slot: string, url: string) {
     if (slot === "top") {
-      if (!this.slotModelUrlToPart.get(`${slot}-${url}`)?.torso && this.currentUrlBySlot[slot]) {
+      const partInfo = this.slotModelUrlToPart.get(`${slot}-${url}`);
+      const hasCurrentUrl = !!this.currentUrlBySlot[slot];
+
+      if (!partInfo?.torso && hasCurrentUrl) {
         this.torso = false;
         this.loadTorso();
       }
     } else if (slot === "bottom") {
-      if (!this.slotModelUrlToPart.get(`${slot}-${url}`)?.legs && this.currentUrlBySlot[slot]) {
+      const partInfo = this.slotModelUrlToPart.get(`${slot}-${url}`);
+      const hasCurrentUrl = !!this.currentUrlBySlot[slot];
+
+      if (!partInfo?.legs && hasCurrentUrl) {
         this.legs = false;
         this.unload("legs");
       }
@@ -665,118 +705,120 @@ export class AvatarLoader extends EventHandler {
   }
 
   /**
-   * Loads an avatar from an MML code
+   * Loads an avatar from an MML code. Note that this will be called after randomization has completed.
    * @param {string} code The MML code to load
    */
   loadAvatarMml(code: string) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(code, "text/html");
-    const rootNode = doc.body;
+    // Use the queue system to ensure this runs after any randomization
+    this.queueAfterRandomization(() => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(code, "text/html");
+      const rootNode = doc.body;
 
-    const character = rootNode.querySelector("m-character");
-    if (!character) {
-      console.log("character not found");
-      return;
-    }
-
-    const classItems = Array.from(character.classList);
-    const outfit = classItems.includes("outfit");
-
-    if (outfit) {
-      const slots = [
-        "torso",
-        "legs",
-        "head",
-        "hair",
-        "top",
-        "topSecondary",
-        "bottom",
-        "bottomSecondary",
-        "shoes",
-      ];
-
-      this.torso = false;
-      this.legs = false;
-
-      for (let i = 0; i < slots.length; i++) {
-        const slot = slots[i];
-        const slotName = slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
-        this.unload(slotName);
+      const character = rootNode.querySelector("m-character");
+      if (!character) {
+        console.log("character not found");
+        return;
       }
 
-      const src = character.getAttribute("src");
-      if (src) {
-        this.load("outfit", src);
-      }
-    } else {
-      // body type
-      const bodyTypes = new Set(["bodyA", "bodyB"]);
-      const bodyType =
-        classItems.filter((item) => {
-          return bodyTypes.has(item);
-        })?.[0] ?? "bodyA";
-      this.setBodyType(bodyType as CatalogBodyTypeKey, true);
+      const classItems = Array.from(character.classList);
+      const outfit = classItems.includes("outfit");
 
-      // skin
-      classItems.forEach((item) => {
-        if (!item.startsWith("skin")) return;
+      if (outfit) {
+        const ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT = ALL_SLOTS_CLASS_NAMES.filter(
+          (slot) => slot !== "outfit",
+        );
 
-        const skinIndex = parseInt(item.slice(4), 10);
-        if (isNaN(skinIndex)) return;
+        this.torso = false;
+        this.legs = false;
 
-        const skinName = (skinIndex + "").padStart(2, "0");
-
-        this.setSkin({ name: skinName }, true);
-      });
-
-      const torsoSrc = character.getAttribute("src");
-      if (torsoSrc) {
-        this.load("torso", torsoSrc);
-      }
-
-      const slots = [
-        "legs",
-        "head",
-        "hair",
-        "top",
-        "topSecondary",
-        "bottom",
-        "bottomSecondary",
-        "shoes",
-      ];
-
-      for (let i = 0; i < slots.length; i++) {
-        const slot = slots[i];
-        const slotName = slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
-        const node = character.querySelector(`m-model.${slot}`);
-        const src = node?.getAttribute("src");
-
-        if (!src) {
+        // Unload all slots except outfit
+        for (let i = 0; i < ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT.length; i++) {
+          const slot = ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT[i];
+          const slotName =
+            slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
           this.unload(slotName);
-          continue;
         }
 
-        if (slot === "legs") {
-          this.legs = true;
+        // Load the outfit
+        const src = character.getAttribute("src");
+        if (src) {
+          this.load("outfit", src);
+        }
+      } else {
+        // body type
+        const bodyTypes = new Set(["bodyA", "bodyB"]);
+        const bodyType =
+          classItems.filter((item) => {
+            return bodyTypes.has(item);
+          })?.[0] ?? "bodyA";
+        this.setBodyType(bodyType as CatalogBodyTypeKey, true);
+
+        // skin
+        classItems.forEach((item) => {
+          if (!item.startsWith("skin")) return;
+
+          const skinIndex = parseInt(item.slice(4), 10);
+          if (isNaN(skinIndex)) return;
+
+          const skinName = (skinIndex + "").padStart(2, "0");
+
+          this.setSkin({ name: skinName }, true);
+        });
+
+        // Load torso
+        const torsoSrc = character.getAttribute("src");
+        if (torsoSrc) {
+          this.load("torso", torsoSrc);
         }
 
-        this.load(slotName, src);
+        const ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO = ALL_SLOTS_CLASS_NAMES.filter(
+          (slot) => slot !== "outfit" && slot !== "torso",
+        );
+
+        for (let i = 0; i < ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO.length; i++) {
+          const slot = ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO[i];
+          const slotName =
+            slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
+          const node = character.querySelector(`m-model.${slot}`);
+          const src = node?.getAttribute("src");
+
+          if (!src) {
+            this.unload(slotName);
+            continue;
+          }
+
+          if (slot === "legs") {
+            this.legs = true;
+          }
+
+          this.load(slotName, src);
+        }
       }
-    }
+    });
   }
 
   /**
    * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso')} slot Slot to unload
    */
   unload(slot: string) {
-    // Ensure that any item in the queue to load is cleared.
-    if (this.loadingUrlBySlot.has(slot)) {
-      // Fire the loaded event on the item that will no longer be loaded so that the loading state on the item is cleared.
-      this.fire(`loaded:${slot}:${this.nextUrlBySlot.get(slot)}`);
-      this.nextUrlBySlot.delete(slot);
+    // Check if the slot is currently loading something
+    const isLoading = this.loadingUrlBySlot.has(slot);
+
+    // If the slot is currently loading, we need to clear the loading state
+    if (isLoading) {
+      const nextUrl = this.nextUrlBySlot.get(slot);
+
+      // Fire the loaded event to clear the loading state
+      if (nextUrl) {
+        this.fire(`loaded:${slot}:${nextUrl}`);
+        this.nextUrlBySlot.delete(slot);
+      }
+
       return;
     }
 
+    // If we have a slot entity, clear its assets
     if (this.slotEntities[slot]) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this.slotEntities[slot].render!.asset = 0;
@@ -784,6 +826,7 @@ export class AvatarLoader extends EventHandler {
       this.slotEntities[slot].render!.materialAssets = [];
     }
 
+    // Remove the URL from currentUrlBySlot
     delete this.currentUrlBySlot[slot];
   }
 

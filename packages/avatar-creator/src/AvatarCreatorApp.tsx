@@ -88,32 +88,78 @@ export function AvatarCreatorApp({
     loadData();
   }, [dataUrl]);
 
+  /**
+   * Checks for the current loading state of the avatar loader and updates the state accordingly.
+   * It uses requestAnimationFrame() (which is more efficient than setInterval) to check the loading state periodically.
+   * The loading state determines whether we show a loading spinner on top of the avatar.
+   */
   useEffect(() => {
     if (!app || !data || avatarLoader) return;
-    // this should be created only once
+    // This should be created only once
     const loader = new AvatarLoader(app, data, animations);
     setAvatarLoader(loader);
 
-    loader.on("stats", (stats) => {
+    const statsHandle = loader.on("stats", (stats) => {
       setStats(stats.replace(/"/g, ""));
     });
 
-    // Set up global loading listeners
-    if (loader) {
-      // Listen for any loading events
-      const checkLoading = () => {
-        if (loader?.loadingUrlBySlot?.size > 0) {
-          setIsAvatarLoading(true);
-        } else {
-          setIsAvatarLoading(false);
-        }
-      };
+    let prevLoadingURLsSize = loader.loadingUrlBySlot.size;
+    let rafId: number | null = null;
+    let isMounted = true;
 
-      // Set up interval to check loading state
-      const interval = setInterval(checkLoading, 100);
+    const checkLoadingState = () => {
+      if (!isMounted) return;
 
-      return () => clearInterval(interval);
+      const currentLoadingURLsSize = loader.loadingUrlBySlot.size;
+
+      if (prevLoadingURLsSize === 0 && currentLoadingURLsSize > 0) {
+        setIsAvatarLoading(true);
+      } else if (prevLoadingURLsSize > 0 && currentLoadingURLsSize === 0) {
+        setIsAvatarLoading(false);
+      }
+
+      prevLoadingURLsSize = currentLoadingURLsSize;
+
+      if (currentLoadingURLsSize > 0) {
+        rafId = requestAnimationFrame(checkLoadingState);
+      } else {
+        rafId = null;
+      }
+    };
+
+    const startPollingIfNeeded = () => {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(checkLoadingState);
+      }
+    };
+
+    // Kick once in case loading already started
+    if (prevLoadingURLsSize > 0) {
+      setIsAvatarLoading(true);
+      startPollingIfNeeded();
     }
+
+    // Start polling whenever a new load is initiated
+    const originalLoad = loader.load.bind(loader);
+    loader.load = (slot: string, url: string) => {
+      startPollingIfNeeded();
+      return originalLoad(slot, url);
+    };
+
+    const originalLoadCustom = loader.loadCustom.bind(loader);
+    loader.loadCustom = (slot: string, url: string, objectUrl: string) => {
+      startPollingIfNeeded();
+      return originalLoadCustom(slot, url, objectUrl);
+    };
+
+    return () => {
+      isMounted = false;
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      if (statsHandle) statsHandle.off();
+      // restore original methods
+      loader.load = originalLoad;
+      loader.loadCustom = originalLoadCustom;
+    };
   }, [app, data]);
 
   const getAvatarMml = useCallback(() => {
