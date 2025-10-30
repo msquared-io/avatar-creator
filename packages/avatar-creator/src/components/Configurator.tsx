@@ -282,16 +282,11 @@ export default function Configurator({
   const [shouldRandomizeAvatar, setShouldRandomizeAvatar] = useState(true);
 
   useEffect(() => {
-    if (avatarLoader.preventRandom || !shouldRandomizeAvatar) {
-      if (shouldRandomizeAvatar) {
-        setShouldRandomizeAvatar(false);
-      }
-      return;
+    if (shouldRandomizeAvatar) {
+      randomAll();
+      setShouldRandomizeAvatar(false);
     }
-
-    randomAll();
-    setShouldRandomizeAvatar(false);
-  }, [bodyType]);
+  }, [shouldRandomizeAvatar]);
 
   useEffect(() => {
     if (outfit) {

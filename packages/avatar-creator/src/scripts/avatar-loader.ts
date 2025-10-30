@@ -121,7 +121,6 @@ export class AvatarLoader extends EventHandler {
   // As we only care about Torso and Leg rendering only the top and bottom slots are indexed.
   private slotModelUrlToPart = new Map<string, CatalogBasicPart>();
 
-  preventRandom: boolean = false;
   torso = true;
   legs = true;
 
