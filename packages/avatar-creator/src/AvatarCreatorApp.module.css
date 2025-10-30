@@ -69,6 +69,16 @@
     opacity: 1;
 }
 
+/* Page scroll lock when configurator is open */
+.stateConfigurator {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overscroll-behavior: none;
+    touch-action: none;
+}
+
 .stats {
     position: absolute;
     bottom: 10px;
