@@ -13,7 +13,7 @@ import dracoWasmWasm from "base64:./wasm/draco.wasm.wasm";
 import { AppBase } from "playcanvas";
 import * as playcanvas from "playcanvas";
 import * as React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AnimationData } from "./AnimationData";
 import styles from "./AvatarCreatorApp.module.css";
@@ -24,6 +24,8 @@ import { Emotes } from "./components/Emotes";
 import { MmlButtons } from "./components/MmlButtons";
 import Renderer from "./components/Renderer";
 import { AvatarLoader } from "./scripts/avatar-loader";
+import { AvatarState, AvatarStateManager } from "./scripts/avatar-state-manager";
+import { getAvatarMml, parseMmlToState } from "./scripts/mml-utils";
 import { render as renderPortrait } from "./scripts/portrait";
 import { transpileCatalog } from "./scripts/transpileCatalog";
 import { Catalog } from "./types/Catalog";
@@ -60,10 +62,14 @@ export function AvatarCreatorApp({
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<Catalog | null>(null);
   const [avatarLoader, setAvatarLoader] = useState<AvatarLoader | null>(null);
+  const [stateManager, setStateManager] = useState<AvatarStateManager | null>(null);
   const [appState, setAppState] = useState<"home" | "configurator">("home");
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isAvatarLoading, setIsAvatarLoading] = useState(false);
   const [stats, setStats] = useState("");
+
+  // Store the import callback from Configurator to pass to MmlButtons
+  const importMmlCallbackRef = useRef<((state: Partial<AvatarState>) => void) | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -95,34 +101,31 @@ export function AvatarCreatorApp({
    */
   useEffect(() => {
     if (!app || !data || avatarLoader) return;
-    // This should be created only once
-    const loader = new AvatarLoader(app, data, animations);
+    // this should be created only once
+    const loader = new AvatarLoader(app, animations);
     setAvatarLoader(loader);
+
+    const manager = new AvatarStateManager(loader, data);
+    setStateManager(manager);
 
     const statsHandle = loader.on("stats", (stats) => {
       setStats(stats.replace(/"/g, ""));
     });
 
-    let prevLoadingURLsSize = loader.loadingUrlBySlot.size;
+    // Set up global loading listeners
     let rafId: number | null = null;
     let isMounted = true;
 
     const checkLoadingState = () => {
       if (!isMounted) return;
 
-      const currentLoadingURLsSize = loader.loadingUrlBySlot.size;
+      const currentLoadingSize = loader.loadingByKey.size;
 
-      if (prevLoadingURLsSize === 0 && currentLoadingURLsSize > 0) {
+      if (currentLoadingSize > 0) {
         setIsAvatarLoading(true);
-      } else if (prevLoadingURLsSize > 0 && currentLoadingURLsSize === 0) {
-        setIsAvatarLoading(false);
-      }
-
-      prevLoadingURLsSize = currentLoadingURLsSize;
-
-      if (currentLoadingURLsSize > 0) {
         rafId = requestAnimationFrame(checkLoadingState);
       } else {
+        setIsAvatarLoading(false);
         rafId = null;
       }
     };
@@ -134,22 +137,22 @@ export function AvatarCreatorApp({
     };
 
     // Kick once in case loading already started
-    if (prevLoadingURLsSize > 0) {
+    if (loader.loadingByKey.size > 0) {
       setIsAvatarLoading(true);
       startPollingIfNeeded();
     }
 
     // Start polling whenever a new load is initiated
     const originalLoad = loader.load.bind(loader);
-    loader.load = (slot: string, url: string) => {
+    loader.load = (key: string, url: string) => {
       startPollingIfNeeded();
-      return originalLoad(slot, url);
+      return originalLoad(key, url);
     };
 
     const originalLoadCustom = loader.loadCustom.bind(loader);
-    loader.loadCustom = (slot: string, url: string, objectUrl: string) => {
+    loader.loadCustom = (key: string, filename: string, objectUrl: string) => {
       startPollingIfNeeded();
-      return originalLoadCustom(slot, url, objectUrl);
+      return originalLoadCustom(key, filename, objectUrl);
     };
 
     return () => {
@@ -160,18 +163,18 @@ export function AvatarCreatorApp({
       loader.load = originalLoad;
       loader.loadCustom = originalLoadCustom;
     };
-  }, [app, data]);
+  }, [app, data, animations]);
 
-  const getAvatarMml = useCallback(() => {
-    if (!avatarLoader) {
+  const getAvatarMmlCallback = useCallback(() => {
+    if (!stateManager) {
       return null;
     }
-    return avatarLoader.getAvatarMml();
-  }, [avatarLoader]);
+    return getAvatarMml(stateManager);
+  }, [stateManager]);
 
   useEffect(() => {
     if (exportBehavior.mode === ExportBehaviorMode.External) {
-      exportBehavior.getAvatarMmlRef.current = getAvatarMml;
+      exportBehavior.getAvatarMmlRef.current = getAvatarMmlCallback;
     }
 
     return () => {
@@ -179,19 +182,27 @@ export function AvatarCreatorApp({
         exportBehavior.getAvatarMmlRef.current = null;
       }
     };
-  }, [exportBehavior, getAvatarMml]);
+  }, [exportBehavior, getAvatarMmlCallback]);
 
-  const loadAvatarMml = useCallback(
+  const loadAvatarMmlCallback = useCallback(
     (mml: string) => {
-      if (!avatarLoader) return;
-      avatarLoader.loadAvatarMml(mml);
+      if (!stateManager || !data) return;
+
+      // Try to use React state flow if callback is available
+      if (importMmlCallbackRef.current) {
+        const parsedState = parseMmlToState(mml, data);
+        if (parsedState) {
+          importMmlCallbackRef.current(parsedState);
+          return;
+        }
+      }
     },
-    [avatarLoader],
+    [stateManager, data],
   );
 
   useEffect(() => {
     if (importBehavior.mode === ImportBehaviorMode.External) {
-      importBehavior.importMmlStringRef.current = loadAvatarMml;
+      importBehavior.importMmlStringRef.current = loadAvatarMmlCallback;
       importBehavior.onImportReady();
     }
 
@@ -200,7 +211,7 @@ export function AvatarCreatorApp({
         importBehavior.importMmlStringRef.current = null;
       }
     };
-  }, [importBehavior, loadAvatarMml]);
+  }, [importBehavior, loadAvatarMmlCallback]);
 
   const generateAvatarImage = useCallback(
     (resolution: number, callback: (dataUrl: string) => void) => {
@@ -246,22 +257,27 @@ export function AvatarCreatorApp({
         <ButtonCustomize label="Customize" onStateChange={setAppState} appState={appState} />
       )}
 
-      {data && avatarLoader && app && (
+      {data && stateManager && app && (
         <Configurator
           data={data}
-          avatarLoader={avatarLoader}
+          stateManager={stateManager}
           onStateChange={setAppState}
+          onImportMmlCallback={(callback) => {
+            importMmlCallbackRef.current = callback;
+          }}
           appState={appState}
           app={app}
         />
       )}
 
-      {data && avatarLoader ? (
+      {data && stateManager ? (
         <MmlButtons
-          avatarLoader={avatarLoader}
+          stateManager={stateManager}
+          catalog={data}
           exportBehavior={exportBehavior}
           importBehavior={importBehavior}
           isPreviewMode={isPreviewMode}
+          importMmlCallbackRef={importMmlCallbackRef}
         />
       ) : null}
 

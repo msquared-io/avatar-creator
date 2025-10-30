@@ -8,9 +8,9 @@
 
 import { AppBase } from "playcanvas";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ALL_SLOTS_WITHOUT_OUTFIT, AvatarLoader } from "../scripts/avatar-loader";
+import { AvatarState, AvatarStateManager } from "../scripts/avatar-state-manager";
 import {
   Catalog,
   CatalogBasicPart,
@@ -64,20 +64,24 @@ function findSkinSibling(
 
 export default function Configurator({
   data,
-  avatarLoader,
+  stateManager,
   onStateChange,
+  onImportMmlCallback,
   appState,
   app,
 }: {
   data: Catalog;
-  avatarLoader: AvatarLoader;
+  stateManager: AvatarStateManager;
   onStateChange: (state: "home" | "configurator") => void;
+  onImportMmlCallback?: (callback: (state: Partial<AvatarState>) => void) => void;
   appState: "home" | "configurator";
   app: AppBase;
 }) {
   const [skins, setSkins] = useState<DeepReadonly<Array<CatalogSkin>>>([]);
   const [section, setSection] = useState<CatalogPartKey | "bodyType">("bodyType");
-  const [sectionDropOver, setSectionDropOver] = useState<CatalogPartKey | "window" | null>(null);
+  const [sectionDropOver, setSectionDropOver] = useState<
+    CatalogPartKey | "bodyType" | "window" | null
+  >(null);
 
   const [bodyType, setBodyType] = useState<CatalogBodyTypeKey>(
     Math.random() > 0.5 ? "bodyB" : "bodyA",
@@ -86,7 +90,6 @@ export default function Configurator({
     data.skin[Math.floor(Math.random() * data.skin.length)],
   );
 
-  // States store the model urls from the parts.
   const [head, setHead] = useState<string | null>(null);
   const [hair, setHair] = useState<string | null>(null);
   const [top, setTop] = useState<string | null>(null);
@@ -95,6 +98,9 @@ export default function Configurator({
   const [bottomSecondary, setBottomSecondary] = useState<string | null>(null);
   const [shoes, setShoes] = useState<string | null>(null);
   const [outfit, setOutfit] = useState<string | null>(null);
+
+  const initializedRef = useRef(false);
+  const isImportingRef = useRef(false);
 
   const setters: Record<CatalogPartKey, (file: string | null) => void> = {
     head: setHead,
@@ -105,24 +111,47 @@ export default function Configurator({
     outfit: setOutfit,
   };
 
+  // Create a handler that updates React state when MML is imported
+  const handleImportMml = useCallback((state: Partial<AvatarState>) => {
+    // Set flag to prevent useEffects from randomizing during import
+    isImportingRef.current = true;
+
+    // Update all the React state based on imported MML
+    if (state.bodyType !== undefined) setBodyType(state.bodyType);
+    if (state.skin !== undefined) setSkin(state.skin);
+    if (state.head !== undefined) setHead(state.head);
+    if (state.hair !== undefined) setHair(state.hair);
+    if (state.top !== undefined) setTop(state.top);
+    if (state.topSecondary !== undefined) setTopSecondary(state.topSecondary);
+    if (state.bottom !== undefined) setBottom(state.bottom);
+    if (state.bottomSecondary !== undefined) setBottomSecondary(state.bottomSecondary);
+    if (state.shoes !== undefined) setShoes(state.shoes);
+    if (state.outfit !== undefined) setOutfit(state.outfit);
+
+    // Clear flag after a brief delay to allow state updates to propagate
+    setTimeout(() => {
+      isImportingRef.current = false;
+    }, 0);
+  }, []);
+
+  // Expose import callback to parent components
+  useEffect(() => {
+    if (onImportMmlCallback) {
+      onImportMmlCallback(handleImportMml);
+    }
+  }, [onImportMmlCallback, handleImportMml]);
+
   const settersSecondary: Partial<Record<CatalogPartKey, (file: string | null) => void>> = {
     top: setTopSecondary,
     bottom: setBottomSecondary,
   };
 
   const randomAll = (exception = "") => {
-    avatarLoader.startRandomization();
-
     (Object.keys(setters) as CatalogPartKey[]).forEach((key) => {
       if (key === "outfit") return;
       if (key === exception) return;
       randomSlot(key);
     });
-
-    // Delay completion trigger to _hopefully_ avoid race conditions if we try to import an avatar during randomization.
-    setTimeout(() => {
-      avatarLoader.completeRandomization();
-    }, 300);
   };
 
   const randomSlot = (slot: CatalogPartKey) => {
@@ -140,8 +169,8 @@ export default function Configurator({
       : bodyPartsSection.parts[partIndex];
 
     if (!part) {
-      // This should only happen if there is a missing skin variant for a part.
       setters[slot](null);
+      return;
     }
 
     setters[slot](part.model);
@@ -167,13 +196,15 @@ export default function Configurator({
   useEffect(() => {
     setSkins(data.skin);
 
-    const findDragTarget = (target: HTMLElement | null) => {
+    const findDragTarget = (
+      target: HTMLElement | null,
+    ): CatalogPartKey | "bodyType" | "window" | null => {
       if (target === null) return null;
 
-      let slot: CatalogPartKey | "window" | null = "window";
+      let slot: CatalogPartKey | "bodyType" | "window" | null = "window";
 
       while (target) {
-        const drop = target.getAttribute("data-drop") as CatalogPartKey | null;
+        const drop = target.getAttribute("data-drop") as CatalogPartKey | "bodyType" | null;
         if (drop) {
           slot = drop;
           break;
@@ -234,7 +265,11 @@ export default function Configurator({
       }
       setSectionDropOver(null);
 
-      if (slot && slot !== "window" && evt.dataTransfer) {
+      if (!slot || slot === "window" || slot === "bodyType") {
+        return;
+      }
+
+      if (evt.dataTransfer) {
         const file = evt.dataTransfer.files[0];
 
         if (file) {
@@ -246,16 +281,20 @@ export default function Configurator({
           const obj = URL.createObjectURL(file);
 
           if (slot === "outfit") {
-            for (const slot of ALL_SLOTS_WITHOUT_OUTFIT) {
-              avatarLoader.unload(slot);
-            }
-
-            avatarLoader.loadCustom("outfit", file.name, obj);
+            setOutfit(obj);
+            setHead(null);
+            setHair(null);
+            setTop(null);
+            setTopSecondary(null);
+            setBottom(null);
+            setBottomSecondary(null);
+            setShoes(null);
           } else {
-            setters[slot]("");
-            if (settersSecondary[slot]) settersSecondary[slot]("");
-            avatarLoader.loadCustom(slot, file.name, obj);
+            setters[slot](obj);
+            if (settersSecondary[slot]) settersSecondary[slot](null);
           }
+
+          stateManager.loadCustom(slot, file.name, obj);
         }
       }
     };
@@ -279,17 +318,17 @@ export default function Configurator({
     };
   }, []);
 
-  const [shouldRandomizeAvatar, setShouldRandomizeAvatar] = useState(true);
-
   useEffect(() => {
-    if (shouldRandomizeAvatar) {
+    if (initializedRef.current && !isImportingRef.current) {
       randomAll();
-      setShouldRandomizeAvatar(false);
     }
-  }, [shouldRandomizeAvatar]);
+  }, [bodyType]);
 
   useEffect(() => {
     if (outfit) {
+      return;
+    }
+    if (isImportingRef.current) {
       return;
     }
     if (head) {
@@ -298,175 +337,93 @@ export default function Configurator({
         setHead(skinSibling.model);
         return;
       }
-      // If fail to find the skin sibling of the current head then select a random one.
+    }
+    if (initializedRef.current) {
       randomSlot("head");
     }
   }, [skin, outfit]);
 
-  // Ensure the avatar load has the configurator initial state applied on load.
+  // Initialize with random parts on mount
   useEffect(() => {
-    avatarLoader.setSkin(skin);
-    avatarLoader.setBodyType(bodyType);
-    if (head) avatarLoader.load("head", head);
-    if (hair) avatarLoader.load("hair", hair);
-    if (top) avatarLoader.load("top", top);
-    if (topSecondary) avatarLoader.load("top:secondary", topSecondary);
-    if (bottom) avatarLoader.load("bottom", bottom);
-    if (bottomSecondary) avatarLoader.load("bottom:secondary", bottomSecondary);
-    if (shoes) avatarLoader.load("shoes", shoes);
-    if (outfit) avatarLoader.load("outfit", outfit);
-  }, [avatarLoader]);
+    randomAll();
+    initializedRef.current = true;
+  }, []);
 
-  // This useEffect ensures that whatever the latest thing to be loaded is actually what the configurator is displaying.
+  // Sync all state changes to the state manager (complete state every time)
   useEffect(() => {
-    if (!avatarLoader) return;
-    const bodyTypeLoaded = avatarLoader.on(`slot:bodyType`, (bodyType: CatalogBodyTypeKey) => {
-      setBodyType(bodyType);
-    });
-    const skinLoaded = avatarLoader.on(`slot:skin`, (skin: CatalogSkin) => {
-      setSkin(skin);
-    });
-    const headLoaded = avatarLoader.on(`loaded:head`, (url: string) => {
-      setHead(url);
-    });
-    const hairLoaded = avatarLoader.on(`loaded:hair`, (url: string) => {
-      setHair(url);
-    });
-    const topLoaded = avatarLoader.on(`loaded:top`, (url: string) => {
-      setTop(url);
-    });
-    const topSecondaryLoaded = avatarLoader.on(`loaded:top:secondary`, (url: string) => {
-      setTopSecondary(url);
-    });
-    const bottomLoaded = avatarLoader.on(`loaded:bottom`, (url: string) => {
-      setBottom(url);
-    });
-    const bottomSecondaryLoaded = avatarLoader.on(`loaded:bottom:secondary`, (url: string) => {
-      setBottomSecondary(url);
-    });
-    const shoesLoaded = avatarLoader.on(`loaded:shoes`, (url: string) => {
-      setShoes(url);
-    });
-    return () => {
-      if (bodyTypeLoaded) bodyTypeLoaded.off();
-      if (skinLoaded) skinLoaded.off();
-      if (headLoaded) headLoaded.off();
-      if (hairLoaded) hairLoaded.off();
-      if (topLoaded) topLoaded.off();
-      if (topSecondaryLoaded) topSecondaryLoaded.off();
-      if (bottomLoaded) bottomLoaded.off();
-      if (bottomSecondaryLoaded) bottomSecondaryLoaded.off();
-      if (shoesLoaded) shoesLoaded.off();
-    };
-  }, [avatarLoader]);
+    if (!initializedRef.current) return;
 
-  const unloadOutfit = (exception?: string) => {
-    if (avatarLoader.has("outfit")) {
-      setOutfit(null);
-      avatarLoader.unload("outfit");
-      avatarLoader.legs = true;
-      avatarLoader.torso = true;
-      randomAll(exception);
-    }
-  };
+    stateManager.updateState({
+      bodyType,
+      skin,
+      head,
+      hair,
+      top,
+      topSecondary,
+      bottom,
+      bottomSecondary,
+      shoes,
+      outfit,
+    });
+  }, [bodyType, skin, head, hair, top, topSecondary, bottom, bottomSecondary, shoes, outfit]);
 
+  // Handle outfit mode transitions
   useEffect(() => {
-    if (!avatarLoader) return;
-    if (bodyType && (outfit || avatarLoader.has("outfit"))) unloadOutfit("bodyType");
-    avatarLoader.setBodyType(bodyType);
-  }, [bodyType]);
-  useEffect(() => {
-    if (!avatarLoader) return;
-    if (skin !== null && (outfit || avatarLoader.has("outfit"))) unloadOutfit("skin");
-    avatarLoader.setSkin(skin);
-  }, [skin]);
-
-  useEffect(() => {
-    if (!avatarLoader) return;
-    if (head && (outfit || avatarLoader.has("outfit"))) unloadOutfit("head");
-    if (head) {
-      avatarLoader.load("head", head);
-    } else {
-      avatarLoader.unload("head");
-    }
-  }, [head]);
-  useEffect(() => {
-    if (!avatarLoader) return;
-    if (hair && (outfit || avatarLoader.has("outfit"))) unloadOutfit("hair");
-    if (hair) {
-      avatarLoader.load("hair", hair);
-    } else {
-      avatarLoader.unload("hair");
-    }
-  }, [hair]);
-  useEffect(() => {
-    if (!avatarLoader) return;
-    if (top && (outfit || avatarLoader.has("outfit"))) unloadOutfit("top");
-    if (top) {
-      avatarLoader.load("top", top);
-    } else {
-      avatarLoader.unload("top");
-    }
-  }, [top]);
-  useEffect(() => {
-    if (!avatarLoader) return;
-    if (topSecondary && (outfit || avatarLoader.has("outfit"))) unloadOutfit("top:secondary");
-    if (topSecondary) {
-      avatarLoader.load("top:secondary", topSecondary);
-    } else {
-      avatarLoader.unload("top:secondary");
-    }
-  }, [topSecondary]);
-  useEffect(() => {
-    if (!avatarLoader) return;
-    if (bottom && (outfit || avatarLoader.has("outfit"))) unloadOutfit("bottom");
-    if (bottom) {
-      avatarLoader.load("bottom", bottom);
-    } else {
-      avatarLoader.unload("bottom");
-    }
-  }, [bottom]);
-  useEffect(() => {
-    if (!avatarLoader) return;
-    if (bottomSecondary && (outfit || avatarLoader.has("outfit"))) unloadOutfit("bottom:secondary");
-    if (bottomSecondary) {
-      avatarLoader.load("bottom:secondary", bottomSecondary);
-    } else {
-      avatarLoader.unload("bottom:secondary");
-    }
-  }, [bottomSecondary]);
-  useEffect(() => {
-    if (!avatarLoader) return;
-    if (shoes && (outfit || avatarLoader.has("outfit"))) unloadOutfit("shoes");
-    if (shoes) {
-      avatarLoader.load("shoes", shoes);
-    } else {
-      avatarLoader.unload("shoes");
-    }
-  }, [shoes]);
-
-  useEffect(() => {
-    if (!avatarLoader) return;
+    if (!initializedRef.current) return;
+    if (isImportingRef.current) return;
 
     if (outfit) {
+      // Clear other slots when entering outfit mode
       (Object.keys(setters) as CatalogPartKey[]).forEach((key) => {
         if (key === "outfit") return;
-
         setters[key](null);
       });
-
-      avatarLoader.legs = false;
-      avatarLoader.torso = false;
-
-      for (const slot of ALL_SLOTS_WITHOUT_OUTFIT) {
-        avatarLoader.unload(slot);
-      }
-      avatarLoader.load("outfit", outfit);
-    } else {
-      // If the outfit is set to null then we treat it as if the outfit is unloaded which leads to total randomization of the avatar.
-      unloadOutfit();
     }
   }, [outfit]);
+
+  // When an individual part is selected while in outfit mode, exit outfit and randomize
+  const prevPartsRef = useRef({ bodyType, skin, head, hair, top, bottom, shoes });
+
+  useEffect(() => {
+    if (!outfit || !initializedRef.current || isImportingRef.current) {
+      prevPartsRef.current = { bodyType, skin, head, hair, top, bottom, shoes };
+      return;
+    }
+
+    const prev = prevPartsRef.current;
+    let changedPart: CatalogPartKey | null = null;
+
+    // Check if bodyType or skin changed - exit outfit mode and randomize all parts
+    if (bodyType !== prev.bodyType || skin.name !== prev.skin.name) {
+      setOutfit(null);
+      (Object.keys(setters) as CatalogPartKey[]).forEach((key) => {
+        if (key === "outfit") return;
+        randomSlot(key);
+      });
+      prevPartsRef.current = { bodyType, skin, head, hair, top, bottom, shoes };
+      return;
+    }
+
+    // Check if individual parts changed
+    if (head !== prev.head && head) changedPart = "head";
+    else if (hair !== prev.hair && hair) changedPart = "hair";
+    else if (top !== prev.top && top) changedPart = "top";
+    else if (bottom !== prev.bottom && bottom) changedPart = "bottom";
+    else if (shoes !== prev.shoes && shoes) changedPart = "shoes";
+
+    if (changedPart) {
+      // Exit outfit mode
+      setOutfit(null);
+
+      // Randomize all other parts
+      (Object.keys(setters) as CatalogPartKey[]).forEach((key) => {
+        if (key === "outfit" || key === changedPart) return;
+        randomSlot(key);
+      });
+    }
+
+    prevPartsRef.current = { bodyType, skin, head, hair, top, bottom, shoes };
+  }, [bodyType, skin, head, hair, top, bottom, shoes, outfit]);
 
   const configuratorClasses = [
     styles.configurator,
@@ -560,21 +517,12 @@ export default function Configurator({
           }}
         >
           {section === "bodyType" && (
-            <SectionBodyType
-              bodyType={bodyType}
-              setBodyType={(value) => {
-                setBodyType(value);
-                // Assets are body type specific, so we need to randomize the avatar if the body type changes
-                setShouldRandomizeAvatar(true);
-              }}
-              avatarLoader={avatarLoader}
-            />
+            <SectionBodyType bodyType={bodyType} setBodyType={setBodyType} />
           )}
           {section === "bodyType" && (
             <SectionSkin
               skin={skin}
               skins={skins}
-              avatarLoader={avatarLoader}
               setSkin={(value) => {
                 setSkin(value);
               }}
@@ -588,7 +536,6 @@ export default function Configurator({
               bodyType={bodyType}
               selected={head}
               skin={skin}
-              avatarLoader={avatarLoader}
               setSlot={setHead}
             />
           )}
@@ -599,7 +546,6 @@ export default function Configurator({
               data={data}
               bodyType={bodyType}
               selected={hair}
-              avatarLoader={avatarLoader}
               setSlot={setHair}
             />
           )}
@@ -610,7 +556,6 @@ export default function Configurator({
               data={data}
               bodyType={bodyType}
               selected={top}
-              avatarLoader={avatarLoader}
               setSlot={setTop}
               setSecondary={setTopSecondary}
             />
@@ -622,7 +567,6 @@ export default function Configurator({
               data={data}
               bodyType={bodyType}
               selected={bottom}
-              avatarLoader={avatarLoader}
               setSlot={setBottom}
               setSecondary={setBottomSecondary}
             />
@@ -634,7 +578,6 @@ export default function Configurator({
               data={data}
               bodyType={bodyType}
               selected={shoes}
-              avatarLoader={avatarLoader}
               setSlot={setShoes}
             />
           )}
@@ -645,7 +588,6 @@ export default function Configurator({
               data={data}
               bodyType={bodyType}
               selected={outfit}
-              avatarLoader={avatarLoader}
               setSlot={setOutfit}
             />
           )}

@@ -21,157 +21,61 @@ import type { GlbContainerResource } from "playcanvas/build/playcanvas/src/frame
 
 import { AnimationData, AnimationType } from "../AnimationData";
 import { addAnimationData, AnimGraphData, generateDefaultAnimGraph } from "../AnimGraphData";
-import { Catalog, CatalogBasicPart, CatalogBodyTypeKey, CatalogSkin } from "../types/Catalog";
 import { humanFileSize } from "./utils";
 
-/*
- * Implements loading, animating and rendering
- * based on provided GLB files for various slots
+/**
+ * Handles loading and rendering of GLB avatar parts.
+ * Manages asset caching, entity creation, and mesh rendering for avatar components.
+ * Uses a key-based system where each key can reference a different GLB file.
  */
 
 /**
- * Fired when new GLB has started loading for a slot
- * The event name will contain a specific slot and url
- * @event AvatarLoader#loading:slot:url
+ * Fired when new GLB has started loading for a key
+ * @event AvatarLoader#loading:key:url
  */
 
 /**
- * Fired when GLB has loaded for a slot
- * The event name will contain a specific slot and url
- * @event AvatarLoader#loaded:slot:url
- * @example
- * avatarLoader.once(`loaded:head:${url}`, () => {
- *     // specific head url has loaded
- * })
+ * Fired when GLB has loaded for a key
+ * @event AvatarLoader#loaded:key:url
  */
 
-// supported slots
-export const ALL_SLOTS = [
-  "head",
-  "hair",
-  "top",
-  "top:secondary",
-  "bottom",
-  "bottom:secondary",
-  "shoes",
-  "legs",
-  "torso",
-  "outfit",
-];
-
-export const ALL_SLOTS_WITHOUT_OUTFIT = [...ALL_SLOTS.filter((slot) => slot !== "outfit")];
-
-const slotToClass = {
-  "top:secondary": "topSecondary",
-  "bottom:secondary": "bottomSecondary",
-};
-
-const ALL_SLOTS_CLASS_NAMES = [
-  ...ALL_SLOTS.map((slot) =>
-    slotToClass[slot as keyof typeof slotToClass]
-      ? slotToClass[slot as keyof typeof slotToClass]
-      : slot,
-  ),
-];
-
-const classToSlot = {
-  topSecondary: "top:secondary",
-  bottomSecondary: "bottom:secondary",
-};
-
-// Assets are removed from the cache after 1 seconds
+// Assets are removed from the cache after 1 second
 const ASSET_EXPIRES = 1000;
 
-// As we only care about Torso and Leg rendering only the top and bottom slots are indexed.
-const INDEXED_SLOTS = ["top", "bottom"];
-
-// Asset Cache Key is combination of slot and url as its possible for different slots to use the same asset.
-// In this case we duplicate the caching of the same asset for simplicity.
-function getAssetCacheKey(slot: string, url: string) {
-  return `${slot}-${url}`;
-}
-
 export class AvatarLoader extends EventHandler {
-  private assetsBySlot: { [key: string]: Asset } = {};
+  private assetsByKey: { [key: string]: Asset } = {};
 
-  private assetsCacheByCacheKey = new Map<string, Asset>();
+  private assetsCacheByUrl = new Map<string, Asset>();
 
-  // Maps from an asset to which slot uses it.
-  private slotByCacheKey = new Map<string, string>();
+  // Maps from URL to the time it was added to the cache/last used.
+  private assetTimersByUrl = new Map<string, number>();
 
-  // Maps from an asset to which url it is from.
-  private urlByCacheKey = new Map<string, string>();
+  // Tracks which URL is currently displayed for each key
+  private displayedUrlByKey = new Map<string, string>();
 
-  // Maps from an asset to the time it was added to the cache/last used.
-  private assetTimersByCacheKey = new Map<string, number>();
+  // Tracks which URL is the target (being loaded or should be loaded) for each key
+  private currentUrlByKey = new Map<string, string>();
 
-  public currentUrlBySlot: { [key: string]: string | null } = {};
-
-  // Mapping of what is currently being loaded for a specific slot.
-  public loadingUrlBySlot = new Map<string, string>();
+  // Mapping of what is currently being loaded for a specific key.
+  public loadingByKey = new Map<string, string>();
   public debugAssets: boolean = false;
-
-  // Mapping of what is the next item to load for a specific slot.
-  // This is needed if something is currently loading for a slot but we want to load another item for that slot.
-  // Whilst we wait for the current item to load we place the next item in the queue.
-  // Once any slot finishes loading we check the queue and load the next item if there is one - if so automatically load the next item.
-  private nextUrlBySlot = new Map<string, string>();
-
-  // This is needed when reloading parts so that it is easy to check Torso and Leg rendering.
-  // As we only care about Torso and Leg rendering only the top and bottom slots are indexed.
-  private slotModelUrlToPart = new Map<string, CatalogBasicPart>();
-
-  torso = true;
-  legs = true;
-
-  private bodyType: CatalogBodyTypeKey = "bodyB";
-  private skin: CatalogSkin | null = null;
-
   private entity: Entity | null = null;
-  private slotEntities: { [key: string]: Entity } = {};
+  private keyEntities: { [key: string]: Entity } = {};
   private animTrack: AnimTrack | null = null;
 
   private animGraphData: AnimGraphData = generateDefaultAnimGraph();
 
-  private isRandomizing: boolean = false;
-  private postRandomizationQueue: Array<() => void> = [];
-
-  startRandomization() {
-    this.isRandomizing = true;
-  }
-
-  completeRandomization() {
-    this.isRandomizing = false;
-
-    // Process any queued operations
-    while (this.postRandomizationQueue.length > 0) {
-      const operation = this.postRandomizationQueue.shift();
-      operation?.();
-    }
-  }
-
-  queueAfterRandomization(operation: () => void) {
-    if (!this.isRandomizing) {
-      operation();
-    } else {
-      this.postRandomizationQueue.push(operation);
-    }
-  }
-
   /**
    * @param {AppBase} app PlayCanvas AppBase
-   * @param {Object} data Data that contains all urls for slots, with their related flags (e.g. if slot should also show a torso or legs)
+   * @param {AnimationData} animations Animation data for the avatar
    */
   constructor(
     public app: AppBase,
-    public data: Catalog,
     public animations: AnimationData,
   ) {
     super();
 
     this.app.on("update", this.checkAssetsCache, this);
-
-    this.createIndexedSlotModelUrlToPartMap();
   }
 
   /**
@@ -202,16 +106,6 @@ export class AvatarLoader extends EventHandler {
         ent.removeComponent("render");
       }
     });
-
-    for (let i = 0; i < ALL_SLOTS.length; i++) {
-      const entity = new Entity(ALL_SLOTS[i]);
-      this.slotEntities[ALL_SLOTS[i]] = entity;
-      entity.addComponent("render", {
-        type: "asset",
-        rootBone: this.entity,
-      });
-      this.entity.addChild(entity);
-    }
 
     if (this.animations?.length) {
       let appearAnimName: string = "";
@@ -254,10 +148,6 @@ export class AvatarLoader extends EventHandler {
     });
   }
 
-  has(slot: string) {
-    return !!this.currentUrlBySlot[slot];
-  }
-
   /**
    * @private
    */
@@ -296,77 +186,6 @@ export class AvatarLoader extends EventHandler {
   }
 
   /**
-   * @param {('bodyB'|'bodyA')} bodyType BodyType for the avatar
-   * @param {boolean} [event] If true, then event will be fired for syncing UI state
-   */
-  setBodyType(bodyType: CatalogBodyTypeKey, event: boolean = false) {
-    this.bodyType = bodyType;
-    this.loadTorso();
-    if (this.legs) this.loadLegs();
-    if (event) this.fire(`slot:bodyType`, this.bodyType);
-  }
-
-  /**
-   * @returns {('bodyB'|'bodyA')}
-   */
-  getBodyType(): "bodyB" | "bodyA" {
-    return this.bodyType;
-  }
-
-  /**
-   * @param {CatalogueSkin} skin A skin from the catalogue
-   * @param {boolean} [event] If true, then event will be fired for syncing UI state
-   */
-  setSkin(skin: CatalogSkin, event: boolean = false) {
-    this.skin = skin;
-    this.loadTorso();
-    if (this.legs) this.loadLegs();
-    if (event) this.fire(`slot:skin`, this.skin);
-  }
-
-  /**
-   * @returns {CatalogueSkin|null}
-   */
-  getSkin(): CatalogSkin | null {
-    return this.skin;
-  }
-
-  /**
-   * @private
-   * Loads either the TorsoArms or Arms body part dependent on if the Arms flag is true.
-   * This body part is skin dependent therefore calling this without the skin set throws and error.
-   */
-  loadTorso() {
-    if (!this.skin) {
-      throw new Error("Skin is not set");
-    }
-    const item = this.torso ? "torsoArms" : "arms";
-    const bodyTypeData = this.data.bodyTypes.find((bodyType) => this.bodyType === bodyType.name);
-    if (!bodyTypeData) {
-      throw new Error("Could not find body type");
-    }
-    const url = bodyTypeData.body[item][this.skin.name].model;
-    this.load("torso", url);
-  }
-
-  /**
-   * @private
-   * Loads the Legs body part.
-   * This body part is skin dependent therefore calling this without the skin set throws and error.
-   */
-  loadLegs() {
-    if (!this.skin) {
-      throw new Error("Skin is not set");
-    }
-    const bodyTypeData = this.data.bodyTypes.find((bodyType) => this.bodyType === bodyType.name);
-    if (!bodyTypeData) {
-      throw new Error("Could not find body type");
-    }
-    const legs = bodyTypeData.body.legs[this.skin.name].model;
-    this.load("legs", legs);
-  }
-
-  /**
    * Patches emissive color for materials that have emissive maps.
    * Sets emissive color to white and intensity to 5 for materials with emissive maps
    * that have low emissive values.
@@ -388,16 +207,16 @@ export class AvatarLoader extends EventHandler {
   }
 
   /**
-   * Applies GLB container renders and materials to a slot, including additional render entities and emissive patching.
+   * Applies GLB container renders and materials to a key entity.
    */
-  private applyContainerToSlot(slot: string, container: GlbContainerResource): void {
+  private applyContainerToKey(key: string, container: GlbContainerResource): void {
     // @ts-expect-error - PlayCanvas types specify only a number is accepted, but the comment and implementation allow Asset.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.slotEntities[slot].render!.asset = container.renders[0];
+    this.keyEntities[key].render!.asset = container.renders[0];
 
     if (container.renders.length > 1) {
       for (let i = 1; i < container.renders.length; i++) {
-        const entity = new Entity(`${slot}-${i}`);
+        const entity = new Entity(`${key}-${i}`);
         entity.addComponent("render", {
           type: "asset",
           rootBone: this.entity,
@@ -412,220 +231,97 @@ export class AvatarLoader extends EventHandler {
           this.patchEmissiveColor(meshInstancesChild);
         }
 
-        this.slotEntities[slot].addChild(entity);
+        this.keyEntities[key].addChild(entity);
       }
     }
 
     // The Asset from GlbContainerResource import misaligns with the "playcanvas" import.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.slotEntities[slot].render!.materialAssets = container.materials as unknown as Asset[];
+    this.keyEntities[key].render!.materialAssets = container.materials as unknown as Asset[];
 
-    const meshInstances = this.slotEntities[slot].render?.meshInstances;
+    const meshInstances = this.keyEntities[key].render?.meshInstances;
     if (meshInstances) {
       this.patchEmissiveColor(meshInstances);
     }
   }
 
   /**
-   * @private
-   * Iterates through the INDEXED_SLOTS to create a mapping from model to the part
-   * This is important for reloading models so from the top/bottom parts GLB we can easily look up the requirements for rendering Torso and Legs
-   * This only needs to be ran when the catalog changes - i.e. on initialization
+   * Creates an entity for a key if it doesn't exist
    */
-  createIndexedSlotModelUrlToPartMap() {
-    for (const bodyType of this.data.bodyTypes) {
-      for (const slot of INDEXED_SLOTS) {
-        const section = bodyType.parts[slot];
+  private ensureKeyEntity(key: string): void {
+    if (this.keyEntities[key]) return;
 
-        if (section.skin) {
-          throw new Error("Did not expect to index skinned parts");
-        }
-
-        for (const part of section.parts) {
-          this.slotModelUrlToPart.set(`${slot}-${part.model}`, part);
-        }
-      }
-    }
+    const entity = new Entity(key);
+    this.keyEntities[key] = entity;
+    entity.addComponent("render", {
+      type: "asset",
+      rootBone: this.entity,
+    });
+    this.entity?.addChild(entity);
   }
 
   /**
-   * Determines whether to show default body parts (torso/legs) when equipping clothing items.
+   * Loads a GLB file for the provided key.
+   * If it is a first key to be loaded, then it will use that model's skeleton for the base hierarchy
    *
-   * For "top" slot: Shows torso if no item is equipped or torso flag is true.
-   * Hides torso if an item is equipped and and torso flag is not true.
-   *
-   * For "bottom" slot: Shows legs if no item is equipped or if the item requires legs to be visible.
-   * Hides legs if the item completely covers them i.e. an item is equipped and the legs flag is false.
-   *
-   * @param {string} slot - The clothing slot
-   * @param {string | null} url - The URL of the clothing item being equipped, or null if no item
-   * @private
+   * @param {string} key Unique key to identify this part
+   * @param {string} url Full url to GLB file to load
    */
-  checkBodySlot(slot: string, url: string | null) {
-    if (slot === "top") {
-      if (!this.currentUrlBySlot[slot]) {
-        this.torso = true;
-        this.loadTorso();
-      } else if (!url || this.slotModelUrlToPart.get(`${slot}-${url}`)?.torso) {
-        this.torso = true;
-        this.loadTorso();
-      } else {
-        this.torso = false;
-        this.loadTorso();
-      }
-    } else if (slot === "bottom") {
-      if (!this.currentUrlBySlot[slot]) {
-        this.legs = true;
-        this.loadLegs();
-      } else if (!url || this.slotModelUrlToPart.get(`${slot}-${url}`)?.legs) {
-        this.legs = true;
-        this.loadLegs();
-      } else {
-        this.legs = false;
-        this.unload("legs");
-      }
-    }
-  }
-
-  /**
-   * Determines whether to hide default body parts when removing clothing items.
-   *
-   * Called when unloading a clothing item to check if the underlying body part should
-   * now be hidden. This happens when the removed item didn't cover the body part,
-   * but there's still another item in the slot that might not need the body part visible.
-   *
-   * For "top" slot: If the removed item didn't cover the torso and there's still a top item,
-   * hides the torso and shows only arms.
-   *
-   * For "bottom" slot: If the removed item didn't require legs to be hidden and there's
-   * still a bottom item, hides the legs.
-   *
-   * @param {string} slot - The clothing slot ("top" or "bottom")
-   * @param {string} url - The URL of the clothing item being removed
-   * @private
-   */
-  uncheckBodySlot(slot: string, url: string) {
-    if (slot === "top") {
-      const partInfo = this.slotModelUrlToPart.get(`${slot}-${url}`);
-      const hasCurrentUrl = !!this.currentUrlBySlot[slot];
-
-      if (!partInfo?.torso && hasCurrentUrl) {
-        this.torso = false;
-        this.loadTorso();
-      }
-    } else if (slot === "bottom") {
-      const partInfo = this.slotModelUrlToPart.get(`${slot}-${url}`);
-      const hasCurrentUrl = !!this.currentUrlBySlot[slot];
-
-      if (!partInfo?.legs && hasCurrentUrl) {
-        this.legs = false;
-        this.unload("legs");
-      }
-    }
-  }
-
-  /**
-   * Loads an GLB file for provided slot.
-   * If it is a first slot to be loaded, then it will use that model's skeleton for the base hierarchy
-   * It will automatically hide/show different body parts, based on slot params
-   *
-   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso'|'outfit')} slot Slot to load
-   * @param {string} url Full url to GLB file to load for the slot
-   */
-  load(slot: string, url: string) {
-    // Check if something is still being loaded for this slot.
-    // If so we cannot load another item for this slot until the current item has loaded.
-    // Therefore we set the next, overriding the existing value if there is one as we no longer need to load that one.
-    if (this.loadingUrlBySlot.has(slot)) {
-      const urlNext = this.nextUrlBySlot.get(slot);
-      // If something is already in the next queue we fire an event before clearing it so that it no longer has the loading state.
-      if (urlNext) {
-        this.fire(`loaded:${slot}:${urlNext}`);
-      }
-
-      this.nextUrlBySlot.set(slot, url);
-      this.currentUrlBySlot[slot] = url;
-      this.fire(`loading:${slot}:${url}`);
-
-      // Return here - once the current asset is loaded the newly set one above will be handled.
-      return;
-    }
-
-    this.fire(`loading:${slot}:${url}`);
-
+  load(key: string, url: string) {
     const name = url.split("/").pop();
     if (!name) {
       throw new Error("Could not get name from URL");
     }
 
-    const cacheKey = getAssetCacheKey(slot, url);
-    let asset = this.assetsCacheByCacheKey.get(cacheKey);
+    let asset = this.assetsCacheByUrl.get(url);
     if (!asset) {
-      asset = new Asset(cacheKey, "container", {
+      asset = new Asset(url, "container", {
         url,
         filename: name,
-        // Have to specify our own hash here because if there is one part used in multiple slots when the cached assets are cleaned up then it causes the internal textures of the model to be cleaned up.
-        // e.g. given top model.glb and top:secondary model.glb both may load the same asset.
-        // This asset internally may load some textures etc.
-        // The play canvas registry I think shares these textures if the hashes match.
-        // Therefore if we don't specify our own hash then the internal textures will be cleaned up when the first asset is unloaded.
-        hash: cacheKey,
-      }); // maybe issue with unloading is due to asset name - possibly could combine with slot?
+        hash: url,
+      });
       this.app.assets.add(asset);
-      this.assetsCacheByCacheKey.set(cacheKey, asset);
-      this.assetTimersByCacheKey.set(cacheKey, performance.now());
-      this.slotByCacheKey.set(cacheKey, slot);
-      this.urlByCacheKey.set(cacheKey, url);
+      this.assetsCacheByUrl.set(url, asset);
+      this.assetTimersByUrl.set(url, performance.now());
     }
 
-    this.loadingUrlBySlot.set(slot, url);
-
-    this.currentUrlBySlot[slot] = url;
-
-    this.checkBodySlot(slot, url);
+    this.loadingByKey.set(key, url);
+    this.currentUrlByKey.set(key, url);
 
     asset.ready(() => {
-      this.loadingUrlBySlot.delete(slot);
-      // Fire events so that both the slot item and the configurator can be updated.
-      this.fire(`loaded:${slot}:${url}`);
-      this.fire(`loaded:${slot}`, url);
+      this.loadingByKey.delete(key);
+
+      // Check if this URL is still the current one for this key (might have been replaced by a newer load)
+      if (this.currentUrlByKey.get(key) !== url) {
+        return;
+      }
 
       this.createRootEntity(asset);
 
-      this.assetsBySlot[slot] = asset;
+      this.ensureKeyEntity(key);
+
+      this.assetsByKey[key] = asset;
 
       const container = asset.resource as GlbContainerResource;
-      this.applyContainerToSlot(slot, container);
+      this.applyContainerToKey(key, container);
 
-      this.uncheckBodySlot(slot, url);
+      // Mark this URL as now displayed (so old one can be cleaned up)
+      this.displayedUrlByKey.set(key, url);
 
-      // load next in queue
-      const urlNext = this.nextUrlBySlot.get(slot);
-      if (urlNext) {
-        this.nextUrlBySlot.delete(slot);
-        this.load(slot, urlNext);
-      }
       this.updateStats();
     });
 
     asset.once("error", () => {
-      this.loadingUrlBySlot.delete(slot);
-      this.fire(`loaded:${slot}:${url}`);
+      this.loadingByKey.delete(key);
 
-      // @ts-expect-error - PlayCanvas types specify only a number is accepted, but the comment and implementation allow Asset
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.slotEntities[slot].render!.asset = null;
-      // The Asset from GlbContainerResource import misaligns with the "playcanvas" import
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.slotEntities[slot].render!.materialAssets = [];
-
-      this.uncheckBodySlot(slot, url);
-
-      // load next in queue
-      const urlNext = this.nextUrlBySlot.get(slot);
-      if (urlNext) {
-        this.nextUrlBySlot.delete(slot);
-        this.load(slot, urlNext);
+      // Only clear the render if this URL is still the current one for this key
+      if (this.currentUrlByKey.get(key) === url && this.keyEntities[key]) {
+        // @ts-expect-error - PlayCanvas types specify only a number is accepted, but the comment and implementation allow Asset
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.keyEntities[key].render!.asset = null;
+        // The Asset from GlbContainerResource import misaligns with the "playcanvas" import
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.keyEntities[key].render!.materialAssets = [];
       }
     });
 
@@ -633,27 +329,19 @@ export class AvatarLoader extends EventHandler {
   }
 
   /**
-   * Loads an GLB file from ObjectURL for provided slot.
+   * Loads a GLB file from ObjectURL for provided key.
    *
-   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso'|'outfit')} slot Slot to load
-   * @param {string} url filename of GLB file to load for the slot
-   * @param {string} objectUrl base64 string containing GLB file providede by URL.createObjectURL from local file
+   * @param {string} key Unique key to identify this part
+   * @param {string} filename filename of GLB file
+   * @param {string} objectUrl ObjectURL created from local file
    */
-  loadCustom(slot: string, url: string, objectUrl: string) {
-    if (this.loadingUrlBySlot.has(slot)) {
+  loadCustom(key: string, filename: string, objectUrl: string) {
+    if (this.loadingByKey.has(key)) {
       return;
     }
 
-    this.fire(`loading:${slot}:${url}`);
-    this.loadingUrlBySlot.set(slot, url);
-
-    if (slot === "top") {
-      this.torso = true;
-      this.loadTorso();
-    } else if (slot === "bottom") {
-      this.legs = true;
-      this.loadLegs();
-    }
+    this.loadingByKey.set(key, filename);
+    this.currentUrlByKey.set(key, filename);
 
     // load file using ObjectURL
     this.app.assets.loadFromUrl(objectUrl, "container", (err, asset) => {
@@ -664,170 +352,49 @@ export class AvatarLoader extends EventHandler {
 
       if (!asset) return;
 
-      this.currentUrlBySlot[slot] = url;
-
-      this.loadingUrlBySlot.delete(slot);
-      this.fire(`loaded:${slot}:${url}`);
-
-      this.assetsBySlot[slot] = asset;
-
-      const container = asset.resource as GlbContainerResource;
-      this.applyContainerToSlot(slot, container);
-    });
-  }
-
-  /**
-   * Get the avatar MML code for the current avatar
-   * @param {boolean} formatted Whether to format the MML code
-   * @returns {string} the MML code for the current avatar
-   */
-  getAvatarMml(formatted: boolean = false) {
-    let code = "";
-
-    const outfit = this.currentUrlBySlot.outfit ?? "";
-    const className = outfit
-      ? "outfit"
-      : [this.getBodyType(), `skin${this.getSkin()?.name ?? ""}`].join(" ");
-
-    code += `<m-character class="${className}" src="${encodeURI(outfit || (this.currentUrlBySlot.torso ?? ""))}">${formatted ? "\n" : ""}`;
-
-    for (const key in this.currentUrlBySlot) {
-      if (key === "torso" || key === "outfit") continue;
-      const url = this.currentUrlBySlot[key];
-      if (!url) continue;
-      const className = key in slotToClass ? slotToClass[key as keyof typeof slotToClass] : key;
-      code += `${formatted ? "\t" : ""}<m-model class="${className}" src="${encodeURI(url)}"></m-model>${formatted ? "\n" : ""}`;
-    }
-
-    code += `</m-character>`;
-
-    return code;
-  }
-
-  /**
-   * Loads an avatar from an MML code. Note that this will be called after randomization has completed.
-   * @param {string} code The MML code to load
-   */
-  loadAvatarMml(code: string) {
-    // Use the queue system to ensure this runs after any randomization
-    this.queueAfterRandomization(() => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(code, "text/html");
-      const rootNode = doc.body;
-
-      const character = rootNode.querySelector("m-character");
-      if (!character) {
-        console.log("character not found");
+      // Check if this is still the current one for this key
+      if (this.currentUrlByKey.get(key) !== filename) {
         return;
       }
 
-      const classItems = Array.from(character.classList);
-      const outfit = classItems.includes("outfit");
+      this.loadingByKey.delete(key);
 
-      if (outfit) {
-        const ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT = ALL_SLOTS_CLASS_NAMES.filter(
-          (slot) => slot !== "outfit",
-        );
+      this.createRootEntity(asset);
 
-        this.torso = false;
-        this.legs = false;
+      this.ensureKeyEntity(key);
 
-        // Unload all slots except outfit
-        for (let i = 0; i < ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT.length; i++) {
-          const slot = ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT[i];
-          const slotName =
-            slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
-          this.unload(slotName);
-        }
+      this.assetsByKey[key] = asset;
 
-        // Load the outfit
-        const src = character.getAttribute("src");
-        if (src) {
-          this.load("outfit", src);
-        }
-      } else {
-        // body type
-        const bodyTypes = new Set(["bodyA", "bodyB"]);
-        const bodyType =
-          classItems.filter((item) => {
-            return bodyTypes.has(item);
-          })?.[0] ?? "bodyA";
-        this.setBodyType(bodyType as CatalogBodyTypeKey, true);
+      const container = asset.resource as GlbContainerResource;
+      this.applyContainerToKey(key, container);
 
-        // skin
-        classItems.forEach((item) => {
-          if (!item.startsWith("skin")) return;
-
-          const skinIndex = parseInt(item.slice(4), 10);
-          if (isNaN(skinIndex)) return;
-
-          const skinName = (skinIndex + "").padStart(2, "0");
-
-          this.setSkin({ name: skinName }, true);
-        });
-
-        // Load torso
-        const torsoSrc = character.getAttribute("src");
-        if (torsoSrc) {
-          this.load("torso", torsoSrc);
-        }
-
-        const ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO = ALL_SLOTS_CLASS_NAMES.filter(
-          (slot) => slot !== "outfit" && slot !== "torso",
-        );
-
-        for (let i = 0; i < ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO.length; i++) {
-          const slot = ALL_SLOTS_CLASS_NAMES_WITHOUT_OUTFIT_AND_TORSO[i];
-          const slotName =
-            slot in classToSlot ? classToSlot[slot as keyof typeof classToSlot] : slot;
-          const node = character.querySelector(`m-model.${slot}`);
-          const src = node?.getAttribute("src");
-
-          if (!src) {
-            this.unload(slotName);
-            continue;
-          }
-
-          if (slot === "legs") {
-            this.legs = true;
-          }
-
-          this.load(slotName, src);
-        }
-      }
+      // Mark this as now displayed
+      this.displayedUrlByKey.set(key, filename);
     });
   }
 
   /**
-   * @param {('head'|'hair'|'top'|'top:secondary'|'bottom'|"bottom:secondary"|'shoes'|'legs'|'torso')} slot Slot to unload
+   * Unloads the asset for a given key
+   * @param {string} key Key to unload
    */
-  unload(slot: string) {
-    // Check if the slot is currently loading something
-    const isLoading = this.loadingUrlBySlot.has(slot);
+  unload(key: string) {
+    // IMPORTANT: Always remove from currentUrlByKey so the asset won't be applied when it finishes loading
+    this.currentUrlByKey.delete(key);
+    this.displayedUrlByKey.delete(key);
 
-    // If the slot is currently loading, we need to clear the loading state
-    if (isLoading) {
-      const nextUrl = this.nextUrlBySlot.get(slot);
+    if (this.keyEntities[key]) {
+      // Clear the main entity's render
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.keyEntities[key].render!.asset = 0;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.keyEntities[key].render!.materialAssets = [];
 
-      // Fire the loaded event to clear the loading state
-      if (nextUrl) {
-        this.fire(`loaded:${slot}:${nextUrl}`);
-        this.nextUrlBySlot.delete(slot);
+      // Destroy all child entities (for multi-render models)
+      const children = this.keyEntities[key].children.slice();
+      for (const child of children) {
+        child.destroy();
       }
-
-      return;
     }
-
-    // If we have a slot entity, clear its assets
-    if (this.slotEntities[slot]) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.slotEntities[slot].render!.asset = 0;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.slotEntities[slot].render!.materialAssets = [];
-    }
-
-    // Remove the URL from currentUrlBySlot
-    delete this.currentUrlBySlot[slot];
   }
 
   /**
@@ -837,7 +404,7 @@ export class AvatarLoader extends EventHandler {
   updateStats() {
     if (!this.debugAssets) return;
 
-    this.fire(
+    console.log(
       "stats",
       JSON.stringify(
         {
@@ -856,16 +423,14 @@ export class AvatarLoader extends EventHandler {
   /**
    * Clears an asset from the cache
    * @param {Asset} asset The asset to clear from the cache
+   * @param {string} url The URL of the asset
    */
-  clearAssetResources(asset: Asset, slot: string, url: string) {
-    const cacheKey = getAssetCacheKey(slot, url);
+  clearAssetResources(asset: Asset, url: string) {
     this.app.assets.remove(asset);
     asset.unload();
 
-    this.assetsCacheByCacheKey.delete(cacheKey);
-    this.assetTimersByCacheKey.delete(cacheKey);
-    this.urlByCacheKey.delete(cacheKey);
-    this.slotByCacheKey.delete(cacheKey);
+    this.assetsCacheByUrl.delete(url);
+    this.assetTimersByUrl.delete(url);
   }
 
   /**
@@ -876,20 +441,25 @@ export class AvatarLoader extends EventHandler {
   checkAssetsCache() {
     const now: number = performance.now();
 
-    for (const [cacheKey, asset] of this.assetsCacheByCacheKey.entries()) {
-      // Set a limit of 1 so that we only split on the first occurrence of the hyphen between slot and url.
-      // This avoids accidentally splitting when the url contains a hyphen.
-      const [slot, url] = cacheKey.split("-", 1);
+    // Build a set of currently active URLs (both displayed and target URLs)
+    const activeUrls = new Set<string>();
+    for (const url of this.currentUrlByKey.values()) {
+      activeUrls.add(url);
+    }
+    for (const url of this.displayedUrlByKey.values()) {
+      activeUrls.add(url);
+    }
 
-      if (this.currentUrlBySlot[slot] === url || this.nextUrlBySlot.get(slot) === url) {
+    for (const [url, asset] of this.assetsCacheByUrl.entries()) {
+      if (activeUrls.has(url)) {
         // still active
-        this.assetTimersByCacheKey.set(cacheKey, now);
+        this.assetTimersByUrl.set(url, now);
       } else {
         // check if enough time has passed
-        const time: number = this.assetTimersByCacheKey.get(cacheKey) ?? 0;
+        const time: number = this.assetTimersByUrl.get(url) ?? 0;
 
         if (now - time > ASSET_EXPIRES) {
-          this.clearAssetResources(asset, slot, url);
+          this.clearAssetResources(asset, url);
         }
       }
     }

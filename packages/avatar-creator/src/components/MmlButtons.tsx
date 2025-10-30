@@ -10,7 +10,9 @@ import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
 
-import { AvatarLoader } from "../scripts/avatar-loader";
+import { AvatarState, AvatarStateManager } from "../scripts/avatar-state-manager";
+import { getAvatarMml } from "../scripts/mml-utils";
+import { Catalog } from "../types/Catalog";
 import { ExportBehavior, ExportBehaviorMode } from "../types/ExportBehavior";
 import { ImportBehavior, ImportBehaviorMode } from "../types/ImportBehavior";
 import Button from "./Button";
@@ -20,13 +22,22 @@ import MmlOverlayExport from "./MmlOverlayExport";
 import MmlOverlayImport from "./MmlOverlayImport";
 
 type Props = {
-  avatarLoader: AvatarLoader | null;
+  stateManager: AvatarStateManager | null;
+  catalog: Catalog;
   exportBehavior: ExportBehavior;
   importBehavior: ImportBehavior;
   isPreviewMode: boolean;
+  importMmlCallbackRef: React.RefObject<((state: Partial<AvatarState>) => void) | null>;
 };
 
-export function MmlButtons({ avatarLoader, exportBehavior, importBehavior, isPreviewMode }: Props) {
+export function MmlButtons({
+  stateManager,
+  catalog,
+  exportBehavior,
+  importBehavior,
+  isPreviewMode,
+  importMmlCallbackRef,
+}: Props) {
   const [activeOverlay, setActiveOverlay] = useState<MmlOverlay>(MmlOverlay.None);
 
   if (isPreviewMode) {
@@ -36,7 +47,7 @@ export function MmlButtons({ avatarLoader, exportBehavior, importBehavior, isPre
   return (
     <>
       <div className={mmlStyles.mml}>
-        {avatarLoader &&
+        {stateManager &&
         (exportBehavior.mode === ExportBehaviorMode.Default ||
           exportBehavior.mode === ExportBehaviorMode.Callback) ? (
           <Button
@@ -46,14 +57,14 @@ export function MmlButtons({ avatarLoader, exportBehavior, importBehavior, isPre
             onClick={() =>
               exportBehavior.mode === ExportBehaviorMode.Default
                 ? setActiveOverlay(MmlOverlay.Export)
-                : exportBehavior.onExport(avatarLoader.getAvatarMml())
+                : exportBehavior.onExport(getAvatarMml(stateManager))
             }
           >
             Export
           </Button>
         ) : null}
 
-        {avatarLoader && importBehavior.mode === ImportBehaviorMode.Copy ? (
+        {stateManager && importBehavior.mode === ImportBehaviorMode.Copy ? (
           <Button
             variant="secondary"
             size="medium"
@@ -65,11 +76,15 @@ export function MmlButtons({ avatarLoader, exportBehavior, importBehavior, isPre
         ) : null}
       </div>
 
-      {activeOverlay === MmlOverlay.Export && avatarLoader ? (
-        <MmlOverlayExport setActive={setActiveOverlay} avatarLoader={avatarLoader} />
+      {activeOverlay === MmlOverlay.Export && stateManager ? (
+        <MmlOverlayExport setActive={setActiveOverlay} stateManager={stateManager} />
       ) : null}
-      {activeOverlay === MmlOverlay.Import && avatarLoader ? (
-        <MmlOverlayImport setActive={setActiveOverlay} avatarLoader={avatarLoader} />
+      {activeOverlay === MmlOverlay.Import ? (
+        <MmlOverlayImport
+          setActive={setActiveOverlay}
+          catalog={catalog}
+          importMmlCallback={importMmlCallbackRef.current}
+        />
       ) : null}
     </>
   );

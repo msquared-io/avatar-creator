@@ -9,7 +9,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 
-import { AvatarLoader } from "../scripts/avatar-loader";
 import {
   Catalog,
   CatalogBasicPart,
@@ -30,7 +29,6 @@ export default function SectionBasic({
   setSlot,
   setSecondary,
   data,
-  avatarLoader,
 }: {
   slot: CatalogPartKey;
   title: string;
@@ -40,7 +38,6 @@ export default function SectionBasic({
   setSlot: (value: string) => void;
   setSecondary?: (value: string | null) => void;
   data: Catalog;
-  avatarLoader: AvatarLoader;
 }) {
   const [parts, setParts] = useState<DeepReadonly<Array<CatalogBasicPart>>>([]);
 
@@ -76,13 +73,10 @@ export default function SectionBasic({
             <SlotItem
               active={selected === part.model}
               key={part.model}
-              avatarLoader={avatarLoader}
-              slot={slot}
               onClick={() => {
                 setSlot(part.model);
                 if (setSecondary) setSecondary(part.secondaryModel ?? null);
               }}
-              modelUrl={part.model}
               thumbnailUrl={part.thumbnail}
             />
           );

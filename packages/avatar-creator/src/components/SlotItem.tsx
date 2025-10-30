@@ -7,70 +7,23 @@
  */
 
 import * as React from "react";
-import { useEffect, useState } from "react";
 
-import { AvatarLoader } from "../scripts/avatar-loader";
-import { CatalogPartKey } from "../types/Catalog";
 import styles from "./SlotItem.module.css";
-
-// Extend Window interface to include avatarLoader
-declare global {
-  interface Window {
-    avatarLoader: any;
-  }
-}
 
 export default function SlotItem({
   skin,
-  slot,
-  modelUrl,
   thumbnailUrl,
   active,
-  avatarLoader,
   onClick,
 }: {
   skin?: string;
-  slot?: CatalogPartKey;
-  // No secondary needed here as loading events entirely predicated on the primary model.
-  modelUrl?: string;
   thumbnailUrl?: string;
   active: boolean;
-  avatarLoader: AvatarLoader;
   onClick: () => void;
 }) {
-  const [loading, setLoading] = useState<boolean>(false);
-
-  // Manages the loading state of the Slot Item.
-  // Does not manage any of the actual loading of the avatar itself.
-  useEffect(() => {
-    if (!avatarLoader || !slot) {
-      // If there is no avatar loader return, and do not enter the loading state, as the loading would never actually complete.
-      return;
-    }
-
-    const evtLoading = avatarLoader.on(`loading:${slot}:${modelUrl}`, () => {
-      setLoading(true);
-    });
-
-    const evtLoaded = avatarLoader.on(`loaded:${slot}:${modelUrl}`, () => {
-      setLoading(false);
-    });
-
-    // Check if already loading, if not then enter the loading state
-    const loadingItems = avatarLoader.loadingUrlBySlot.get(slot);
-    if (modelUrl && loadingItems && loadingItems.indexOf(modelUrl) !== -1) {
-      setLoading(true);
-    }
-
-    return () => {
-      if (evtLoading && evtLoading.off) evtLoading.off();
-      if (evtLoaded && evtLoaded.off) evtLoaded.off();
-    };
-  }, [slot, modelUrl]);
-
   return (
     <svg
-      className={`${styles.slotItem} ${active ? styles.active : ""} ${loading ? styles.loading : ""}`}
+      className={`${styles.slotItem} ${active ? styles.active : ""}`}
       onClick={onClick}
       width="98"
       height="98"

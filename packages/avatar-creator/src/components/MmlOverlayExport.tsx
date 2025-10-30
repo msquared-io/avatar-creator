@@ -12,7 +12,8 @@ import { Copy } from "lucide-react";
 import * as React from "react";
 import { MouseEvent, useEffect, useRef } from "react";
 
-import { AvatarLoader } from "../scripts/avatar-loader";
+import { AvatarStateManager } from "../scripts/avatar-state-manager";
+import { getAvatarMml } from "../scripts/mml-utils";
 import Button from "./Button";
 import { MmlOverlay } from "./MmlOverlay";
 import styles from "./MmlOverlayExport.module.css";
@@ -21,10 +22,10 @@ hljs.registerLanguage("xml", xml);
 
 export default function MmlOverlayExport({
   setActive,
-  avatarLoader,
+  stateManager,
 }: {
   setActive: (value: MmlOverlay) => void;
-  avatarLoader: AvatarLoader;
+  stateManager: AvatarStateManager;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const codeRef = useRef<HTMLPreElement>(null);
@@ -34,12 +35,12 @@ export default function MmlOverlayExport({
 
     hljs.highlightElement(codeRef.current);
 
-    let code = avatarLoader.getAvatarMml(true);
+    let code = getAvatarMml(stateManager, true);
 
     code = hljs.highlight(code, { language: "xml" }).value;
 
     codeRef.current.innerHTML = code;
-  }, []);
+  }, [stateManager]);
 
   const onCodeCopy = (evt: MouseEvent) => {
     evt.stopPropagation();
