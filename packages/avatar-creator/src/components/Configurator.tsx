@@ -18,8 +18,8 @@ import {
   CatalogPartKey,
   CatalogSkin,
 } from "../types/Catalog";
-import { ImportBehavior } from "../types/ImportBehavior";
 import { DeepReadonly } from "../types/DeepReadonly";
+import { ImportBehavior } from "../types/ImportBehavior";
 import styles from "./Configurator.module.css";
 import ConfiguratorBack from "./ConfiguratorBack";
 import SectionBasic from "./SectionBasic";
