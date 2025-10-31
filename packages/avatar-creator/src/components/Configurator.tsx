@@ -18,6 +18,7 @@ import {
   CatalogPartKey,
   CatalogSkin,
 } from "../types/Catalog";
+import { ImportBehavior } from "../types/ImportBehavior";
 import { DeepReadonly } from "../types/DeepReadonly";
 import styles from "./Configurator.module.css";
 import ConfiguratorBack from "./ConfiguratorBack";
@@ -69,6 +70,7 @@ export default function Configurator({
   onImportMmlCallback,
   appState,
   app,
+  importBehavior,
 }: {
   data: Catalog;
   stateManager: AvatarStateManager;
@@ -76,6 +78,7 @@ export default function Configurator({
   onImportMmlCallback?: (callback: (state: Partial<AvatarState>) => void) => void;
   appState: "home" | "configurator";
   app: AppBase;
+  importBehavior?: ImportBehavior;
 }) {
   const [skins, setSkins] = useState<DeepReadonly<Array<CatalogSkin>>>([]);
   const [section, setSection] = useState<CatalogPartKey | "bodyType">("bodyType");
@@ -128,10 +131,10 @@ export default function Configurator({
     if (state.shoes !== undefined) setShoes(state.shoes);
     if (state.outfit !== undefined) setOutfit(state.outfit);
 
-    // Clear flag after a brief delay to allow state updates to propagate
+    // Clear flag after a delay to ensure all state updates have propagated
     setTimeout(() => {
       isImportingRef.current = false;
-    }, 0);
+    }, 100);
   }, []);
 
   // Expose import callback to parent components
@@ -345,6 +348,12 @@ export default function Configurator({
 
   // Initialize with random parts on mount
   useEffect(() => {
+    // Skip randomization if external import is configured
+    if (importBehavior?.mode === "external") {
+      initializedRef.current = true;
+      return;
+    }
+
     randomAll();
     initializedRef.current = true;
   }, []);

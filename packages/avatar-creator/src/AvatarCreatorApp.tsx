@@ -105,7 +105,7 @@ export function AvatarCreatorApp({
     const loader = new AvatarLoader(app, animations);
     setAvatarLoader(loader);
 
-    const manager = new AvatarStateManager(loader, data);
+    const manager = new AvatarStateManager(loader, data, app, animations);
     setStateManager(manager);
 
     const statsHandle = loader.on("stats", (stats) => {
@@ -187,7 +187,6 @@ export function AvatarCreatorApp({
   const loadAvatarMmlCallback = useCallback(
     (mml: string) => {
       if (!stateManager || !data) return;
-
       // Try to use React state flow if callback is available
       if (importMmlCallbackRef.current) {
         const parsedState = parseMmlToState(mml, data);
@@ -201,7 +200,7 @@ export function AvatarCreatorApp({
   );
 
   useEffect(() => {
-    if (importBehavior.mode === ImportBehaviorMode.External) {
+    if (importBehavior.mode === ImportBehaviorMode.External && stateManager) {
       importBehavior.importMmlStringRef.current = loadAvatarMmlCallback;
       importBehavior.onImportReady();
     }
@@ -211,7 +210,7 @@ export function AvatarCreatorApp({
         importBehavior.importMmlStringRef.current = null;
       }
     };
-  }, [importBehavior, loadAvatarMmlCallback]);
+  }, [importBehavior, loadAvatarMmlCallback, stateManager]);
 
   const generateAvatarImage = useCallback(
     (resolution: number, callback: (dataUrl: string) => void) => {
@@ -267,6 +266,7 @@ export function AvatarCreatorApp({
           }}
           appState={appState}
           app={app}
+          importBehavior={importBehavior}
         />
       )}
 
