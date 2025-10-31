@@ -105,7 +105,7 @@ export function AvatarCreatorApp({
     const loader = new AvatarLoader(app, animations);
     setAvatarLoader(loader);
 
-    const manager = new AvatarStateManager(loader, data, app, animations);
+    const manager = new AvatarStateManager(loader, data);
     setStateManager(manager);
 
     const statsHandle = loader.on("stats", (stats) => {

@@ -40,6 +40,9 @@ export class AvatarStateManager {
   // Maps URL to part metadata (for determining torso/legs visibility)
   private partMetadataByUrl = new Map<string, CatalogBasicPart>();
 
+  // Track current rendering mode to detect when we need to recreate root entity
+  private currentMode: 'outfit' | 'individual' | null = null;
+
   constructor(
     private avatarLoader: AvatarLoader,
     private catalog: Catalog,
@@ -104,6 +107,16 @@ export class AvatarStateManager {
         ...newState,
       };
     }
+
+    // Determine new mode based on whether we have outfit or individual parts
+    const newMode = this.currentState.outfit ? 'outfit' : 'individual';
+
+    // If mode changed, mark for root entity recreation to handle incompatible root structures
+    if (this.currentMode && this.currentMode !== newMode) {
+      this.avatarLoader.markForRootEntityRecreation();
+    }
+
+    this.currentMode = newMode;
 
     // Apply state changes to avatar loader
     this.syncToLoader();

@@ -65,6 +65,9 @@ export class AvatarLoader extends EventHandler {
 
   private animGraphData: AnimGraphData = generateDefaultAnimGraph();
 
+  // Flag to indicate if root entity needs recreation
+  private needsRootEntityRecreation = false;
+
   /**
    * @param {AppBase} app PlayCanvas AppBase
    * @param {AnimationData} animations Animation data for the avatar
@@ -79,10 +82,49 @@ export class AvatarLoader extends EventHandler {
   }
 
   /**
+   * Marks the loader to recreate the root entity on next asset load
+   */
+  markForRootEntityRecreation() {
+    this.needsRootEntityRecreation = true;
+  }
+
+  /**
    * @param {Asset} asset
    * @private
    */
   createRootEntity(asset: Asset) {
+    this.createOrRecreateRootEntity(asset, false);
+  }
+
+  recreateRootEntity(asset: Asset) {
+    this.createOrRecreateRootEntity(asset, true);
+  }
+
+  private createOrRecreateRootEntity(asset: Asset, forceRecreate: boolean = false) {
+    if (this.entity && !forceRecreate && !this.needsRootEntityRecreation) return;
+
+    // If recreating due to flag, clear the flag
+    if (this.needsRootEntityRecreation) {
+      this.needsRootEntityRecreation = false;
+      forceRecreate = true;
+    }
+
+    // If recreating, clean up the old entity
+    if (this.entity && forceRecreate) {
+      this.app.root.removeChild(this.entity);
+      this.entity.destroy();
+      this.entity = null;
+
+      // Reset animation graph
+      this.animGraphData = generateDefaultAnimGraph();
+
+      // Clear all key entities since they reference the old root bone
+      for (const key in this.keyEntities) {
+        this.keyEntities[key].destroy();
+      }
+      this.keyEntities = {};
+    }
+
     if (this.entity) return;
 
     const entity = (asset.resource as ContainerResource).instantiateRenderEntity();
