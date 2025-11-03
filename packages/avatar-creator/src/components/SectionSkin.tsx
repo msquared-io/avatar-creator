@@ -15,7 +15,6 @@ import skin_4Url from "../assets/img/thumbnails/skin_4.webp";
 import skin_5Url from "../assets/img/thumbnails/skin_5.webp";
 import skin_6Url from "../assets/img/thumbnails/skin_6.webp";
 import skin_7Url from "../assets/img/thumbnails/skin_7.webp";
-import { AvatarLoader } from "../scripts/avatar-loader";
 import { CatalogSkin } from "../types/Catalog";
 import styles from "./SectionSkin.module.css";
 import SlotItem from "./SlotItem";
@@ -34,12 +33,10 @@ export default function SectionSkin({
   skins,
   skin,
   setSkin,
-  avatarLoader,
 }: {
   skins: ReadonlyArray<CatalogSkin>;
   skin: CatalogSkin;
   setSkin: (value: CatalogSkin) => void;
-  avatarLoader: AvatarLoader;
 }) {
   return (
     <div className={styles.skin}>
@@ -50,7 +47,6 @@ export default function SectionSkin({
             <SlotItem
               key={item.name}
               skin={item.name}
-              avatarLoader={avatarLoader}
               active={skin.name === item.name}
               onClick={() => {
                 setSkin(item);

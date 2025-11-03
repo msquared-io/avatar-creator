@@ -12,7 +12,9 @@ import { Import } from "lucide-react";
 import * as React from "react";
 import { MouseEvent, useEffect, useRef } from "react";
 
-import { AvatarLoader } from "../scripts/avatar-loader";
+import { AvatarState } from "../scripts/avatar-state-manager";
+import { parseMmlToState } from "../scripts/mml-utils";
+import { Catalog } from "../types/Catalog";
 import Button from "./Button";
 import { MmlOverlay } from "./MmlOverlay";
 import styles from "./MmlOverlayImport.module.css";
@@ -21,10 +23,12 @@ hljs.registerLanguage("xml", xml);
 
 export default function MmlOverlayImport({
   setActive,
-  avatarLoader,
+  catalog,
+  importMmlCallback,
 }: {
   setActive: (value: MmlOverlay) => void;
-  avatarLoader: AvatarLoader;
+  catalog: Catalog;
+  importMmlCallback: ((state: Partial<AvatarState>) => void) | null;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const codeRef = useRef<HTMLPreElement>(null);
@@ -79,7 +83,16 @@ export default function MmlOverlayImport({
 
   const onImport = () => {
     const code = codeRef.current?.textContent ?? "";
-    avatarLoader.loadAvatarMml(code);
+
+    if (importMmlCallback) {
+      // Use React state flow - parse and update via callback
+      const parsedState = parseMmlToState(code, catalog);
+      if (parsedState) {
+        importMmlCallback(parsedState);
+      }
+    }
+
+    setActive(MmlOverlay.None);
   };
 
   const onClose = () => {

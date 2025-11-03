@@ -43,7 +43,7 @@ export default function SectionButton({
   setSection: (section: CatalogPartKey | "bodyType") => void;
   active: boolean;
   droppable: boolean;
-  dropOver: CatalogPartKey | "window" | null;
+  dropOver: CatalogPartKey | "bodyType" | "window" | null;
 }) {
   const IconComponent = useMemo(() => {
     return ICONS[slot];

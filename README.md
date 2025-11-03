@@ -124,7 +124,7 @@ model in the data, and the app will append \_01 to \_07 based on the selected sk
 - **Hair** - is a simple slot.
 
 - **Top** - can have `secondary` property, which will add an additional GLB for that slot.
-  AvatarLoader will load it as `top:secondary`. If slot has `torso:true`, then torso will be when
+  AvatarLoader will load it as `topSecondary`. If slot has `torso:true`, then torso will be when
   this slot is loaded - this is common for shirts, while e.g. Hoodie covers whole torso so by
   default it will not be rendering torso.
 
