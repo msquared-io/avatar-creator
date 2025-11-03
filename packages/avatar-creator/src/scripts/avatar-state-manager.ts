@@ -112,7 +112,7 @@ export class AvatarStateManager {
     const newMode = this.currentState.outfit ? "outfit" : "individual";
 
     // If mode changed, mark for root entity recreation to handle incompatible root structures
-    if (this.currentMode && this.currentMode !== newMode) {
+    if (this.currentMode && this.currentMode !== newMode || this.currentState.outfit) {
       this.avatarLoader.markForRootEntityRecreation();
     }
 
