@@ -96,10 +96,6 @@ export class AvatarLoader extends EventHandler {
     this.createOrRecreateRootEntity(asset, false);
   }
 
-  recreateRootEntity(asset: Asset) {
-    this.createOrRecreateRootEntity(asset, true);
-  }
-
   private createOrRecreateRootEntity(asset: Asset, forceRecreate: boolean = false) {
     if (this.entity && !forceRecreate && !this.needsRootEntityRecreation) return;
 
