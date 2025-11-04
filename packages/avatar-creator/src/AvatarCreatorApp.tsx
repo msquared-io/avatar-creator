@@ -266,7 +266,6 @@ export function AvatarCreatorApp({
           }}
           appState={appState}
           app={app}
-          importBehavior={importBehavior}
         />
       )}
 
