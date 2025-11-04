@@ -316,7 +316,6 @@ export class AvatarLoader extends EventHandler {
       asset = new Asset(url, "container", {
         url,
         filename: name,
-        hash: url,
       });
       this.app.assets.add(asset);
       this.assetsCacheByUrl.set(url, asset);
@@ -442,7 +441,7 @@ export class AvatarLoader extends EventHandler {
   updateStats() {
     if (!this.debugAssets) return;
 
-    console.log(
+    this.fire(
       "stats",
       JSON.stringify(
         {
