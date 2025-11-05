@@ -21,6 +21,7 @@ import { CatalogueData } from "./CatalogueData";
 import ButtonCustomize from "./components/ButtonCustomize";
 import Configurator from "./components/Configurator";
 import { Emotes } from "./components/Emotes";
+import Logo from "./components/Logo";
 import { MmlButtons } from "./components/MmlButtons";
 import Renderer from "./components/Renderer";
 import { AvatarLoader } from "./scripts/avatar-loader";
@@ -42,6 +43,7 @@ type AvatarCreatorAppProps = {
   isPreviewMode?: boolean;
   skyboxUrls?: string[];
   maximumFrameRate?: number;
+  customLogoUrl?: string;
 };
 
 playcanvas.WasmModule.setConfig("DracoDecoderModule", {
@@ -58,6 +60,7 @@ export function AvatarCreatorApp({
   isPreviewMode = false,
   skyboxUrls,
   maximumFrameRate,
+  customLogoUrl,
 }: AvatarCreatorAppProps = {}) {
   const [app, setApp] = useState<AppBase | null>(null);
   const [data, setData] = useState<Catalog | null>(null);
@@ -251,6 +254,7 @@ export function AvatarCreatorApp({
       <Renderer onInitialize={setApp} skyboxUrls={skyboxUrls} maximumFrameRate={maximumFrameRate} />
       <div className={styles.spinner} />
       <div className={styles.separatorLine} />
+      <Logo appState={appState} customLogoUrl={customLogoUrl} />
 
       {data && avatarLoader && !isPreviewMode && (
         <ButtonCustomize label="Customize" onStateChange={setAppState} appState={appState} />

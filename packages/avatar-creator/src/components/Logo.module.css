@@ -1,0 +1,33 @@
+.logo {
+    position: absolute;
+    top: 56px;
+    left: -72px;
+    opacity: 0;
+    transition:
+        left 100ms,
+        opacity 100ms;
+}
+
+.logoVisible {
+    left: 80px;
+    opacity: 1;
+}
+
+.customLogoImage {
+    display: block;
+    max-width: 108px;
+    max-height: 108px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+@media screen and (max-width: 1024px) {
+    .logoVisible {
+        left: 30px;
+    }
+
+    .logo {
+        top: 30px;
+    }
+}
