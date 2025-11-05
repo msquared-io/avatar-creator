@@ -30,4 +30,14 @@
     .logo {
         top: 30px;
     }
+
+    .customLogoImage {
+        max-width: 72px;
+        max-height: 72px;
+    }
+
+    .logo svg {
+        width: 48px;
+        height: 48px;
+    }
 }
