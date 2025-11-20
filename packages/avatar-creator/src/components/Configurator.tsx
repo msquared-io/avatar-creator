@@ -185,6 +185,10 @@ export default function Configurator({
     if (!bodyTypeData) {
       return false;
     }
+    if (slot === "outfit") {
+      // For outfits we show if there are any parts, not more than one, because we do not assume it will be selected automatically.
+      return !!bodyTypeData.parts[slot] && bodyTypeData.parts[slot].parts.length > 0;
+    }
     const slotData = bodyTypeData.parts[slot];
     return !!slotData?.parts && slotData.parts.length > 1;
   };
