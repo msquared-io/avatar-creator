@@ -31,7 +31,7 @@ export function getAvatarMml(stateManager: AvatarStateManager, formatted: boolea
 
   // Add all other parts as m-model elements
   for (const [key, url] of urls.entries()) {
-    if (key === "torso" || key === "outfit" || key === "legs") continue;
+    if (key === "torso" || key === "outfit") continue;
 
     code += `${formatted ? "\t" : ""}<m-model class="${key}" src="${encodeURI(url)}"></m-model>${formatted ? "\n" : ""}`;
   }
